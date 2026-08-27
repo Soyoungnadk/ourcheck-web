@@ -1,0 +1,1148 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="내 자산·거주지·무주택 여부·청약통장 조건으로 청약 공고의 신청 가능 여부와 근거를 확인하는 규칙 시뮬레이터.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#eef0f5" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#101319" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8F%A0%3C/text%3E%3C/svg%3E">
+
+<meta property="og:title" content="ourcheck 판정 시뮬레이터">
+<meta property="og:description" content="내 자산·거주지·무주택 여부·청약통장 조건으로 청약 공고의 신청 가능 여부와 근거를 확인하는 규칙 시뮬레이터.">
+<meta property="og:type" content="website">
+
+<title>ourcheck 판정 시뮬레이터</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hahmlet:wght@500;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+
+<style>
+  /* ── 토큰: 라이트가 기본 ───────────────────────────────── */
+  :root {
+    --paper:      #eef0f5;
+    --surface:    #ffffff;
+    --surface-2:  #f6f7fa;
+    --line:       #d9dde6;
+    --line-soft:  #e7eaf1;
+    --ink:        #141922;
+    --ink-2:      #4b5364;
+    --ink-3:      #7b8496;
+
+    --accent:     #2f3e8c;
+    --accent-2:   #4a5cb8;
+    --accent-wash:#e7eaf7;
+
+    --pass:       #1f6f4a;
+    --pass-wash:  #e2f0e8;
+    --fail:       #b23a2e;
+    --fail-wash:  #f8e6e3;
+    --note:       #6b7385;
+    --note-wash:  #eceef3;
+
+    --apt:        #2f3e8c;
+    --oft:        #6b4a9e;
+    --rem:        #a8631a;
+
+    --shadow: 0 1px 2px rgba(20, 25, 34, .05), 0 8px 24px -16px rgba(20, 25, 34, .3);
+
+    --sans: "IBM Plex Sans KR", system-ui, -apple-system, "Malgun Gothic", sans-serif;
+    --serif: "Hahmlet", "IBM Plex Sans KR", Georgia, serif;
+    --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:      #101319;
+      --surface:    #191d26;
+      --surface-2:  #1f242f;
+      --line:       #2e3440;
+      --line-soft:  #262b36;
+      --ink:        #e6e9f0;
+      --ink-2:      #a8b0c0;
+      --ink-3:      #78808f;
+
+      --accent:     #93a4ef;
+      --accent-2:   #b0bcf5;
+      --accent-wash:#232941;
+
+      --pass:       #5ec18c;
+      --pass-wash:  #17301f;
+      --fail:       #f08472;
+      --fail-wash:  #351d1a;
+      --note:       #8a93a5;
+      --note-wash:  #242833;
+
+      --apt:        #93a4ef;
+      --oft:        #b795e8;
+      --rem:        #e0a355;
+
+      --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 10px 30px -18px rgba(0, 0, 0, .9);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper:      #101319;
+    --surface:    #191d26;
+    --surface-2:  #1f242f;
+    --line:       #2e3440;
+    --line-soft:  #262b36;
+    --ink:        #e6e9f0;
+    --ink-2:      #a8b0c0;
+    --ink-3:      #78808f;
+
+    --accent:     #93a4ef;
+    --accent-2:   #b0bcf5;
+    --accent-wash:#232941;
+
+    --pass:       #5ec18c;
+    --pass-wash:  #17301f;
+    --fail:       #f08472;
+    --fail-wash:  #351d1a;
+    --note:       #8a93a5;
+    --note-wash:  #242833;
+
+    --apt:        #93a4ef;
+    --oft:        #b795e8;
+    --rem:        #e0a355;
+
+    --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 10px 30px -18px rgba(0, 0, 0, .9);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 20px 72px; }
+
+  /* ── 머리말 ─────────────────────────────────────────── */
+  header {
+    border-bottom: 1px solid var(--line);
+    background: var(--surface);
+  }
+  .head-in {
+    max-width: 1180px; margin: 0 auto; padding: 26px 20px 22px;
+    display: flex; align-items: flex-end; justify-content: space-between;
+    gap: 20px; flex-wrap: wrap;
+  }
+  h1 {
+    font-family: var(--serif);
+    font-weight: 700;
+    font-size: clamp(24px, 3.4vw, 32px);
+    letter-spacing: -.02em;
+    margin: 0 0 6px;
+    text-wrap: balance;
+  }
+  .sub { color: var(--ink-2); font-size: 14px; margin: 0; max-width: 62ch; }
+  .stamp {
+    font-family: var(--mono); font-size: 11px; font-weight: 600;
+    letter-spacing: .1em; text-transform: uppercase;
+    color: var(--accent);
+    border: 1px solid var(--accent); border-radius: 2px;
+    padding: 5px 9px; white-space: nowrap;
+  }
+
+  /* ── 레이아웃 ───────────────────────────────────────── */
+  .grid {
+    display: grid; grid-template-columns: 372px minmax(0, 1fr);
+    gap: 28px; align-items: start; padding-top: 28px;
+  }
+  @media (max-width: 940px) { .grid { grid-template-columns: 1fr; } }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    box-shadow: var(--shadow);
+  }
+  .col-form { position: sticky; top: 20px; }
+  @media (max-width: 940px) { .col-form { position: static; } }
+
+  .panel-head {
+    padding: 14px 18px; border-bottom: 1px solid var(--line-soft);
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  .panel-title {
+    font-size: 12px; font-weight: 700; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--ink-3); margin: 0;
+    font-family: var(--mono);
+  }
+  .panel-body { padding: 18px; }
+
+  /* ── 폼 ─────────────────────────────────────────────── */
+  fieldset { border: 0; margin: 0 0 22px; padding: 0; }
+  fieldset:last-of-type { margin-bottom: 0; }
+  legend {
+    font-size: 13px; font-weight: 700; color: var(--ink);
+    padding: 0 0 10px; margin: 0; width: 100%;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+  .field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+  .field.wide { grid-column: 1 / -1; }
+  label.lbl {
+    font-size: 12px; color: var(--ink-2); font-weight: 500;
+  }
+  input[type="number"], input[type="date"], select {
+    width: 100%; padding: 8px 10px;
+    background: var(--surface-2); color: var(--ink);
+    border: 1px solid var(--line); border-radius: 3px;
+    font-family: var(--sans); font-size: 14px;
+  }
+  /* iOS 는 16px 미만 입력에 초점이 가면 화면을 확대해 버린다 */
+  @media (max-width: 940px) {
+    input[type="number"], input[type="date"], select { font-size: 16px; }
+  }
+  input[type="number"] { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  input:focus-visible, select:focus-visible, button:focus-visible, summary:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px;
+  }
+  .unit { font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
+
+  .checks { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .chk {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 10px; border: 1px solid var(--line); border-radius: 3px;
+    background: var(--surface-2); font-size: 13px; cursor: pointer;
+    user-select: none;
+  }
+  .chk input { accent-color: var(--accent); margin: 0; }
+  .chk:has(input:checked) {
+    border-color: var(--accent); background: var(--accent-wash); color: var(--accent);
+    font-weight: 600;
+  }
+
+  .budget-strip {
+    margin-top: 12px; padding: 12px 14px;
+    background: var(--accent-wash); border-radius: 3px;
+    display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+  }
+  .budget-strip .k { font-size: 12px; color: var(--accent); font-weight: 600; }
+  .budget-strip .v {
+    font-family: var(--serif); font-weight: 700; font-size: 20px;
+    color: var(--accent); font-variant-numeric: tabular-nums;
+  }
+
+  /* ── 요약 ───────────────────────────────────────────── */
+  .summary {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    border: 1px solid var(--line); border-radius: 4px;
+    background: var(--surface); box-shadow: var(--shadow); overflow: hidden;
+  }
+  .sum-cell { padding: 16px 18px; border-right: 1px solid var(--line-soft); }
+  .sum-cell:last-child { border-right: 0; }
+  .sum-k {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--ink-3); margin: 0 0 4px;
+  }
+  .sum-v {
+    font-family: var(--serif); font-weight: 700; font-size: 26px;
+    line-height: 1.1; font-variant-numeric: tabular-nums;
+  }
+  .sum-v.pass { color: var(--pass); }
+  .sum-v.fail { color: var(--fail); }
+  @media (max-width: 560px) {
+    .summary { grid-template-columns: 1fr; }
+    .sum-cell { border-right: 0; border-bottom: 1px solid var(--line-soft); }
+  }
+
+  /* ── 공고 카드 ──────────────────────────────────────── */
+  .cards { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
+
+  details.card {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 4px; box-shadow: var(--shadow);
+    border-left: 3px solid var(--edge, var(--note));
+  }
+  details.card[data-verdict="pass"] { --edge: var(--pass); }
+  details.card[data-verdict="fail"] { --edge: var(--fail); }
+
+  summary {
+    list-style: none; cursor: pointer; padding: 15px 18px;
+    display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: start;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary:hover .name { color: var(--accent); }
+
+  .meta-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 7px; }
+  .tag {
+    font-family: var(--mono); font-size: 10.5px; font-weight: 600;
+    letter-spacing: .06em; padding: 3px 7px; border-radius: 2px;
+    border: 1px solid currentColor;
+  }
+  .tag.apt { color: var(--apt); }
+  .tag.officetel { color: var(--oft); }
+  .tag.remnant { color: var(--rem); }
+  .tag.reg { color: var(--fail); }
+  .region { font-size: 12.5px; color: var(--ink-3); }
+
+  .name {
+    font-family: var(--serif); font-weight: 700; font-size: 18px;
+    letter-spacing: -.01em; margin: 0 0 6px; transition: color .12s;
+  }
+  .facts {
+    display: flex; gap: 16px; flex-wrap: wrap;
+    font-size: 13px; color: var(--ink-2);
+    font-variant-numeric: tabular-nums;
+  }
+  .facts b { color: var(--ink); font-weight: 600; }
+
+  .verdict { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+  .badge {
+    font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 2px;
+    white-space: nowrap;
+  }
+  .badge.pass { background: var(--pass-wash); color: var(--pass); }
+  .badge.fail { background: var(--fail-wash); color: var(--fail); }
+  .score {
+    font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+  }
+  .blockers { font-size: 12px; color: var(--fail); font-weight: 600; max-width: 190px; }
+
+  /* 좁은 화면에서는 판정 뱃지를 아래로 내려 이름이 눌리지 않게 한다 */
+  @media (max-width: 560px) {
+    summary { grid-template-columns: 1fr; }
+    .verdict {
+      flex-direction: row; align-items: center; flex-wrap: wrap;
+      justify-content: flex-start; gap: 8px;
+      padding-top: 10px; border-top: 1px dotted var(--line);
+    }
+    .blockers { max-width: none; }
+    .name { font-size: 17px; }
+    .facts { gap: 12px; font-size: 12.5px; }
+  }
+
+  /* 근거 표 */
+  .reasons { border-top: 1px solid var(--line-soft); padding: 4px 18px 16px; }
+  .reason {
+    display: grid; grid-template-columns: 76px 1fr;
+    gap: 12px; padding: 11px 0; border-bottom: 1px dotted var(--line);
+    align-items: start;
+  }
+  .reason:last-child { border-bottom: 0; }
+  .rcode {
+    font-family: var(--mono); font-size: 10.5px; font-weight: 600;
+    letter-spacing: .05em; padding-top: 3px;
+  }
+  .rcode.pass { color: var(--pass); }
+  .rcode.fail { color: var(--fail); }
+  .rcode.note { color: var(--note); }
+  .rlabel { font-size: 13.5px; font-weight: 600; margin: 0 0 2px; }
+  .rdetail { font-size: 13px; color: var(--ink-2); margin: 0; }
+  .roptional {
+    font-family: var(--mono); font-size: 10px; color: var(--ink-3);
+    margin-left: 6px; font-weight: 500;
+  }
+  .money-line {
+    margin-top: 12px; padding: 10px 12px; background: var(--surface-2);
+    border-radius: 3px; font-size: 13px; color: var(--ink-2);
+    font-variant-numeric: tabular-nums;
+  }
+  .money-line b { color: var(--ink); }
+
+  /* ── 규칙 참고 ──────────────────────────────────────── */
+  .ref { margin-top: 28px; }
+  .ref summary {
+    grid-template-columns: 1fr; padding: 14px 18px;
+    font-size: 13px; font-weight: 600; color: var(--ink-2);
+  }
+  .ref summary::after { content: " ▸"; color: var(--ink-3); }
+  .ref[open] summary::after { content: " ▾"; }
+  .ref-body { padding: 0 18px 18px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .tbl-scroll { overflow-x: auto; }
+  th, td {
+    text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line-soft);
+    white-space: nowrap;
+  }
+  th {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--ink-3); font-weight: 600;
+  }
+  td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; text-align: right; }
+  .ref h4 {
+    font-size: 12px; font-family: var(--mono); letter-spacing: .1em;
+    text-transform: uppercase; color: var(--ink-3); margin: 20px 0 8px;
+  }
+  .ref h4:first-child { margin-top: 4px; }
+
+  /* ── 기타 ───────────────────────────────────────────── */
+  .btn {
+    font-family: var(--sans); font-size: 13px; font-weight: 600;
+    padding: 7px 12px; border-radius: 3px; cursor: pointer;
+    background: var(--surface-2); color: var(--ink-2);
+    border: 1px solid var(--line);
+  }
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .note-box {
+    margin-top: 28px; padding: 16px 18px;
+    border: 1px solid var(--line); border-left: 3px solid var(--note);
+    border-radius: 4px; background: var(--surface);
+    font-size: 13px; color: var(--ink-2); line-height: 1.7;
+  }
+  .note-box strong { color: var(--ink); }
+  .note-box code {
+    font-family: var(--mono); font-size: 12px;
+    background: var(--surface-2); padding: 1px 5px; border-radius: 2px;
+  }
+
+  .empty {
+    padding: 40px 20px; text-align: center; color: var(--ink-3); font-size: 14px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="head-in">
+    <div>
+      <h1>ourcheck 판정 시뮬레이터</h1>
+      <p class="sub">
+        내 자산·거주지·무주택 여부·청약통장 조건을 넣고, 샘플 공고가
+        <strong>신청 가능한지와 그 근거</strong>를 확인합니다.
+        앱의 <code style="font-family:var(--mono);font-size:12px">matching_engine.dart</code>와 같은 규칙입니다.
+      </p>
+    </div>
+    <span class="stamp">규칙 검증용</span>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="grid">
+
+    <!-- ── 조건 입력 ───────────────────────────────── -->
+    <section class="panel col-form">
+      <div class="panel-head">
+        <h2 class="panel-title">내 조건</h2>
+        <button class="btn" id="reset" type="button">기본값으로</button>
+      </div>
+      <div class="panel-body">
+
+        <fieldset>
+          <legend>가구 구성</legend>
+          <div class="field-grid">
+            <div class="field wide">
+              <label class="lbl" for="householdType">가구 유형</label>
+              <select id="householdType">
+                <option value="single">1인 가구</option>
+                <option value="couple">배우자·예비배우자와 함께</option>
+                <option value="family">자녀 포함 가구</option>
+              </select>
+            </div>
+            <div class="field" id="wrap-marriage">
+              <label class="lbl" for="marriageDate">혼인신고일</label>
+              <input type="date" id="marriageDate">
+            </div>
+            <div class="field" id="wrap-child">
+              <label class="lbl" for="childCount">자녀 수</label>
+              <input type="number" id="childCount" min="0" max="8" step="1">
+            </div>
+          </div>
+          <div class="checks" id="wrap-prospective">
+            <label class="chk"><input type="checkbox" id="isProspectiveCouple"> 아직 혼인신고 전</label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>합산 자산 <span class="unit">단위: 만원</span></legend>
+          <div class="field-grid">
+            <div class="field">
+              <label class="lbl" for="selfCash">본인 현금</label>
+              <input type="number" id="selfCash" min="0" step="100">
+            </div>
+            <div class="field">
+              <label class="lbl" for="selfLoanLimit">본인 대출 가능</label>
+              <input type="number" id="selfLoanLimit" min="0" step="100">
+            </div>
+            <div class="field" id="wrap-pcash">
+              <label class="lbl" for="partnerCash">파트너 현금</label>
+              <input type="number" id="partnerCash" min="0" step="100">
+            </div>
+            <div class="field" id="wrap-ploan">
+              <label class="lbl" for="partnerLoanLimit">파트너 대출 가능</label>
+              <input type="number" id="partnerLoanLimit" min="0" step="100">
+            </div>
+          </div>
+          <div class="budget-strip">
+            <span class="k">합산 가용 자금</span>
+            <span class="v" id="budgetOut">—</span>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>거주지 · 무주택</legend>
+          <div class="field-grid">
+            <div class="field">
+              <label class="lbl" for="residenceSido">거주 시·도</label>
+              <select id="residenceSido">
+                <option>서울특별시</option>
+                <option>경기도</option>
+                <option>인천광역시</option>
+                <option>부산광역시</option>
+                <option>대구광역시</option>
+                <option>대전광역시</option>
+                <option>광주광역시</option>
+                <option>울산광역시</option>
+                <option>세종특별자치시</option>
+                <option>강원특별자치도</option>
+                <option>충청북도</option>
+                <option>충청남도</option>
+                <option>전북특별자치도</option>
+                <option>전라남도</option>
+                <option>경상북도</option>
+                <option>경상남도</option>
+                <option>제주특별자치도</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="lbl" for="residenceSince">전입일</label>
+              <input type="date" id="residenceSince">
+            </div>
+            <div class="field wide">
+              <label class="lbl" for="homelessSince">무주택 기간 기산일</label>
+              <input type="date" id="homelessSince">
+            </div>
+          </div>
+          <div class="checks">
+            <label class="chk"><input type="checkbox" id="isHomeless" checked> 무주택</label>
+            <label class="chk"><input type="checkbox" id="ownsHouse"> 현재 보유 주택 있음</label>
+            <label class="chk"><input type="checkbox" id="isHouseholder" checked> 세대주</label>
+            <label class="chk"><input type="checkbox" id="isFirstTimeBuyer" checked> 생애최초</label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>청약통장</legend>
+          <div class="field-grid">
+            <div class="field wide">
+              <label class="lbl" for="accountType">통장 종류</label>
+              <select id="accountType">
+                <option>주택청약종합저축</option>
+                <option>청약저축</option>
+                <option>청약예금</option>
+                <option>청약부금</option>
+                <option value="none">없음</option>
+              </select>
+            </div>
+            <div class="field wide">
+              <label class="lbl" for="accountOpenedAt">가입일</label>
+              <input type="date" id="accountOpenedAt">
+            </div>
+            <div class="field">
+              <label class="lbl" for="accountPaymentCount">납입 횟수 <span class="unit">회</span></label>
+              <input type="number" id="accountPaymentCount" min="0" step="1">
+            </div>
+            <div class="field">
+              <label class="lbl" for="accountTotalAmount">예치금 <span class="unit">만원</span></label>
+              <input type="number" id="accountTotalAmount" min="0" step="50">
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>관심 공고 유형</legend>
+          <div class="checks">
+            <label class="chk"><input type="checkbox" class="itype" value="APT" checked> 아파트</label>
+            <label class="chk"><input type="checkbox" class="itype" value="OFFICETEL" checked> 오피스텔</label>
+            <label class="chk"><input type="checkbox" class="itype" value="REMNANT" checked> 무순위/줍줍</label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>규칙 실험</legend>
+          <div class="checks">
+            <label class="chk"><input type="checkbox" id="remnantHomeless" checked> 무순위에 무주택 요건 적용</label>
+          </div>
+          <p style="font-size:12px;color:var(--ink-3);margin:10px 0 0;line-height:1.6">
+            무순위 자격 요건은 개정 이력이 있어 앱에서도
+            <code style="font-family:var(--mono);font-size:11px">remnantRequiresHomeless</code>
+            플래그로 분리해 뒀습니다. 껐다 켜며 결과 차이를 확인해 보세요.
+          </p>
+        </fieldset>
+
+      </div>
+    </section>
+
+    <!-- ── 판정 결과 ───────────────────────────────── -->
+    <section>
+      <div class="summary">
+        <div class="sum-cell">
+          <p class="sum-k">신청 가능</p>
+          <div class="sum-v pass" id="cntPass">0</div>
+        </div>
+        <div class="sum-cell">
+          <p class="sum-k">요건 미달</p>
+          <div class="sum-v fail" id="cntFail">0</div>
+        </div>
+        <div class="sum-cell">
+          <p class="sum-k">감당 가능 분양가</p>
+          <div class="sum-v" id="sumBudget">—</div>
+        </div>
+      </div>
+
+      <div class="cards" id="cards"></div>
+
+      <details class="panel ref">
+        <summary>적용 중인 규칙 상수 보기</summary>
+        <div class="ref-body">
+          <h4>민영주택 지역별·면적별 예치금 (만원)</h4>
+          <div class="tbl-scroll">
+            <table>
+              <thead>
+                <tr><th>지역</th><th style="text-align:right">~85㎡</th><th style="text-align:right">~102㎡</th><th style="text-align:right">~135㎡</th><th style="text-align:right">초과</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>서울 · 부산</td><td class="num">300</td><td class="num">600</td><td class="num">1,000</td><td class="num">1,500</td></tr>
+                <tr><td>그 외 광역시</td><td class="num">250</td><td class="num">400</td><td class="num">700</td><td class="num">1,000</td></tr>
+                <tr><td>기타 시 · 군</td><td class="num">200</td><td class="num">300</td><td class="num">400</td><td class="num">500</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h4>1순위 요건</h4>
+          <div class="tbl-scroll">
+            <table>
+              <thead>
+                <tr><th>지역</th><th style="text-align:right">가입 기간</th><th style="text-align:right">국민주택 납입</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>규제지역 (투기과열 · 조정)</td><td class="num">24개월</td><td class="num">24회</td></tr>
+                <tr><td>수도권 (서울 · 경기 · 인천)</td><td class="num">12개월</td><td class="num">12회</td></tr>
+                <tr><td>그 외</td><td class="num">6개월</td><td class="num">6회</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h4>그 밖의 상수</h4>
+          <div class="tbl-scroll">
+            <table>
+              <tbody>
+                <tr><td>계약금 비율</td><td class="num">10%</td><td style="white-space:normal;color:var(--ink-2)">총액이 되더라도 계약금 낼 현금이 없으면 불가로 본다</td></tr>
+                <tr><td>신혼부부 혼인 기간</td><td class="num">7년</td><td style="white-space:normal;color:var(--ink-2)">이내면 신혼부부 특별공급 대상</td></tr>
+                <tr><td>점수 배점</td><td class="num">40 / 25 / 20 / 15</td><td style="white-space:normal;color:var(--ink-2)">자금 여유 · 지역 · 통장 · 특별공급</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </details>
+
+      <div class="note-box">
+        <strong>이 페이지가 하는 일과 안 하는 일.</strong><br>
+        판정 규칙만 검증합니다. 아래 공고는 규칙을 확인하려고 만든 <strong>가상의 샘플</strong>이며,
+        실제 청약홈 데이터가 아닙니다. 브라우저에서는 공공데이터포털·법제처 API가 CORS로 막혀
+        실시간 수집은 앱에서만 동작합니다.<br><br>
+        규칙 상수는 「주택공급에 관한 규칙」을 코드로 옮긴 1차 해석입니다.
+        결과가 이상하면 <code>matching_engine.dart</code> 상단 상수와
+        <code>matching_engine_test.dart</code>를 함께 고쳐 주세요.
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ── 규칙 상수 (matching_engine.dart 와 1:1) ─────────────
+  var CAPITAL_AREA = ["서울특별시", "경기도", "인천광역시"];
+  var METRO_CITIES = ["부산광역시", "대구광역시", "인천광역시", "광주광역시", "대전광역시", "울산광역시"];
+
+  var DEPOSIT_TABLE = {
+    "서울부산": [[85, 300], [102, 600], [135, 1000], [Infinity, 1500]],
+    "광역시":   [[85, 250], [102, 400], [135, 700],  [Infinity, 1000]],
+    "기타시군": [[85, 200], [102, 300], [135, 400],  [Infinity, 500]]
+  };
+
+  var TIER1_MONTHS = { regulated: 24, capital: 12, other: 6 };
+  var TIER1_COUNT  = { regulated: 24, capital: 12, other: 6 };
+  var DOWN_PAYMENT_RATIO = 0.10;
+  var NEWLYWED_YEARS = 7;
+  var W = { budget: 40, region: 25, account: 20, special: 15 };
+
+  var TYPE_LABEL = { APT: "아파트", OFFICETEL: "오피스텔", REMNANT: "무순위/줍줍" };
+
+  // ── 유틸 ───────────────────────────────────────────────
+  function today() { var d = new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+  function addDays(base, n) { var d = new Date(base); d.setDate(d.getDate() + n); return d; }
+  function parseDate(v) { if (!v) return null; var d = new Date(v + "T00:00:00"); return isNaN(d) ? null : d; }
+  function fmtDate(d) {
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  }
+  function comma(n) { return Math.round(n).toLocaleString("ko-KR"); }
+
+  // 만원 단위 → 사람이 읽는 표기
+  function manwon(v) {
+    if (v === null || v === undefined) return "정보 없음";
+    if (Math.abs(v) >= 10000) {
+      var eok = Math.trunc(v / 10000), rest = Math.abs(v % 10000);
+      return rest === 0 ? eok + "억" : eok + "억 " + comma(rest) + "만";
+    }
+    return comma(v) + "만원";
+  }
+
+  function monthsBetween(start, end) {
+    if (!start) return 0;
+    var m = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+    if (end.getDate() < start.getDate()) m -= 1;
+    return m < 0 ? 0 : m;
+  }
+  function yearsBetween(start, end) {
+    if (!start) return 0;
+    return (end - start) / (1000 * 60 * 60 * 24 * 365.25);
+  }
+  function regionGroup(sido) {
+    if (sido === "서울특별시" || sido === "부산광역시") return "서울부산";
+    return METRO_CITIES.indexOf(sido) >= 0 ? "광역시" : "기타시군";
+  }
+  function requiredDeposit(sido, area) {
+    var table = DEPOSIT_TABLE[regionGroup(sido)];
+    var a = area || 85;
+    for (var i = 0; i < table.length; i++) if (a <= table[i][0]) return table[i][1];
+    return table[table.length - 1][1];
+  }
+  function reason(code, label, passed, detail, required) {
+    return { code: code, label: label, passed: passed, detail: detail, required: required !== false };
+  }
+
+  // ── 개별 규칙 ──────────────────────────────────────────
+  function checkType(p, n) {
+    var wanted = p.interestTypes.length ? p.interestTypes : ["APT", "OFFICETEL", "REMNANT"];
+    var passed = wanted.indexOf(n.type) >= 0;
+    return reason("TYPE", "관심 공고 유형", passed,
+      passed ? TYPE_LABEL[n.type] + " 공고" : TYPE_LABEL[n.type] + " — 관심 유형에 없음");
+  }
+
+  function checkSchedule(n, now) {
+    var end = n.receiptEnd || n.receiptBegin;
+    if (!end) return reason("SCHEDULE", "청약 일정", false, "접수 일정 정보가 없음");
+    if (end < now) return reason("SCHEDULE", "청약 일정", false, fmtDate(end) + " 접수 마감");
+    if (n.receiptBegin && n.receiptBegin > now) {
+      var d = Math.round((n.receiptBegin - now) / 86400000);
+      return reason("SCHEDULE", "청약 일정", true, fmtDate(n.receiptBegin) + " 접수 시작 (D-" + d + ")");
+    }
+    return reason("SCHEDULE", "청약 일정", true, fmtDate(end) + "까지 접수 중");
+  }
+
+  function checkRegion(p, n, now) {
+    if (!n.sido) return reason("REGION", "지역 요건", true, "공고 지역 정보 없음 — 공고문 확인 필요", false);
+    if (!p.residenceSido) return reason("REGION", "지역 요건", true, "관심 지역 미설정 — 전국 대상", false);
+
+    if (n.sido.indexOf(p.residenceSido) >= 0) {
+      var m = monthsBetween(p.residenceSince, now);
+      var detail = n.sido + " 해당 지역 거주";
+      if (m > 0) detail += " (거주 " + Math.floor(m / 12) + "년 " + (m % 12) + "개월)";
+      return reason("REGION", "지역 요건", true, detail);
+    }
+    if (CAPITAL_AREA.indexOf(n.sido) >= 0 && CAPITAL_AREA.indexOf(p.residenceSido) >= 0) {
+      return reason("REGION", "지역 요건", true, "수도권 기타 지역 자격으로 신청 가능", false);
+    }
+    return reason("REGION", "지역 요건", false,
+      n.sido + " 거주자 우선 — 현재 거주지(" + p.residenceSido + ")와 다름");
+  }
+
+  function checkHomeless(p, n, now) {
+    if (n.type === "OFFICETEL") {
+      return reason("HOMELESS", "무주택 요건", true, "오피스텔은 주택 소유 여부와 무관하게 신청 가능", false);
+    }
+    if (n.type === "REMNANT" && !p.remnantRequiresHomeless) {
+      return reason("HOMELESS", "무주택 요건", true, "무순위 공고 — 무주택 요건 미적용", false);
+    }
+    if (!p.isHomeless || p.ownsHouse) {
+      return reason("HOMELESS", "무주택 요건", false, "보유 주택 있음");
+    }
+    var y = yearsBetween(p.homelessSince, now);
+    return reason("HOMELESS", "무주택 요건", true,
+      y > 0 ? "무주택 세대구성원 (무주택 기간 " + y.toFixed(1) + "년)" : "무주택 세대구성원");
+  }
+
+  function checkAccount(p, n, now) {
+    if (n.type === "REMNANT") {
+      return reason("ACCOUNT", "청약통장", true, "무순위 공고 — 청약통장 불필요", false);
+    }
+    if (p.accountType === "none" || !p.accountOpenedAt) {
+      return reason("ACCOUNT", "청약통장", false, "청약통장 정보가 없음");
+    }
+
+    var months = monthsBetween(p.accountOpenedAt, now);
+    var key, areaLabel;
+    if (n.isSpeculationArea) { key = "regulated"; areaLabel = "규제지역"; }
+    else if (CAPITAL_AREA.indexOf(n.sido) >= 0) { key = "capital"; areaLabel = "수도권"; }
+    else { key = "other"; areaLabel = "비수도권"; }
+
+    var needMonths = TIER1_MONTHS[key], needCount = TIER1_COUNT[key];
+
+    if (months < needMonths) {
+      return reason("ACCOUNT", "청약통장", false,
+        areaLabel + " 1순위 가입기간 " + needMonths + "개월 필요 — 현재 " + months + "개월");
+    }
+    if (n.isNationalHousing) {
+      if (p.accountPaymentCount < needCount) {
+        return reason("ACCOUNT", "청약통장", false,
+          "국민주택 1순위 납입 " + needCount + "회 필요 — 현재 " + p.accountPaymentCount + "회");
+      }
+      return reason("ACCOUNT", "청약통장", true,
+        "국민주택 1순위 충족 (가입 " + months + "개월 · 납입 " + p.accountPaymentCount + "회)");
+    }
+    var need = requiredDeposit(n.sido, n.area);
+    if (p.accountTotalAmount < need) {
+      return reason("ACCOUNT", "청약통장", false,
+        "민영주택 예치금 " + need + "만원 필요 — 현재 " + p.accountTotalAmount + "만원");
+    }
+    return reason("ACCOUNT", "청약통장", true,
+      "민영주택 1순위 충족 (가입 " + months + "개월 · 예치금 " + p.accountTotalAmount + "만원)");
+  }
+
+  function checkBudget(p, n) {
+    if (n.price === null || n.price === undefined) {
+      return { reason: reason("BUDGET", "자금 요건", true, "분양가 미공개 — 공고문 확인 필요", false), gap: null, cash: null };
+    }
+    var budget = p.totalBudget, gap = n.price - budget;
+    var cash = Math.round(n.price * DOWN_PAYMENT_RATIO);
+
+    if (gap > 0) {
+      return {
+        reason: reason("BUDGET", "자금 요건", false,
+          "분양가 " + comma(n.price) + "만원 · 가용자금 " + comma(budget) + "만원 — " + comma(gap) + "만원 부족"),
+        gap: gap, cash: cash
+      };
+    }
+    if (p.totalCash < cash) {
+      return {
+        reason: reason("BUDGET", "자금 요건", false,
+          "계약금 약 " + comma(cash) + "만원 필요 — 보유 현금 " + comma(p.totalCash) + "만원"),
+        gap: gap, cash: cash
+      };
+    }
+    return {
+      reason: reason("BUDGET", "자금 요건", true,
+        "분양가 " + comma(n.price) + "만원 · 가용자금 " + comma(budget) + "만원 (여유 " + comma(-gap) + "만원)"),
+      gap: gap, cash: cash
+    };
+  }
+
+  function checkSpecial(p, n, now) {
+    if (n.type === "REMNANT") {
+      return reason("SPECIAL", "특별공급", false, "무순위는 특별공급 없음", false);
+    }
+    var types = [];
+    if (p.marriageDate && yearsBetween(p.marriageDate, now) <= NEWLYWED_YEARS) types.push("신혼부부");
+    else if (p.isProspectiveCouple) types.push("예비신혼부부");
+    if (p.isFirstTimeBuyer) types.push("생애최초");
+    if (p.childCount >= 2) types.push("다자녀");
+
+    if (!types.length) {
+      return reason("SPECIAL", "특별공급", false, "해당 특별공급 유형 없음 — 일반공급 대상", false);
+    }
+    return reason("SPECIAL", "특별공급", true,
+      types.join(", ") + " 특별공급 신청 가능 (소득·자산 요건은 공고문 확인)", false);
+  }
+
+  function score(reasons, gap, n) {
+    var by = {};
+    reasons.forEach(function (r) { by[r.code] = r; });
+    var s = 0;
+
+    if (gap === null) s += Math.floor(W.budget / 2);
+    else if (gap <= 0) {
+      var price = n.price || 1;
+      var margin = Math.min(-gap / price, 1);
+      s += Math.round(W.budget * (0.6 + 0.4 * margin));
+    }
+    if (by.REGION && by.REGION.passed) s += by.REGION.required ? W.region : Math.floor(W.region / 2);
+    if (by.ACCOUNT && by.ACCOUNT.passed) s += W.account;
+    if (by.SPECIAL && by.SPECIAL.passed) s += W.special;
+
+    return Math.max(0, Math.min(s, 100));
+  }
+
+  function evaluate(p, n, now) {
+    var budget = checkBudget(p, n);
+    var reasons = [
+      checkType(p, n),
+      checkSchedule(n, now),
+      checkRegion(p, n, now),
+      checkHomeless(p, n, now),
+      checkAccount(p, n, now),
+      budget.reason,
+      checkSpecial(p, n, now)
+    ];
+    var eligible = reasons.filter(function (r) { return r.required; })
+                          .every(function (r) { return r.passed; });
+    return {
+      eligible: eligible,
+      score: score(reasons, budget.gap, n),
+      budgetGap: budget.gap,
+      requiredCash: budget.cash,
+      reasons: reasons
+    };
+  }
+
+  // ── 샘플 공고 (가상 데이터) ────────────────────────────
+  var T = today();
+  var NOTICES = [
+    { name: "성수 리버뷰 아이파크", type: "APT", sido: "서울특별시", sigungu: "성동구",
+      isNationalHousing: false, isSpeculationArea: false, price: 98000, area: 84.97,
+      supply: 412, begin: 5, end: 7 },
+
+    { name: "역삼 센트럴 스카이", type: "APT", sido: "서울특별시", sigungu: "강남구",
+      isNationalHousing: false, isSpeculationArea: true, price: 152000, area: 84.99,
+      supply: 268, begin: 12, end: 14 },
+
+    { name: "하남 교산 A3블록", type: "APT", sido: "경기도", sigungu: "하남시",
+      isNationalHousing: true, isSpeculationArea: false, price: 54000, area: 59.94,
+      supply: 730, begin: 3, end: 5 },
+
+    { name: "검단 신도시 파크뷰", type: "APT", sido: "인천광역시", sigungu: "서구",
+      isNationalHousing: false, isSpeculationArea: false, price: 42000, area: 74.88,
+      supply: 596, begin: 9, end: 11 },
+
+    { name: "대연 하버시티", type: "APT", sido: "부산광역시", sigungu: "남구",
+      isNationalHousing: false, isSpeculationArea: false, price: 61000, area: 84.92,
+      supply: 344, begin: 7, end: 9 },
+
+    { name: "합정 스테이션 레지던스", type: "OFFICETEL", sido: "서울특별시", sigungu: "마포구",
+      isNationalHousing: false, isSpeculationArea: false, price: 39000, area: 49.72,
+      supply: 158, begin: 2, end: 4 },
+
+    { name: "은평 자이 잔여세대", type: "REMNANT", sido: "서울특별시", sigungu: "은평구",
+      isNationalHousing: false, isSpeculationArea: false, price: 51000, area: 59.88,
+      supply: 7, begin: 1, end: 2 },
+
+    { name: "수성 더퍼스트", type: "APT", sido: "대구광역시", sigungu: "수성구",
+      isNationalHousing: false, isSpeculationArea: false, price: 50000, area: 84.95,
+      supply: 221, begin: -6, end: -3 }
+  ].map(function (n) {
+    return Object.assign({}, n, {
+      receiptBegin: addDays(T, n.begin),
+      receiptEnd: addDays(T, n.end)
+    });
+  });
+
+  // ── 폼 ↔ 프로필 ────────────────────────────────────────
+  var $ = function (id) { return document.getElementById(id); };
+  var STORAGE_KEY = "ourcheck.simulator.profile";
+
+  var DEFAULTS = {
+    householdType: "couple",
+    marriageDate: fmtDate(new Date(T.getFullYear() - 2, 4, 1)),
+    childCount: 0,
+    isProspectiveCouple: false,
+    selfCash: 8000, selfLoanLimit: 25000,
+    partnerCash: 5000, partnerLoanLimit: 15000,
+    residenceSido: "서울특별시",
+    residenceSince: fmtDate(new Date(T.getFullYear() - 6, 0, 1)),
+    homelessSince: fmtDate(new Date(T.getFullYear() - 10, 4, 1)),
+    isHomeless: true, ownsHouse: false, isHouseholder: true, isFirstTimeBuyer: true,
+    accountType: "주택청약종합저축",
+    accountOpenedAt: fmtDate(new Date(T.getFullYear() - 8, 2, 1)),
+    accountPaymentCount: 60, accountTotalAmount: 1500,
+    interestTypes: ["APT", "OFFICETEL", "REMNANT"],
+    remnantRequiresHomeless: true
+  };
+
+  var FIELDS = ["householdType", "marriageDate", "childCount", "selfCash", "selfLoanLimit",
+    "partnerCash", "partnerLoanLimit", "residenceSido", "residenceSince", "homelessSince",
+    "accountType", "accountOpenedAt", "accountPaymentCount", "accountTotalAmount"];
+  var FLAGS = ["isProspectiveCouple", "isHomeless", "ownsHouse", "isHouseholder",
+    "isFirstTimeBuyer", "remnantRequiresHomeless"];
+
+  function applyToForm(v) {
+    FIELDS.forEach(function (k) { if ($(k)) $(k).value = v[k]; });
+    FLAGS.forEach(function (k) { if ($(k)) $(k).checked = !!v[k]; });
+    document.querySelectorAll(".itype").forEach(function (el) {
+      el.checked = v.interestTypes.indexOf(el.value) >= 0;
+    });
+  }
+
+  function readForm() {
+    var num = function (id) { return parseInt($(id).value, 10) || 0; };
+    var p = {
+      householdType: $("householdType").value,
+      marriageDate: parseDate($("marriageDate").value),
+      childCount: num("childCount"),
+      isProspectiveCouple: $("isProspectiveCouple").checked,
+      selfCash: num("selfCash"),
+      selfLoanLimit: num("selfLoanLimit"),
+      partnerCash: num("partnerCash"),
+      partnerLoanLimit: num("partnerLoanLimit"),
+      residenceSido: $("residenceSido").value,
+      residenceSince: parseDate($("residenceSince").value),
+      homelessSince: parseDate($("homelessSince").value),
+      isHomeless: $("isHomeless").checked,
+      ownsHouse: $("ownsHouse").checked,
+      isHouseholder: $("isHouseholder").checked,
+      isFirstTimeBuyer: $("isFirstTimeBuyer").checked,
+      accountType: $("accountType").value,
+      accountOpenedAt: parseDate($("accountOpenedAt").value),
+      accountPaymentCount: num("accountPaymentCount"),
+      accountTotalAmount: num("accountTotalAmount"),
+      interestTypes: Array.prototype.map.call(
+        document.querySelectorAll(".itype:checked"), function (el) { return el.value; }),
+      remnantRequiresHomeless: $("remnantRequiresHomeless").checked
+    };
+
+    var hasPartner = p.householdType !== "single";
+    if (!hasPartner) { p.partnerCash = 0; p.partnerLoanLimit = 0; p.marriageDate = null; }
+
+    p.totalBudget = p.selfCash + p.selfLoanLimit + p.partnerCash + p.partnerLoanLimit;
+    p.totalCash = p.selfCash + p.partnerCash;
+    return p;
+  }
+
+  function save() {
+    var v = {};
+    FIELDS.forEach(function (k) { v[k] = $(k).value; });
+    FLAGS.forEach(function (k) { v[k] = $(k).checked; });
+    v.interestTypes = Array.prototype.map.call(
+      document.querySelectorAll(".itype:checked"), function (el) { return el.value; });
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(v)); } catch (e) { /* 저장 불가 환경 */ }
+  }
+
+  function load() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      var v = JSON.parse(raw);
+      return (v && v.interestTypes) ? v : null;
+    } catch (e) { return null; }
+  }
+
+  // ── 렌더 ───────────────────────────────────────────────
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[c];
+    });
+  }
+
+  function scheduleLabel(n, now) {
+    if (n.receiptBegin > now) {
+      var d = Math.round((n.receiptBegin - now) / 86400000);
+      return d === 0 ? "오늘 접수 시작" : "접수 D-" + d;
+    }
+    if (n.receiptEnd < now) return "접수 마감";
+    return (n.receiptEnd.getMonth() + 1) + "/" + n.receiptEnd.getDate() + "까지 접수";
+  }
+
+  function typeClass(t) {
+    return t === "APT" ? "apt" : (t === "OFFICETEL" ? "officetel" : "remnant");
+  }
+
+  function cardHtml(n, ev, now) {
+    var verdict = ev.eligible ? "pass" : "fail";
+    var blockers = ev.reasons
+      .filter(function (r) { return r.required && !r.passed; })
+      .map(function (r) { return r.label; });
+
+    var reasonsHtml = ev.reasons.map(function (r) {
+      var cls = r.passed ? "pass" : (r.required ? "fail" : "note");
+      var mark = r.passed ? "PASS" : (r.required ? "FAIL" : "—");
+      return '<div class="reason">' +
+        '<div class="rcode ' + cls + '">' + mark + '</div>' +
+        '<div><p class="rlabel">' + esc(r.label) +
+        (r.required ? "" : '<span class="roptional">참고</span>') + '</p>' +
+        '<p class="rdetail">' + esc(r.detail || "") + '</p></div>' +
+        '</div>';
+    }).join("");
+
+    var money = "";
+    if (ev.requiredCash !== null && ev.requiredCash !== undefined) {
+      money = '<div class="money-line">' +
+        '계약금(약 10%) <b>' + manwon(ev.requiredCash) + '</b>' +
+        (ev.budgetGap > 0
+          ? ' · 가용 자금 대비 <b style="color:var(--fail)">' + manwon(ev.budgetGap) + ' 부족</b>'
+          : ' · 자금 여유 <b>' + manwon(-ev.budgetGap) + '</b>') +
+        '</div>';
+    }
+
+    return '<details class="card" data-verdict="' + verdict + '">' +
+      '<summary>' +
+        '<div>' +
+          '<div class="meta-row">' +
+            '<span class="tag ' + typeClass(n.type) + '">' + TYPE_LABEL[n.type] + '</span>' +
+            (n.isSpeculationArea ? '<span class="tag reg">규제지역</span>' : '') +
+            (n.isNationalHousing ? '<span class="tag" style="color:var(--note)">국민주택</span>' : '') +
+            '<span class="region">' + esc(n.sido.replace("특별시", "").replace("광역시", "")) + ' ' + esc(n.sigungu) + '</span>' +
+          '</div>' +
+          '<h3 class="name">' + esc(n.name) + '</h3>' +
+          '<div class="facts">' +
+            '<span>분양가 <b>' + manwon(n.price) + '</b></span>' +
+            '<span>전용 <b>' + n.area.toFixed(1) + '㎡</b></span>' +
+            '<span>' + n.supply + '세대</span>' +
+            '<span>' + scheduleLabel(n, now) + '</span>' +
+          '</div>' +
+        '</div>' +
+        '<div class="verdict">' +
+          '<span class="badge ' + verdict + '">' + (ev.eligible ? "신청 가능" : "요건 미달") + '</span>' +
+          '<span class="score">적합도 ' + ev.score + '</span>' +
+          (blockers.length ? '<span class="blockers">' + esc(blockers.slice(0, 2).join(" · ")) + '</span>' : '') +
+        '</div>' +
+      '</summary>' +
+      '<div class="reasons">' + reasonsHtml + money + '</div>' +
+    '</details>';
+  }
+
+  function render() {
+    var p = readForm();
+    var now = today();
+
+    // 파트너 관련 입력은 가구 유형에 따라 감춘다
+    var hasPartner = p.householdType !== "single";
+    ["wrap-pcash", "wrap-ploan", "wrap-marriage", "wrap-prospective"].forEach(function (id) {
+      $(id).style.display = hasPartner ? "" : "none";
+    });
+    $("wrap-child").style.display = p.householdType === "family" ? "" : "none";
+    if (hasPartner) {
+      $("wrap-marriage").style.display = $("isProspectiveCouple").checked ? "none" : "";
+    }
+
+    $("budgetOut").textContent = manwon(p.totalBudget);
+    $("sumBudget").textContent = manwon(p.totalBudget);
+
+    var results = NOTICES.map(function (n) { return { n: n, ev: evaluate(p, n, now) }; });
+    results.sort(function (a, b) {
+      if (a.ev.eligible !== b.ev.eligible) return a.ev.eligible ? -1 : 1;
+      return b.ev.score - a.ev.score;
+    });
+
+    var pass = results.filter(function (r) { return r.ev.eligible; }).length;
+    $("cntPass").textContent = pass;
+    $("cntFail").textContent = results.length - pass;
+
+    $("cards").innerHTML = results.length
+      ? results.map(function (r) { return cardHtml(r.n, r.ev, now); }).join("")
+      : '<div class="panel empty">표시할 공고가 없습니다.</div>';
+
+    save();
+  }
+
+  // ── 초기화 ─────────────────────────────────────────────
+  applyToForm(load() || DEFAULTS);
+  render();
+
+  document.querySelector(".col-form").addEventListener("input", render);
+  document.querySelector(".col-form").addEventListener("change", render);
+  $("reset").addEventListener("click", function () {
+    applyToForm(DEFAULTS);
+    render();
+  });
+})();
+</script>
+
+</body>
+</html>
