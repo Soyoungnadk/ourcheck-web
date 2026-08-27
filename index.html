@@ -255,6 +255,52 @@
     .sum-cell { border-right: 0; border-bottom: 1px solid var(--line-soft); }
   }
 
+  /* ── 진단 카드 (왜 안 되는지) ─────────────────────────── */
+  .diag {
+    margin-top: 20px; padding: 18px;
+    background: var(--surface); border: 1px solid var(--line);
+    border-left: 3px solid var(--fail); border-radius: 4px;
+    box-shadow: var(--shadow);
+  }
+  .diag.ok { border-left-color: var(--pass); }
+  .diag h3 {
+    margin: 0 0 10px; font-family: var(--serif); font-size: 16px; font-weight: 700;
+  }
+  .diag .why { display: flex; flex-direction: column; gap: 8px; }
+  .why-row {
+    display: grid; grid-template-columns: 92px 1fr auto; gap: 10px;
+    align-items: center; font-size: 13px;
+  }
+  .why-row .rname { font-weight: 700; }
+  .bar { height: 6px; background: var(--surface-2); border-radius: 3px; overflow: hidden; }
+  .bar > i { display: block; height: 100%; background: var(--fail); }
+  .why-row .n {
+    font-family: var(--mono); font-size: 12px; color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+  }
+  .hint {
+    margin-top: 14px; padding: 12px 14px; background: var(--accent-wash);
+    border-radius: 3px; font-size: 13px; line-height: 1.6; color: var(--ink);
+  }
+  .hint b { color: var(--accent); }
+
+  /* ── 찾기 버튼 · 저장 표시 ────────────────────────────── */
+  .find-btn {
+    width: 100%; margin-top: 4px; padding: 13px 16px;
+    font-family: var(--sans); font-size: 15px; font-weight: 700;
+    color: #fff; background: var(--accent); border: 0; border-radius: 3px;
+    cursor: pointer;
+  }
+  .find-btn:hover { background: var(--accent-2); }
+  .find-btn:active { transform: translateY(1px); }
+  .saved-note {
+    margin-top: 10px; font-size: 11.5px; color: var(--ink-3);
+    display: flex; align-items: center; gap: 5px; justify-content: center;
+  }
+  .saved-note .dot {
+    width: 6px; height: 6px; border-radius: 50%; background: var(--pass);
+  }
+
   /* ── 공고 카드 ──────────────────────────────────────── */
   .cards { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
 
@@ -564,6 +610,15 @@
         </fieldset>
 
         <fieldset>
+          <legend>판정</legend>
+          <button type="button" class="find-btn" id="findBtn">내 조건으로 찾기</button>
+          <p class="saved-note">
+            <span class="dot"></span>
+            <span id="savedAt">입력값은 이 브라우저에 자동 저장됩니다</span>
+          </p>
+        </fieldset>
+
+        <fieldset>
           <legend>규칙 실험</legend>
           <div class="checks">
             <label class="chk"><input type="checkbox" id="remnantHomeless" checked> 무순위에 무주택 요건 적용</label>
@@ -594,6 +649,8 @@
           <div class="sum-v" id="sumBudget">—</div>
         </div>
       </div>
+
+      <div id="diag"></div>
 
       <div class="cards" id="cards"></div>
 
@@ -1011,7 +1068,21 @@
     FLAGS.forEach(function (k) { v[k] = $(k).checked; });
     v.interestTypes = Array.prototype.map.call(
       document.querySelectorAll(".itype:checked"), function (el) { return el.value; });
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(v)); } catch (e) { /* 저장 불가 환경 */ }
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(v));
+      markSaved();
+    } catch (e) {
+      // 시크릿 모드 등 저장이 막힌 환경
+      $("savedAt").textContent = "이 브라우저에서는 저장이 막혀 있습니다";
+    }
+  }
+
+  /// 입력이 실제로 보관됐음을 알려준다. 저장 여부가 안 보이면 매번 다시 넣게 된다.
+  function markSaved() {
+    var now = new Date();
+    var hh = String(now.getHours()).padStart(2, "0");
+    var mm = String(now.getMinutes()).padStart(2, "0");
+    $("savedAt").textContent = "저장됨 · " + hh + ":" + mm + " (이 브라우저에만)";
   }
 
   function load() {
@@ -1124,11 +1195,106 @@
     $("cntPass").textContent = pass;
     $("cntFail").textContent = results.length - pass;
 
+    $("diag").innerHTML = diagnoseHtml(results, p, pass);
+
     $("cards").innerHTML = results.length
       ? results.map(function (r) { return cardHtml(r.n, r.ev, now); }).join("")
       : '<div class="panel empty">표시할 공고가 없습니다.</div>';
 
     save();
+  }
+
+  // ── 진단: 무엇이 몇 건을 막고 있나 ─────────────────────────
+  var RULE_ORDER = ["BUDGET", "REGION", "ACCOUNT", "HOMELESS", "SCHEDULE", "TYPE"];
+  var RULE_NAME = {
+    BUDGET: "자금", REGION: "지역", ACCOUNT: "청약통장",
+    HOMELESS: "무주택", SCHEDULE: "일정", TYPE: "공고 유형"
+  };
+
+  function diagnoseHtml(results, p, pass) {
+    if (!results.length) return "";
+
+    if (pass > 0) {
+      return '<div class="diag ok">' +
+        '<h3>신청 가능한 공고가 ' + pass + '건 있습니다</h3>' +
+        '<p style="margin:0;font-size:13px;color:var(--ink-2);line-height:1.6">' +
+        '아래 목록에서 <b>신청 가능</b> 뱃지가 붙은 공고를 눌러 보세요. ' +
+        '7개 규칙의 판정 근거가 그대로 나옵니다.</p></div>';
+    }
+
+    // 필수 규칙별로 몇 건이 걸렸는지 센다
+    var counts = {};
+    results.forEach(function (r) {
+      r.ev.reasons.forEach(function (rs) {
+        if (!rs.required || rs.passed) return;
+        counts[rs.code] = (counts[rs.code] || 0) + 1;
+      });
+    });
+
+    var rows = RULE_ORDER
+      .filter(function (code) { return counts[code]; })
+      .map(function (code) {
+        var n = counts[code];
+        var pct = Math.round((n / results.length) * 100);
+        return '<div class="why-row">' +
+          '<span class="rname">' + RULE_NAME[code] + '</span>' +
+          '<span class="bar"><i style="width:' + pct + '%"></i></span>' +
+          '<span class="n">' + n + '/' + results.length + '</span>' +
+          '</div>';
+      }).join("");
+
+    return '<div class="diag">' +
+      '<h3>신청 가능한 공고가 없습니다 — 무엇이 막고 있나</h3>' +
+      '<div class="why">' + rows + '</div>' +
+      hintHtml(results, p, counts) +
+      '</div>';
+  }
+
+  /// 가장 가까운 공고 하나를 짚어 구체적으로 안내한다.
+  function hintHtml(results, p, counts) {
+    var budgetBlocked = counts.BUDGET || 0;
+
+    // 자금만 아니면 됐을 공고들 중 가장 싼 것
+    var nearBudget = results.filter(function (r) {
+      var blockers = r.ev.reasons.filter(function (rs) {
+        return rs.required && !rs.passed;
+      });
+      return blockers.length === 1 && blockers[0].code === "BUDGET" && r.n.price;
+    }).sort(function (a, b) { return a.n.price - b.n.price; })[0];
+
+    if (nearBudget) {
+      var need = nearBudget.n.price - p.totalBudget;
+      var cash = Math.round(nearBudget.n.price * 0.10);
+      var cashShort = cash - p.totalCash;
+      var msg = '<b>' + escapeHtml(nearBudget.n.name) + '</b> 은 자금만 맞으면 신청 가능합니다. ';
+      if (need > 0) {
+        msg += '분양가 ' + manwon(nearBudget.n.price) + ' 기준 <b>' + manwon(need) + '</b> 이 더 필요합니다.';
+      } else if (cashShort > 0) {
+        msg += '총액은 충분한데 계약금(약 10%) ' + manwon(cash) + ' 을 낼 현금이 <b>' + manwon(cashShort) + '</b> 모자랍니다.';
+      }
+      return '<div class="hint">' + msg + '</div>';
+    }
+
+    if (budgetBlocked === results.length) {
+      var cheapest = results.filter(function (r) { return r.n.price; })
+        .sort(function (a, b) { return a.n.price - b.n.price; })[0];
+      if (cheapest) {
+        return '<div class="hint">모든 공고가 자금 요건에서 걸렸습니다. ' +
+          '가장 저렴한 공고가 <b>' + manwon(cheapest.n.price) + '</b> 이라, ' +
+          '현재 가용 자금 ' + manwon(p.totalBudget) + ' 으로는 닿지 않습니다.<br>' +
+          '왼쪽에서 현금·대출 가능액을 조정해 보세요. (단위: 만원, 1억 = 10000)</div>';
+      }
+    }
+
+    if ((counts.REGION || 0) === results.length) {
+      return '<div class="hint">모든 공고가 <b>지역 요건</b>에서 걸렸습니다. ' +
+        '거주 시·도가 <b>' + escapeHtml(p.residenceSido) + '</b> 로 되어 있는데, ' +
+        '샘플 공고는 서울·경기·인천·부산·대구에만 있습니다. ' +
+        '거주지를 바꿔 보시거나, 실제 공고를 넣어 확인하시면 됩니다.</div>';
+    }
+
+    return '<div class="hint">왼쪽 조건을 조정하면 결과가 바로 다시 계산됩니다. ' +
+      '각 공고를 눌러 어떤 규칙에서 걸렸는지 확인해 보세요.</div>';
   }
 
   // ── 초기화 ─────────────────────────────────────────────
@@ -1137,9 +1303,20 @@
 
   document.querySelector(".col-form").addEventListener("input", render);
   document.querySelector(".col-form").addEventListener("change", render);
+
   $("reset").addEventListener("click", function () {
     applyToForm(DEFAULTS);
     render();
+  });
+
+  // 결과는 입력할 때마다 자동으로 갱신되지만, 누를 곳이 있어야 확인이 된다.
+  // 좁은 화면에서는 결과가 아래에 있어 보이지 않으므로 스크롤까지 해준다.
+  $("findBtn").addEventListener("click", function () {
+    render();
+    var target = document.getElementById("diag");
+    var summary = document.querySelector(".summary");
+    (target && target.firstChild ? target : summary)
+      .scrollIntoView({ behavior: "smooth", block: "start" });
   });
 })();
 </script>
