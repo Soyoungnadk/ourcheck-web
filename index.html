@@ -396,6 +396,45 @@
   }
   .money-line b { color: var(--ink); }
 
+  /* ── 모집공고 요약 ──────────────────────────────────── */
+  .notice-sum {
+    border-top: 1px solid var(--line); margin: 0 18px; padding: 14px 0 18px;
+  }
+  .notice-sum h4 {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--ink-3); margin: 16px 0 8px; font-weight: 600;
+  }
+  .notice-sum h4:first-child { margin-top: 0; }
+  .kv {
+    display: grid; grid-template-columns: 92px 1fr; gap: 10px;
+    padding: 5px 0; font-size: 13px; align-items: start;
+  }
+  .kv > span { color: var(--ink-3); }
+  .kv > b { font-weight: 600; }
+  .flags { display: flex; flex-wrap: wrap; gap: 5px; }
+  .flag {
+    font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 2px;
+    background: var(--fail-wash); color: var(--fail);
+  }
+  .flag.none { background: var(--note-wash); color: var(--note); font-weight: 500; }
+  table.units { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  table.units th, table.units td {
+    padding: 6px 8px; border-bottom: 1px solid var(--line-soft); white-space: nowrap;
+  }
+  table.units .num { font-family: var(--mono); text-align: right; font-variant-numeric: tabular-nums; }
+  table.units tr.sp-row td {
+    font-size: 11.5px; color: var(--ink-3); padding-top: 0; border-bottom: 0;
+    white-space: normal;
+  }
+  .pending-note {
+    margin: 6px 0 0; font-size: 12px; line-height: 1.6; color: var(--ink-3);
+  }
+  .pblanc {
+    display: inline-block; margin-top: 12px; font-size: 13px; font-weight: 700;
+    color: var(--accent); text-decoration: none;
+  }
+  .pblanc:hover { text-decoration: underline; }
+
   /* ── 규칙 참고 ──────────────────────────────────────── */
   .ref { margin-top: 28px; }
   .ref summary {
@@ -950,46 +989,842 @@
     };
   }
 
-  // ── 샘플 공고 (가상 데이터) ────────────────────────────
+  // ── 실제 청약 공고 (청약홈 API 스냅샷) ──────────────────
+  // 브라우저에서는 공공데이터포털 API 가 CORS 로 막혀 직접 부를 수 없다.
+  // 그래서 수집 시점의 실제 데이터를 구워 넣는다. 갱신은 수동이다.
   var T = today();
   var NOTICES = [
-    { name: "성수 리버뷰 아이파크", type: "APT", sido: "서울특별시", sigungu: "성동구",
-      isNationalHousing: false, isSpeculationArea: false, price: 98000, area: 84.97,
-      supply: 412, begin: 5, end: 7 },
-
-    { name: "역삼 센트럴 스카이", type: "APT", sido: "서울특별시", sigungu: "강남구",
-      isNationalHousing: false, isSpeculationArea: true, price: 152000, area: 84.99,
-      supply: 268, begin: 12, end: 14 },
-
-    { name: "하남 교산 A3블록", type: "APT", sido: "경기도", sigungu: "하남시",
-      isNationalHousing: true, isSpeculationArea: false, price: 54000, area: 59.94,
-      supply: 730, begin: 3, end: 5 },
-
-    { name: "검단 신도시 파크뷰", type: "APT", sido: "인천광역시", sigungu: "서구",
-      isNationalHousing: false, isSpeculationArea: false, price: 42000, area: 74.88,
-      supply: 596, begin: 9, end: 11 },
-
-    { name: "대연 하버시티", type: "APT", sido: "부산광역시", sigungu: "남구",
-      isNationalHousing: false, isSpeculationArea: false, price: 61000, area: 84.92,
-      supply: 344, begin: 7, end: 9 },
-
-    { name: "합정 스테이션 레지던스", type: "OFFICETEL", sido: "서울특별시", sigungu: "마포구",
-      isNationalHousing: false, isSpeculationArea: false, price: 39000, area: 49.72,
-      supply: 158, begin: 2, end: 4 },
-
-    { name: "은평 자이 잔여세대", type: "REMNANT", sido: "서울특별시", sigungu: "은평구",
-      isNationalHousing: false, isSpeculationArea: false, price: 51000, area: 59.88,
-      supply: 7, begin: 1, end: 2 },
-
-    { name: "수성 더퍼스트", type: "APT", sido: "대구광역시", sigungu: "수성구",
-      isNationalHousing: false, isSpeculationArea: false, price: 50000, area: 84.95,
-      supply: 221, begin: -6, end: -3 }
-  ].map(function (n) {
-    return Object.assign({}, n, {
-      receiptBegin: addDays(T, n.begin),
-      receiptEnd: addDays(T, n.end)
-    });
+    {
+      "name": "검암역 푸르지오 프라베뉴 (B-1BL) 공공분양주택",
+      "type": "APT",
+      "sido": "인천광역시",
+      "sigungu": "서해구",
+      "addr": "인천광역시 서해구 인천검암역세권 공공주택지구 내 B-1BL",
+      "builder": "㈜대우건설, 동부건설㈜, ㈜비에스한양, 경화건설㈜, 브니엘네이처㈜",
+      "isNationalHousing": true,
+      "isSpeculationArea": false,
+      "price": 46250,
+      "priceMax": 63910,
+      "area": 60.65,
+      "supply": 441,
+      "begin": "2026-08-31",
+      "end": "2026-09-02",
+      "special": "2026-08-31",
+      "rank1": "2026-09-01",
+      "announce": "2026-09-08",
+      "moveIn": "202907",
+      "flags": [
+        "분양가상한제",
+        "공공주택지구",
+        "대규모 택지"
+      ],
+      "url": "https://www.applyhome.co.kr/ai/aia/selectAPTLttotPblancDetail.do?houseManageNo=2026000404&pblancNo=2026000404",
+      "tel": "18000441",
+      "units": [
+        {
+          "ty": "060.6527B",
+          "area": 60.65,
+          "gen": 11,
+          "spc": 39,
+          "price": 47930,
+          "sp": {
+            "신혼부부": 10,
+            "생애최초": 8,
+            "다자녀": 5,
+            "노부모부양": 3,
+            "신생아": 5,
+            "기관추천": 8
+          }
+        },
+        {
+          "ty": "060.9495A",
+          "area": 60.95,
+          "gen": 2,
+          "spc": 23,
+          "price": 48630,
+          "sp": {
+            "신혼부부": 5,
+            "생애최초": 4,
+            "다자녀": 3,
+            "노부모부양": 2,
+            "신생아": 3,
+            "기관추천": 3,
+            "기타": 3
+          }
+        },
+        {
+          "ty": "060.9646C",
+          "area": 60.96,
+          "gen": 16,
+          "spc": 59,
+          "price": 46250,
+          "sp": {
+            "신혼부부": 15,
+            "생애최초": 11,
+            "다자녀": 8,
+            "노부모부양": 4,
+            "신생아": 8,
+            "기관추천": 13
+          }
+        },
+        {
+          "ty": "084.4783B",
+          "area": 84.48,
+          "gen": 10,
+          "spc": 40,
+          "price": 62940,
+          "sp": {
+            "신혼부부": 10,
+            "생애최초": 8,
+            "다자녀": 5,
+            "노부모부양": 3,
+            "신생아": 5,
+            "기관추천": 8,
+            "기타": 1
+          }
+        },
+        {
+          "ty": "084.9079A",
+          "area": 84.91,
+          "gen": 63,
+          "spc": 153,
+          "price": 63910,
+          "sp": {
+            "신혼부부": 43,
+            "생애최초": 31,
+            "다자녀": 20,
+            "노부모부양": 8,
+            "신생아": 20,
+            "기관추천": 28,
+            "기타": 3
+          }
+        },
+        {
+          "ty": "084.9219C",
+          "area": 84.92,
+          "gen": 3,
+          "spc": 22,
+          "price": 62340,
+          "sp": {
+            "신혼부부": 5,
+            "생애최초": 4,
+            "다자녀": 3,
+            "노부모부양": 2,
+            "신생아": 3,
+            "기관추천": 5
+          }
+        }
+      ]
+    },
+    {
+      "name": "시티오씨엘 9단지 오션파크뷰",
+      "type": "APT",
+      "sido": "인천광역시",
+      "sigungu": "미추홀구",
+      "addr": "인천광역시 미추홀구 학익동 인천 용현·학익 1블록 도시개발구역 공동3BL",
+      "builder": "아이파크현대산업개발(주),현대건설(주),(주)포스코이앤씨",
+      "isNationalHousing": false,
+      "isSpeculationArea": false,
+      "price": 48560,
+      "priceMax": 170000,
+      "area": 59.98,
+      "supply": 1949,
+      "begin": "2026-08-31",
+      "end": "2026-09-02",
+      "special": "2026-08-31",
+      "rank1": "2026-09-01",
+      "announce": "2026-09-08",
+      "moveIn": "203004",
+      "flags": [],
+      "url": "https://www.applyhome.co.kr/ai/aia/selectAPTLttotPblancDetail.do?houseManageNo=2026000388&pblancNo=2026000388",
+      "tel": "0328311141",
+      "units": [
+        {
+          "ty": "059.9801 ",
+          "area": 59.98,
+          "gen": 88,
+          "spc": 101,
+          "price": 48560,
+          "sp": {
+            "신혼부부": 18,
+            "생애최초": 13,
+            "다자녀": 18,
+            "노부모부양": 6,
+            "신생아": 28,
+            "기관추천": 18
+          }
+        },
+        {
+          "ty": "075.9096 ",
+          "area": 75.91,
+          "gen": 64,
+          "spc": 73,
+          "price": 60090,
+          "sp": {
+            "신혼부부": 13,
+            "생애최초": 9,
+            "다자녀": 13,
+            "노부모부양": 5,
+            "신생아": 20,
+            "기관추천": 13
+          }
+        },
+        {
+          "ty": "084.8878B",
+          "area": 84.89,
+          "gen": 168,
+          "spc": 198,
+          "price": 67590,
+          "sp": {
+            "신혼부부": 36,
+            "생애최초": 25,
+            "다자녀": 36,
+            "노부모부양": 11,
+            "신생아": 54,
+            "기관추천": 36
+          }
+        },
+        {
+          "ty": "084.9771A",
+          "area": 84.98,
+          "gen": 444,
+          "spc": 540,
+          "price": 71290,
+          "sp": {
+            "신혼부부": 98,
+            "생애최초": 68,
+            "다자녀": 98,
+            "노부모부양": 31,
+            "신생아": 147,
+            "기관추천": 98
+          }
+        },
+        {
+          "ty": "095.3740 ",
+          "area": 95.37,
+          "gen": 70,
+          "spc": 10,
+          "price": 77340,
+          "sp": {
+            "다자녀": 8,
+            "노부모부양": 2
+          }
+        },
+        {
+          "ty": "101.9303A",
+          "area": 101.93,
+          "gen": 40,
+          "spc": 5,
+          "price": 81790,
+          "sp": {
+            "다자녀": 4,
+            "노부모부양": 1
+          }
+        },
+        {
+          "ty": "101.9535B",
+          "area": 101.95,
+          "gen": 86,
+          "spc": 11,
+          "price": 81850,
+          "sp": {
+            "다자녀": 9,
+            "노부모부양": 2
+          }
+        },
+        {
+          "ty": "110.0371 ",
+          "area": 110.04,
+          "gen": 44,
+          "spc": 5,
+          "price": 88980,
+          "sp": {
+            "다자녀": 4,
+            "노부모부양": 1
+          }
+        },
+        {
+          "ty": "133.7832P",
+          "area": 133.78,
+          "gen": 1,
+          "spc": 0,
+          "price": 166900,
+          "sp": {}
+        },
+        {
+          "ty": "136.2904P",
+          "area": 136.29,
+          "gen": 1,
+          "spc": 0,
+          "price": 170000,
+          "sp": {}
+        }
+      ]
+    },
+    {
+      "name": "성남복정2 A1블록 신혼희망타운(공공분양)(본청약)",
+      "type": "APT",
+      "sido": "경기도",
+      "sigungu": "성남시",
+      "addr": "경기도 성남시 수정구 신흥동 81-8",
+      "builder": "(주)케이알산업, 동성건설(주)",
+      "isNationalHousing": true,
+      "isSpeculationArea": true,
+      "price": 79831,
+      "priceMax": 81214,
+      "area": 55.97,
+      "supply": 594,
+      "begin": "2026-08-31",
+      "end": "2026-09-08",
+      "special": null,
+      "rank1": "2026-08-31",
+      "announce": "2026-09-17",
+      "moveIn": "203005",
+      "flags": [
+        "투기과열지구",
+        "조정대상지역",
+        "분양가상한제",
+        "공공주택지구"
+      ],
+      "url": "https://www.applyhome.co.kr/ai/aia/selectAPTLttotPblancDetail.do?houseManageNo=2026820008&pblancNo=2026820008",
+      "tel": "0316992006",
+      "units": [
+        {
+          "ty": "055.9700A",
+          "area": 55.97,
+          "gen": 0,
+          "spc": 145,
+          "price": 79831,
+          "sp": {}
+        },
+        {
+          "ty": "055.9700B",
+          "area": 55.97,
+          "gen": 0,
+          "spc": 12,
+          "price": 79831,
+          "sp": {}
+        },
+        {
+          "ty": "055.9800C",
+          "area": 55.98,
+          "gen": 0,
+          "spc": 6,
+          "price": 79845,
+          "sp": {}
+        },
+        {
+          "ty": "056.9400T",
+          "area": 56.94,
+          "gen": 0,
+          "spc": 3,
+          "price": 81214,
+          "sp": {}
+        }
+      ]
+    },
+    {
+      "name": "호반써밋 풍무Ⅲ",
+      "type": "REMNANT",
+      "sido": "경기도",
+      "sigungu": "",
+      "addr": "김포 풍무역세권 B4블록 (경기도 김포시 사우동 458번지 일원)",
+      "builder": "주식회사 호반산업",
+      "isNationalHousing": false,
+      "isSpeculationArea": false,
+      "price": 68440,
+      "priceMax": 72210,
+      "area": 84.98,
+      "supply": 4,
+      "begin": "2026-08-31",
+      "end": "2026-08-31",
+      "special": null,
+      "rank1": null,
+      "announce": "2026-09-03",
+      "moveIn": "202905",
+      "flags": [],
+      "url": "https://www.applyhome.co.kr/ai/aia/selectAPTRemndrLttotPblancDetailView.do?houseManageNo=2026910229&pblancNo=2026910229",
+      "tel": "16707830",
+      "units": [
+        {
+          "ty": "084.9810B",
+          "area": 84.98,
+          "gen": 3,
+          "spc": 0,
+          "price": 72210,
+          "sp": {}
+        },
+        {
+          "ty": "084.9795D",
+          "area": 84.98,
+          "gen": 1,
+          "spc": 0,
+          "price": 68440,
+          "sp": {}
+        }
+      ]
+    },
+    {
+      "name": "오산헤리티지자이 1단지",
+      "type": "REMNANT",
+      "sido": "경기도",
+      "sigungu": "오산시",
+      "addr": "경기도 오산시 양산동 223번지 일원",
+      "builder": "주식회사 하나자산신탁",
+      "isNationalHousing": false,
+      "isSpeculationArea": false,
+      "price": 73380,
+      "priceMax": 78300,
+      "area": 75.47,
+      "supply": 256,
+      "begin": "2026-08-31",
+      "end": "2026-08-31",
+      "special": null,
+      "rank1": null,
+      "announce": "2026-09-03",
+      "moveIn": "202909",
+      "flags": [],
+      "url": "https://www.applyhome.co.kr/ai/aia/selectAPTRemndrLttotPblancDetailView.do?houseManageNo=2026910222&pblancNo=2026910222",
+      "tel": "16611783",
+      "units": [
+        {
+          "ty": "075.4736 ",
+          "area": 75.47,
+          "gen": 36,
+          "spc": 0,
+          "price": 73380,
+          "sp": {}
+        },
+        {
+          "ty": "084.9796A",
+          "area": 84.98,
+          "gen": 220,
+          "spc": 0,
+          "price": 78300,
+          "sp": {}
+        }
+      ]
+    },
+    {
+      "name": "장위 푸르지오 마크원(2차)",
+      "type": "REMNANT",
+      "sido": "서울특별시",
+      "sigungu": "성북구",
+      "addr": "서울특별시 성북구 장위동 68-37 일대",
+      "builder": "장위10구역주택재개발정비사업조합",
+      "isNationalHousing": false,
+      "isSpeculationArea": false,
+      "price": 73220,
+      "priceMax": 73220,
+      "area": 39.77,
+      "supply": 4,
+      "begin": "2026-09-01",
+      "end": "2026-09-01",
+      "special": null,
+      "rank1": null,
+      "announce": "2026-09-04",
+      "moveIn": "203009",
+      "flags": [],
+      "url": "https://www.applyhome.co.kr/ai/aia/selectAPTRemndrLttotPblancDetailView.do?houseManageNo=2026910224&pblancNo=2026910224",
+      "tel": "15516837",
+      "units": [
+        {
+          "ty": "039.7700A",
+          "area": 39.77,
+          "gen": 4,
+          "spc": 0,
+          "price": 73220,
+          "sp": {}
+        }
+      ]
+    },
+    {
+      "name": "창원 한신더휴 메가센텀",
+      "type": "REMNANT",
+      "sido": "경상남도",
+      "sigungu": "창원시",
+      "addr": "경상남도 창원시 마산회원구 회원동 480-31번지 일대",
+      "builder": "회원2구역주택재개발정비사업조합",
+      "isNationalHousing": false,
+      "isSpeculationArea": false,
+      "price": 27100,
+      "priceMax": 150340,
+      "area": 38.03,
+      "supply": 430,
+      "begin": "2026-09-01",
+      "end": "2026-09-01",
+      "special": null,
+      "rank1": null,
+      "announce": "2026-09-04",
+      "moveIn": "202908",
+      "flags": [],
+      "url": "https://www.applyhome.co.kr/ai/aia/selectAPTRemndrLttotPblancDetailView.do?houseManageNo=2026910223&pblancNo=2026910223",
+      "tel": "0552951117",
+      "units": [
+        {
+          "ty": "038.0314A",
+          "area": 38.03,
+          "gen": 13,
+          "spc": 0,
+          "price": 27100,
+          "sp": {}
+        },
+        {
+          "ty": "046.9070A",
+          "area": 46.91,
+          "gen": 4,
+          "spc": 0,
+          "price": 33990,
+          "sp": {}
+        },
+        {
+          "ty": "074.9730A",
+          "area": 74.97,
+          "gen": 22,
+          "spc": 0,
+          "price": 53080,
+          "sp": {}
+        },
+        {
+          "ty": "074.9705B",
+          "area": 74.97,
+          "gen": 32,
+          "spc": 0,
+          "price": 52080,
+          "sp": {}
+        },
+        {
+          "ty": "084.9692A",
+          "area": 84.97,
+          "gen": 142,
+          "spc": 0,
+          "price": 61150,
+          "sp": {}
+        },
+        {
+          "ty": "084.9734B",
+          "area": 84.97,
+          "gen": 19,
+          "spc": 0,
+          "price": 58100,
+          "sp": {}
+        },
+        {
+          "ty": "084.9704C",
+          "area": 84.97,
+          "gen": 105,
+          "spc": 0,
+          "price": 60840,
+          "sp": {}
+        },
+        {
+          "ty": "101.9695A",
+          "area": 101.97,
+          "gen": 24,
+          "spc": 0,
+          "price": 71380,
+          "sp": {}
+        },
+        {
+          "ty": "101.9772B",
+          "area": 101.98,
+          "gen": 66,
+          "spc": 0,
+          "price": 71320,
+          "sp": {}
+        },
+        {
+          "ty": "136.5534A",
+          "area": 136.55,
+          "gen": 3,
+          "spc": 0,
+          "price": 150340,
+          "sp": {}
+        }
+      ]
+    },
+    {
+      "name": "대방역 여의도 더로드캐슬(5차)",
+      "type": "REMNANT",
+      "sido": "서울특별시",
+      "sigungu": "영등포구",
+      "addr": "서울특별시 영등포구 신길동 449-11",
+      "builder": "(주)무궁화신탁",
+      "isNationalHousing": false,
+      "isSpeculationArea": false,
+      "price": 47750,
+      "priceMax": 48550,
+      "area": 24.91,
+      "supply": 3,
+      "begin": "2026-09-01",
+      "end": "2026-09-07",
+      "special": null,
+      "rank1": null,
+      "announce": "2026-09-10",
+      "moveIn": "202609",
+      "flags": [],
+      "url": "https://www.applyhome.co.kr/ai/aia/selectAPTRemndrLttotPblancDetailView.do?houseManageNo=2026910221&pblancNo=2026910221",
+      "tel": "18778079",
+      "units": [
+        {
+          "ty": "024.9100 ",
+          "area": 24.91,
+          "gen": 2,
+          "spc": 0,
+          "price": 48550,
+          "sp": {}
+        },
+        {
+          "ty": "025.3700 ",
+          "area": 25.37,
+          "gen": 1,
+          "spc": 0,
+          "price": 47750,
+          "sp": {}
+        }
+      ]
+    },
+    {
+      "name": "에스아이팰리스 강동 센텀Ⅱ(4차)",
+      "type": "REMNANT",
+      "sido": "서울특별시",
+      "sigungu": "강동구",
+      "addr": "서울특별시 강동구 길동 386-4 (길동,에스아이팰리스 강동 센텀II)",
+      "builder": "길동 386-4외 2필지",
+      "isNationalHousing": false,
+      "isSpeculationArea": false,
+      "price": 36900,
+      "priceMax": 61900,
+      "area": 27.3,
+      "supply": 7,
+      "begin": "2026-09-03",
+      "end": "2026-09-04",
+      "special": null,
+      "rank1": null,
+      "announce": "2026-09-09",
+      "moveIn": "202609",
+      "flags": [],
+      "url": "https://www.applyhome.co.kr/ai/aia/selectAPTRemndrLttotPblancDetailView.do?houseManageNo=2026910226&pblancNo=2026910226",
+      "tel": "024864386",
+      "units": [
+        {
+          "ty": "027.2967A",
+          "area": 27.3,
+          "gen": 3,
+          "spc": 0,
+          "price": 36900,
+          "sp": {}
+        },
+        {
+          "ty": "029.6544A",
+          "area": 29.65,
+          "gen": 1,
+          "spc": 0,
+          "price": 39400,
+          "sp": {}
+        },
+        {
+          "ty": "042.0337C",
+          "area": 42.03,
+          "gen": 1,
+          "spc": 0,
+          "price": 61900,
+          "sp": {}
+        },
+        {
+          "ty": "042.3953B",
+          "area": 42.4,
+          "gen": 1,
+          "spc": 0,
+          "price": 60900,
+          "sp": {}
+        },
+        {
+          "ty": "042.4793A",
+          "area": 42.48,
+          "gen": 1,
+          "spc": 0,
+          "price": 57000,
+          "sp": {}
+        }
+      ]
+    },
+    {
+      "name": "의정부우정 A2블록 공공분양주택(본청약)",
+      "type": "APT",
+      "sido": "경기도",
+      "sigungu": "의정부시",
+      "addr": "경기도 의정부시 녹양동 일원 의정부우정 공공주택지구 내 A-2블록",
+      "builder": "남광토건 주식회사, 금광기업(주), 경안종합건설 주식회사, 중앙건설 주식",
+      "isNationalHousing": true,
+      "isSpeculationArea": false,
+      "price": 40419,
+      "priceMax": 40646,
+      "area": 59.92,
+      "supply": 463,
+      "begin": "2026-09-07",
+      "end": "2026-09-17",
+      "special": null,
+      "rank1": "2026-09-07",
+      "announce": "2026-10-08",
+      "moveIn": "202905",
+      "flags": [
+        "분양가상한제",
+        "공공주택지구"
+      ],
+      "url": "https://www.applyhome.co.kr/ai/aia/selectAPTLttotPblancDetail.do?houseManageNo=2026000409&pblancNo=2026000409",
+      "tel": "0315749144",
+      "units": [
+        {
+          "ty": "059.9200A",
+          "area": 59.92,
+          "gen": 20,
+          "spc": 120,
+          "price": 40646,
+          "sp": {
+            "신혼부부": 26,
+            "생애최초": 19,
+            "다자녀": 13,
+            "노부모부양": 7,
+            "신생아": 13,
+            "기관추천": 20,
+            "기타": 22
+          }
+        },
+        {
+          "ty": "059.9600B",
+          "area": 59.96,
+          "gen": 7,
+          "spc": 38,
+          "price": 40419,
+          "sp": {
+            "신혼부부": 9,
+            "생애최초": 7,
+            "다자녀": 4,
+            "노부모부양": 2,
+            "신생아": 4,
+            "기관추천": 6,
+            "기타": 6
+          }
+        }
+      ]
+    },
+    {
+      "name": "양주회천지구 A-26블록 공공분양주택",
+      "type": "APT",
+      "sido": "경기도",
+      "sigungu": "양주시",
+      "addr": "경기도 양주시 덕정동 일원 양주신도시 택지개발지구 내 A-26블록",
+      "builder": "양우종합건설 주식회사, (주)우호건설, 주식회사 대명건설",
+      "isNationalHousing": true,
+      "isSpeculationArea": false,
+      "price": 35093,
+      "priceMax": 49201,
+      "area": 59.74,
+      "supply": 792,
+      "begin": "2026-09-14",
+      "end": "2026-09-17",
+      "special": null,
+      "rank1": "2026-09-14",
+      "announce": "2026-10-07",
+      "moveIn": "202910",
+      "flags": [
+        "분양가상한제",
+        "공공주택지구",
+        "대규모 택지"
+      ],
+      "url": "https://www.applyhome.co.kr/ai/aia/selectAPTLttotPblancDetail.do?houseManageNo=2026000416&pblancNo=2026000416",
+      "tel": "16001004",
+      "units": [
+        {
+          "ty": "059.7400A",
+          "area": 59.74,
+          "gen": 41,
+          "spc": 221,
+          "price": 35708,
+          "sp": {
+            "신혼부부": 52,
+            "생애최초": 39,
+            "다자녀": 26,
+            "노부모부양": 13,
+            "신생아": 26,
+            "기관추천": 39,
+            "기타": 26
+          }
+        },
+        {
+          "ty": "059.9100B",
+          "area": 59.91,
+          "gen": 20,
+          "spc": 112,
+          "price": 35093,
+          "sp": {
+            "신혼부부": 26,
+            "생애최초": 20,
+            "다자녀": 13,
+            "노부모부양": 7,
+            "신생아": 13,
+            "기관추천": 20,
+            "기타": 13
+          }
+        },
+        {
+          "ty": "074.6100A",
+          "area": 74.61,
+          "gen": 13,
+          "spc": 74,
+          "price": 43704,
+          "sp": {
+            "신혼부부": 17,
+            "생애최초": 13,
+            "다자녀": 9,
+            "노부모부양": 4,
+            "신생아": 9,
+            "기관추천": 13,
+            "기타": 9
+          }
+        },
+        {
+          "ty": "074.9700B",
+          "area": 74.97,
+          "gen": 12,
+          "spc": 69,
+          "price": 43718,
+          "sp": {
+            "신혼부부": 17,
+            "생애최초": 12,
+            "다자녀": 8,
+            "노부모부양": 4,
+            "신생아": 8,
+            "기관추천": 12,
+            "기타": 8
+          }
+        },
+        {
+          "ty": "084.8600A",
+          "area": 84.86,
+          "gen": 33,
+          "spc": 197,
+          "price": 49201,
+          "sp": {
+            "신혼부부": 46,
+            "생애최초": 35,
+            "다자녀": 23,
+            "노부모부양": 12,
+            "신생아": 23,
+            "기관추천": 35,
+            "기타": 23
+          }
+        }
+      ]
+    }
+  ];
+  NOTICES.forEach(function (n) {
+    n.receiptBegin = parseDate(n.begin);
+    n.receiptEnd = parseDate(n.end);
   });
+
+  var DATA_DATE = "2026-08-31";
 
   // ── 폼 ↔ 프로필 ────────────────────────────────────────
   var $ = function (id) { return document.getElementById(id); };
@@ -1110,6 +1945,14 @@
     return (n.receiptEnd.getMonth() + 1) + "/" + n.receiptEnd.getDate() + "까지 접수";
   }
 
+  function priceRange(n) {
+    if (!n.price) return '미공개';
+    if (n.priceMax && n.priceMax !== n.price) {
+      return manwon(n.price) + ' ~ ' + manwon(n.priceMax);
+    }
+    return manwon(n.price);
+  }
+
   function typeClass(t) {
     return t === "APT" ? "apt" : (t === "OFFICETEL" ? "officetel" : "remnant");
   }
@@ -1152,7 +1995,7 @@
           '</div>' +
           '<h3 class="name">' + esc(n.name) + '</h3>' +
           '<div class="facts">' +
-            '<span>분양가 <b>' + manwon(n.price) + '</b></span>' +
+            '<span>분양가 <b>' + priceRange(n) + '</b></span>' +
             '<span>전용 <b>' + n.area.toFixed(1) + '㎡</b></span>' +
             '<span>' + n.supply + '세대</span>' +
             '<span>' + scheduleLabel(n, now) + '</span>' +
@@ -1165,7 +2008,70 @@
         '</div>' +
       '</summary>' +
       '<div class="reasons">' + reasonsHtml + money + '</div>' +
+      noticeSummaryHtml(n) +
     '</details>';
+  }
+
+  // ── 모집공고 요약 ──────────────────────────────────────
+  function noticeSummaryHtml(n) {
+    var rows = (n.units || []).map(function (u) {
+      var sp = Object.keys(u.sp || {}).map(function (k) {
+        return k + ' ' + u.sp[k];
+      }).join(', ');
+      return '<tr>' +
+        '<td>' + escapeHtml(u.ty || '-') + '</td>' +
+        '<td class="num">' + (u.area != null ? u.area.toFixed(2) : '-') + '</td>' +
+        '<td class="num">' + (u.gen || 0) + '</td>' +
+        '<td class="num">' + (u.spc || 0) + '</td>' +
+        '<td class="num">' + (u.price ? comma(u.price) : '-') + '</td>' +
+        '</tr>' +
+        (sp ? '<tr class="sp-row"><td colspan="5">특별공급 — ' + escapeHtml(sp) + '</td></tr>' : '');
+    }).join('');
+
+    var schedule = [
+      ['모집공고 접수', n.begin + ' ~ ' + n.end],
+      ['특별공급', n.special],
+      ['1순위', n.rank1],
+      ['당첨자 발표', n.announce],
+      ['입주 예정', n.moveIn ? n.moveIn.slice(0, 4) + '년 ' + n.moveIn.slice(4) + '월' : null]
+    ].filter(function (r) { return r[1]; })
+     .map(function (r) {
+       return '<div class="kv"><span>' + r[0] + '</span><b>' + escapeHtml(r[1]) + '</b></div>';
+     }).join('');
+
+    var flags = (n.flags || []).length
+      ? (n.flags || []).map(function (f) {
+          return '<span class="flag">' + escapeHtml(f) + '</span>';
+        }).join('')
+      : '<span class="flag none">해당 없음</span>';
+
+    return '<div class="notice-sum">' +
+      '<h4>모집공고 요약</h4>' +
+      '<div class="kv"><span>공급 위치</span><b>' + escapeHtml(n.addr || '-') + '</b></div>' +
+      '<div class="kv"><span>공급 규모</span><b>' + (n.supply ? n.supply + '세대' : '-') +
+        ' · 주택형 ' + (n.units || []).length + '개</b></div>' +
+      (n.builder ? '<div class="kv"><span>시공/사업주체</span><b>' + escapeHtml(n.builder) + '</b></div>' : '') +
+      schedule +
+      '<div class="kv"><span>특이 사항</span><b class="flags">' + flags + '</b></div>' +
+
+      '<h4>공급 내역 · 분양가</h4>' +
+      '<div class="tbl-scroll"><table class="units">' +
+        '<thead><tr><th>주택형</th><th style="text-align:right">전용㎡</th>' +
+        '<th style="text-align:right">일반</th><th style="text-align:right">특별</th>' +
+        '<th style="text-align:right">분양가(만원)</th></tr></thead>' +
+        '<tbody>' + (rows || '<tr><td colspan="5">공개된 주택형 정보가 없습니다.</td></tr>') + '</tbody>' +
+      '</table></div>' +
+
+      '<h4>근처 시세</h4>' +
+      '<p class="pending-note">국토교통부 아파트 매매 실거래가 API 가 아직 활용신청 승인 전이라 ' +
+      '비교 시세를 넣지 못했습니다. 승인되면 이 자리에 반경 내 단지의 ' +
+      '전용면적·거래금액·건축년도·계약월이 표시됩니다.</p>' +
+
+      (n.url ? '<a class="pblanc" href="' + escapeHtml(n.url) + '" target="_blank" rel="noopener">' +
+        '청약홈에서 모집공고문 보기 →</a>' : '') +
+      '<p class="pending-note">계약금·중도금·잔금 비율과 전매제한·재당첨 제한 기간은 ' +
+      'API 로 제공되지 않습니다. 위 공고문에서 확인하세요.</p>' +
+    '</div>';
   }
 
   function render() {
