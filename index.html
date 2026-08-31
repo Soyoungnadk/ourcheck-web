@@ -426,6 +426,7 @@
     font-size: 11.5px; color: var(--ink-3); padding-top: 0; border-bottom: 0;
     white-space: normal;
   }
+  table.units .dong { font-size: 11px; color: var(--ink-3); font-weight: 400; }
   .pending-note {
     margin: 6px 0 0; font-size: 12px; line-height: 1.6; color: var(--ink-3);
   }
@@ -688,6 +689,8 @@
           <div class="sum-v" id="sumBudget">—</div>
         </div>
       </div>
+
+      <p id="dataDate" style="margin:14px 0 0;font-size:12px;color:var(--ink-3)"></p>
 
       <div id="diag"></div>
 
@@ -993,6 +996,8 @@
   // 브라우저에서는 공공데이터포털 API 가 CORS 로 막혀 직접 부를 수 없다.
   // 그래서 수집 시점의 실제 데이터를 구워 넣는다. 갱신은 수동이다.
   var T = today();
+
+  /* DATA:BEGIN — scripts/build_data.py 가 매일 갈아끼운다. 직접 고치지 말 것 */
   var NOTICES = [
     {
       "name": "검암역 푸르지오 프라베뉴 (B-1BL) 공공분양주택",
@@ -1585,6 +1590,113 @@
       ]
     },
     {
+      "name": "제일풍경채 검단Ⅳ",
+      "type": "REMNANT",
+      "sido": "인천광역시",
+      "sigungu": "검단구",
+      "addr": "인천광역시 검단구 불로동 검단신도시 AA22블록",
+      "builder": "인천검단3차피에프브이 주식회사",
+      "isNationalHousing": false,
+      "isSpeculationArea": false,
+      "price": 54900,
+      "priceMax": 54900,
+      "area": 84.93,
+      "supply": 1,
+      "begin": "2026-09-02",
+      "end": "2026-09-02",
+      "special": null,
+      "rank1": null,
+      "announce": "2026-09-07",
+      "moveIn": "202702",
+      "flags": [],
+      "url": "https://www.applyhome.co.kr/ai/aia/selectAPTRemndrLttotPblancDetailView.do?houseManageNo=2026930030&pblancNo=2026930030",
+      "tel": "0262462470",
+      "units": [
+        {
+          "ty": "084.9343A",
+          "area": 84.93,
+          "gen": 1,
+          "spc": 0,
+          "price": 54900,
+          "sp": {}
+        }
+      ]
+    },
+    {
+      "name": "세종 한신더휴 리저브Ⅱ(행정중심복합도시 1-5생활권 H5블록) [한뜰마을4단지]",
+      "type": "REMNANT",
+      "sido": "세종특별자치시",
+      "sigungu": "다솜1로",
+      "addr": "세종특별자치시 다솜1로 9",
+      "builder": "한신공영(주)",
+      "isNationalHousing": false,
+      "isSpeculationArea": false,
+      "price": 39200,
+      "priceMax": 39200,
+      "area": 84.95,
+      "supply": 1,
+      "begin": "2026-09-02",
+      "end": "2026-09-02",
+      "special": "2026-09-02",
+      "rank1": null,
+      "announce": "2026-09-07",
+      "moveIn": "202609",
+      "flags": [],
+      "url": "https://www.applyhome.co.kr/ai/aia/selectAPTRemndrLttotPblancDetailView.do?houseManageNo=2026930029&pblancNo=2026930029",
+      "tel": "0233933320",
+      "units": [
+        {
+          "ty": "084.9478B",
+          "area": 84.95,
+          "gen": 0,
+          "spc": 1,
+          "price": 39200,
+          "sp": {}
+        }
+      ]
+    },
+    {
+      "name": "의왕역 SK VIEW",
+      "type": "REMNANT",
+      "sido": "경기도",
+      "sigungu": "의왕시",
+      "addr": "경기도 의왕시 삼동 192-244번지 일원",
+      "builder": "부곡가구역주택재개발정비사업조합",
+      "isNationalHousing": false,
+      "isSpeculationArea": false,
+      "price": 87300,
+      "priceMax": 109300,
+      "area": 59.82,
+      "supply": 17,
+      "begin": "2026-09-02",
+      "end": "2026-09-02",
+      "special": null,
+      "rank1": null,
+      "announce": "2026-09-07",
+      "moveIn": "202912",
+      "flags": [],
+      "url": "https://www.applyhome.co.kr/ai/aia/selectAPTRemndrLttotPblancDetailView.do?houseManageNo=2026910225&pblancNo=2026910225",
+      "tel": "0314271857",
+      "units": [
+        {
+          "ty": "059.8216A",
+          "area": 59.82,
+          "gen": 4,
+          "spc": 0,
+          "price": 87300,
+          "sp": {}
+        },
+        {
+          "ty": "084.6871A",
+          "area": 84.69,
+          "gen": 13,
+          "spc": 0,
+          "price": 109300,
+          "sp": {}
+        }
+      ]
+    },
+    {
       "name": "에스아이팰리스 강동 센텀Ⅱ(4차)",
       "type": "REMNANT",
       "sido": "서울특별시",
@@ -1645,6 +1757,135 @@
           "gen": 1,
           "spc": 0,
           "price": 57000,
+          "sp": {}
+        }
+      ]
+    },
+    {
+      "name": "문수데시앙2단지 공가세대 일반공급",
+      "type": "APT",
+      "sido": "울산광역시",
+      "sigungu": "울주군",
+      "addr": "울산광역시 울주군 청량읍 율리영해2길 7 (문수데시앙 2단지 아파트) ",
+      "builder": "(주)태영건설",
+      "isNationalHousing": true,
+      "isSpeculationArea": false,
+      "price": 22100,
+      "priceMax": 27900,
+      "area": 59.8,
+      "supply": 22,
+      "begin": "2026-09-07",
+      "end": "2026-09-08",
+      "special": null,
+      "rank1": "2026-09-07",
+      "announce": "2026-09-14",
+      "moveIn": "202610",
+      "flags": [
+        "공공주택지구"
+      ],
+      "url": "https://www.applyhome.co.kr/ai/aia/selectAPTLttotPblancDetail.do?houseManageNo=2026000401&pblancNo=2026000401",
+      "tel": "0522198485",
+      "units": [
+        {
+          "ty": "059.8041A",
+          "area": 59.8,
+          "gen": 11,
+          "spc": 0,
+          "price": 22100,
+          "sp": {}
+        },
+        {
+          "ty": "059.9289B",
+          "area": 59.93,
+          "gen": 9,
+          "spc": 0,
+          "price": 22350,
+          "sp": {}
+        },
+        {
+          "ty": "074.8096A",
+          "area": 74.81,
+          "gen": 2,
+          "spc": 0,
+          "price": 27900,
+          "sp": {}
+        }
+      ]
+    },
+    {
+      "name": "브라운스톤 월곡 센트럴",
+      "type": "APT",
+      "sido": "서울특별시",
+      "sigungu": "성북구",
+      "addr": "서울특별시 성북구 하월곡동 70-4번지 일원",
+      "builder": "이수건설 주식회사",
+      "isNationalHousing": false,
+      "isSpeculationArea": true,
+      "price": 86200,
+      "priceMax": 107500,
+      "area": 59.93,
+      "supply": 62,
+      "begin": "2026-09-07",
+      "end": "2026-09-10",
+      "special": "2026-09-07",
+      "rank1": "2026-09-08",
+      "announce": "2026-09-16",
+      "moveIn": "202903",
+      "flags": [
+        "투기과열지구",
+        "조정대상지역"
+      ],
+      "url": "https://www.applyhome.co.kr/ai/aia/selectAPTLttotPblancDetail.do?houseManageNo=2026000399&pblancNo=2026000399",
+      "tel": "15997775",
+      "units": [
+        {
+          "ty": "059.9293C",
+          "area": 59.93,
+          "gen": 9,
+          "spc": 9,
+          "price": 86200,
+          "sp": {
+            "신혼부부": 2,
+            "생애최초": 1,
+            "다자녀": 2,
+            "노부모부양": 1,
+            "신생아": 3
+          }
+        },
+        {
+          "ty": "059.9442A",
+          "area": 59.94,
+          "gen": 7,
+          "spc": 21,
+          "price": 91000,
+          "sp": {
+            "신혼부부": 3,
+            "생애최초": 2,
+            "다자녀": 3,
+            "노부모부양": 1,
+            "신생아": 5,
+            "기관추천": 7
+          }
+        },
+        {
+          "ty": "059.9442B",
+          "area": 59.94,
+          "gen": 6,
+          "spc": 5,
+          "price": 89200,
+          "sp": {
+            "신혼부부": 1,
+            "생애최초": 1,
+            "다자녀": 1,
+            "신생아": 2
+          }
+        },
+        {
+          "ty": "074.9610 ",
+          "area": 74.96,
+          "gen": 5,
+          "spc": 0,
+          "price": 107500,
           "sp": {}
         }
       ]
@@ -1819,12 +2060,346 @@
       ]
     }
   ];
-  NOTICES.forEach(function (n) {
-    n.receiptBegin = parseDate(n.begin);
-    n.receiptEnd = parseDate(n.end);
-  });
-
+  var TRADES = {
+    "경기도 양주시": [
+      {
+        "apt": "주원마을(주공2단지)",
+        "dong": "고암동",
+        "area": 59.42,
+        "amount": 17700,
+        "year": 2000,
+        "ym": "2026.07"
+      },
+      {
+        "apt": "옥정센트럴파크푸르지오",
+        "dong": "옥정동",
+        "area": 58.99,
+        "amount": 37300,
+        "year": 2016,
+        "ym": "2026.07"
+      },
+      {
+        "apt": "e편한세상옥정메트로포레",
+        "dong": "옥정동",
+        "area": 74.99,
+        "amount": 38500,
+        "year": 2020,
+        "ym": "2026.07"
+      },
+      {
+        "apt": "양주옥정신도시디에트르프레스티지",
+        "dong": "옥정동",
+        "area": 106.36,
+        "amount": 60850,
+        "year": 2022,
+        "ym": "2026.07"
+      },
+      {
+        "apt": "덕계역금강펜테리움센트럴파크",
+        "dong": "덕계동",
+        "area": 59.23,
+        "amount": 33900,
+        "year": 2023,
+        "ym": "2026.07"
+      }
+    ],
+    "경기도 오산시": [
+      {
+        "apt": "서동탄역더샵파크시티",
+        "dong": "외삼미동",
+        "area": 101.92,
+        "amount": 78000,
+        "year": 2019,
+        "ym": "2026.07"
+      },
+      {
+        "apt": "e편한세상오산세교",
+        "dong": "지곶동",
+        "area": 59.98,
+        "amount": 29000,
+        "year": 2018,
+        "ym": "2026.07"
+      },
+      {
+        "apt": "오산대역호반써밋",
+        "dong": "내삼미동",
+        "area": 84.99,
+        "amount": 52000,
+        "year": 2017,
+        "ym": "2026.07"
+      },
+      {
+        "apt": "오산세마e편한세상",
+        "dong": "양산동",
+        "area": 121.7,
+        "amount": 51800,
+        "year": 2010,
+        "ym": "2026.07"
+      },
+      {
+        "apt": "주공3",
+        "dong": "부산동",
+        "area": 59.39,
+        "amount": 26000,
+        "year": 2000,
+        "ym": "2026.07"
+      }
+    ],
+    "경기도 의왕시": [
+      {
+        "apt": "의왕내손e편한세상",
+        "dong": "내손동",
+        "area": 59.71,
+        "amount": 98500,
+        "year": 2012,
+        "ym": "2026.07"
+      },
+      {
+        "apt": "모락산현대",
+        "dong": "오전동",
+        "area": 55.53,
+        "amount": 52000,
+        "year": 2002,
+        "ym": "2026.07"
+      },
+      {
+        "apt": "진달래(LG)",
+        "dong": "오전동",
+        "area": 84.63,
+        "amount": 43000,
+        "year": 1998,
+        "ym": "2026.07"
+      },
+      {
+        "apt": "한진해모로",
+        "dong": "오전동",
+        "area": 84.93,
+        "amount": 59000,
+        "year": 2004,
+        "ym": "2026.07"
+      },
+      {
+        "apt": "의왕백운 해링턴 플레이스 1단지",
+        "dong": "학의동",
+        "area": 150.94,
+        "amount": 209000,
+        "year": 2019,
+        "ym": "2026.07"
+      }
+    ],
+    "경기도 의정부시": [
+      {
+        "apt": "민락엘레트",
+        "dong": "민락동",
+        "area": 51.91,
+        "amount": 28500,
+        "year": 2017,
+        "ym": "2026.07"
+      },
+      {
+        "apt": "고산리슈빌포레",
+        "dong": "고산동",
+        "area": 59.71,
+        "amount": 34000,
+        "year": 2021,
+        "ym": "2026.07"
+      },
+      {
+        "apt": "e편한세상신곡포레스타뷰",
+        "dong": "신곡동",
+        "area": 85.0,
+        "amount": 55000,
+        "year": 2020,
+        "ym": "2026.07"
+      },
+      {
+        "apt": "고산수자인디에스티지2단지",
+        "dong": "산곡동",
+        "area": 69.61,
+        "amount": 53900,
+        "year": 2023,
+        "ym": "2026.07"
+      },
+      {
+        "apt": "고산수자인디에스티지아트포레",
+        "dong": "산곡동",
+        "area": 80.0,
+        "amount": 58000,
+        "year": 2023,
+        "ym": "2026.07"
+      }
+    ],
+    "서울특별시 강동구": [
+      {
+        "apt": "아남1",
+        "dong": "고덕동",
+        "area": 84.91,
+        "amount": 164500,
+        "year": 1996,
+        "ym": "2026.07"
+      },
+      {
+        "apt": "선사현대아파트",
+        "dong": "암사동",
+        "area": 59.64,
+        "amount": 161000,
+        "year": 2000,
+        "ym": "2026.07"
+      },
+      {
+        "apt": "롯데캐슬퍼스트",
+        "dong": "암사동",
+        "area": 103.01,
+        "amount": 198500,
+        "year": 2008,
+        "ym": "2026.07"
+      },
+      {
+        "apt": "둔촌푸르지오",
+        "dong": "둔촌동",
+        "area": 84.92,
+        "amount": 168000,
+        "year": 2010,
+        "ym": "2026.07"
+      },
+      {
+        "apt": "강동리버스트4단지",
+        "dong": "강일동",
+        "area": 49.82,
+        "amount": 98000,
+        "year": 2020,
+        "ym": "2026.07"
+      }
+    ],
+    "서울특별시 성북구": [
+      {
+        "apt": "정릉풍림아이원",
+        "dong": "정릉동",
+        "area": 84.09,
+        "amount": 67000,
+        "year": 2005,
+        "ym": "2026.07"
+      },
+      {
+        "apt": "길음뉴타운4단지(e편한세상)",
+        "dong": "길음동",
+        "area": 84.64,
+        "amount": 126750,
+        "year": 2005,
+        "ym": "2026.07"
+      },
+      {
+        "apt": "길음동동부센트레빌(1278-0)",
+        "dong": "길음동",
+        "area": 84.84,
+        "amount": 125000,
+        "year": 2003,
+        "ym": "2026.07"
+      },
+      {
+        "apt": "정릉e-편한세상",
+        "dong": "정릉동",
+        "area": 85.0,
+        "amount": 89500,
+        "year": 2006,
+        "ym": "2026.07"
+      },
+      {
+        "apt": "월곡두산위브",
+        "dong": "하월곡동",
+        "area": 59.85,
+        "amount": 98000,
+        "year": 2003,
+        "ym": "2026.07"
+      }
+    ],
+    "서울특별시 영등포구": [
+      {
+        "apt": "우성1",
+        "dong": "신길동",
+        "area": 49.64,
+        "amount": 110000,
+        "year": 1986,
+        "ym": "2026.07"
+      },
+      {
+        "apt": "힐스테이트클래시안",
+        "dong": "신길동",
+        "area": 42.68,
+        "amount": 112500,
+        "year": 2020,
+        "ym": "2026.07"
+      },
+      {
+        "apt": "당산2가현대홈타운",
+        "dong": "당산동2가",
+        "area": 82.77,
+        "amount": 162000,
+        "year": 1994,
+        "ym": "2026.07"
+      },
+      {
+        "apt": "아크로타워스퀘어",
+        "dong": "영등포동7가",
+        "area": 84.75,
+        "amount": 214000,
+        "year": 2017,
+        "ym": "2026.07"
+      },
+      {
+        "apt": "당산대우",
+        "dong": "당산동2가",
+        "area": 31.73,
+        "amount": 35000,
+        "year": 1999,
+        "ym": "2026.07"
+      }
+    ],
+    "인천광역시 미추홀구": [
+      {
+        "apt": "힐스테이트푸르지오주안",
+        "dong": "주안동",
+        "area": 84.97,
+        "amount": 68600,
+        "year": 2023,
+        "ym": "2026.07"
+      },
+      {
+        "apt": "인천 SK Sky VIEW",
+        "dong": "용현동",
+        "area": 85.0,
+        "amount": 58000,
+        "year": 2016,
+        "ym": "2026.07"
+      },
+      {
+        "apt": "주안파크자이더플래티넘",
+        "dong": "주안동",
+        "area": 59.91,
+        "amount": 46000,
+        "year": 2023,
+        "ym": "2026.07"
+      },
+      {
+        "apt": "월드스테이트(101~111,124~132)",
+        "dong": "주안동",
+        "area": 60.0,
+        "amount": 39500,
+        "year": 2008,
+        "ym": "2026.07"
+      },
+      {
+        "apt": "더샵인천스카이타워1단지",
+        "dong": "도화동",
+        "area": 84.94,
+        "amount": 55000,
+        "year": 2020,
+        "ym": "2026.07"
+      }
+    ]
+  };
   var DATA_DATE = "2026-08-31";
+  /* DATA:END */
 
   // ── 폼 ↔ 프로필 ────────────────────────────────────────
   var $ = function (id) { return document.getElementById(id); };
@@ -2012,6 +2587,36 @@
     '</details>';
   }
 
+  /// 같은 시·군·구의 최근 실거래. 분양가가 주변 시세 대비 어떤지 보려는 것이다.
+  function tradesHtml(n) {
+    var key = (n.sido || '') + ' ' + (n.sigungu || '');
+    var rows = TRADES[key];
+    if (!rows || !rows.length) {
+      return '<p class="pending-note">이 지역(' + escapeHtml(key.trim() || '미상') +
+        ')의 실거래 자료를 아직 받지 못했습니다.</p>';
+    }
+
+    var body = rows.map(function (t) {
+      var per = t.area ? Math.round(t.amount / (t.area / 3.3058)) : null;
+      return '<tr>' +
+        '<td>' + escapeHtml(t.apt) + '<br><span class="dong">' + escapeHtml(t.dong) +
+          ' · ' + (t.year || '-') + '년</span></td>' +
+        '<td class="num">' + t.area.toFixed(1) + '</td>' +
+        '<td class="num">' + manwon(t.amount) + '</td>' +
+        '<td class="num">' + (per ? comma(per) + '만' : '-') + '</td>' +
+        '<td class="num">' + escapeHtml(t.ym) + '</td>' +
+        '</tr>';
+    }).join('');
+
+    return '<div class="tbl-scroll"><table class="units">' +
+      '<thead><tr><th>단지</th><th style="text-align:right">전용㎡</th>' +
+      '<th style="text-align:right">거래가</th><th style="text-align:right">평당</th>' +
+      '<th style="text-align:right">계약월</th></tr></thead>' +
+      '<tbody>' + body + '</tbody></table></div>' +
+      '<p class="pending-note">국토교통부 아파트 매매 실거래가 · 같은 시·군·구 최근 2개월, ' +
+      '거래가 많은 단지 순.</p>';
+  }
+
   // ── 모집공고 요약 ──────────────────────────────────────
   function noticeSummaryHtml(n) {
     var rows = (n.units || []).map(function (u) {
@@ -2062,10 +2667,7 @@
         '<tbody>' + (rows || '<tr><td colspan="5">공개된 주택형 정보가 없습니다.</td></tr>') + '</tbody>' +
       '</table></div>' +
 
-      '<h4>근처 시세</h4>' +
-      '<p class="pending-note">국토교통부 아파트 매매 실거래가 API 가 아직 활용신청 승인 전이라 ' +
-      '비교 시세를 넣지 못했습니다. 승인되면 이 자리에 반경 내 단지의 ' +
-      '전용면적·거래금액·건축년도·계약월이 표시됩니다.</p>' +
+      '<h4>근처 시세 · 아파트 매매 실거래</h4>' + tradesHtml(n) +
 
       (n.url ? '<a class="pblanc" href="' + escapeHtml(n.url) + '" target="_blank" rel="noopener">' +
         '청약홈에서 모집공고문 보기 →</a>' : '') +
@@ -2100,6 +2702,9 @@
     var pass = results.filter(function (r) { return r.ev.eligible; }).length;
     $("cntPass").textContent = pass;
     $("cntFail").textContent = results.length - pass;
+
+    $("dataDate").textContent =
+      "청약홈·국토교통부 실거래가 기준일 " + DATA_DATE + " · 매일 오전 6시 자동 갱신";
 
     $("diag").innerHTML = diagnoseHtml(results, p, pass);
 
