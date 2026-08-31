@@ -1,0 +1,1065 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="ourcheck 앱의 화면별 구성·동작·데이터 출처를 정리한 화면설계서">
+<meta name="color-scheme" content="light dark">
+<title>ourcheck 화면설계서</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hahmlet:wght@500;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+
+<style>
+  /* 앱의 디자인 토큰(app_theme.dart)을 그대로 쓴다 */
+  :root {
+    --paper:      #eef0f4;
+    --surface:    #ffffff;
+    --surface-2:  #f6f7fa;
+    --line:       #e2e5ec;
+    --line-soft:  #eef0f4;
+    --ink:        #16202e;
+    --ink-2:      #5c6675;
+    --ink-3:      #8a93a2;
+
+    --primary:    #1b3a6b;
+    --primary-2:  #2e5a9e;
+    --primary-wash:#e7ecf5;
+    --accent:     #f2a93b;
+
+    --pass:       #1e8e5a;
+    --fail:       #b3261e;
+    --pending:    #6b7280;
+
+    --apt:        #2e5a9e;
+    --oft:        #7c5bc7;
+    --rem:        #d97706;
+
+    --shadow: 0 1px 2px rgba(22,32,46,.06), 0 10px 28px -20px rgba(22,32,46,.5);
+
+    --sans: "IBM Plex Sans KR", system-ui, -apple-system, "Malgun Gothic", sans-serif;
+    --serif: "Hahmlet", "IBM Plex Sans KR", Georgia, serif;
+    --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:      #0f1218;
+      --surface:    #181c24;
+      --surface-2:  #1e232d;
+      --line:       #2c323d;
+      --line-soft:  #242933;
+      --ink:        #e7eaf1;
+      --ink-2:      #a6aeba;
+      --ink-3:      #757d8a;
+
+      --primary:    #7f9ddb;
+      --primary-2:  #a3bbe8;
+      --primary-wash:#1d2735;
+      --accent:     #f0b45c;
+
+      --pass:       #57c08d;
+      --fail:       #ef8375;
+      --pending:    #8b93a1;
+
+      --apt:        #7f9ddb;
+      --oft:        #b795e8;
+      --rem:        #e0a355;
+
+      --shadow: 0 1px 2px rgba(0,0,0,.5), 0 12px 32px -22px #000;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper:      #0f1218;
+    --surface:    #181c24;
+    --surface-2:  #1e232d;
+    --line:       #2c323d;
+    --line-soft:  #242933;
+    --ink:        #e7eaf1;
+    --ink-2:      #a6aeba;
+    --ink-3:      #757d8a;
+
+    --primary:    #7f9ddb;
+    --primary-2:  #a3bbe8;
+    --primary-wash:#1d2735;
+    --accent:     #f0b45c;
+
+    --pass:       #57c08d;
+    --fail:       #ef8375;
+    --pending:    #8b93a1;
+
+    --apt:        #7f9ddb;
+    --oft:        #b795e8;
+    --rem:        #e0a355;
+
+    --shadow: 0 1px 2px rgba(0,0,0,.5), 0 12px 32px -22px #000;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: var(--sans); font-size: 15px; line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── 머리말 ───────────────────────────────────────── */
+  header { background: var(--surface); border-bottom: 1px solid var(--line); }
+  .head-in {
+    max-width: 1280px; margin: 0 auto; padding: 28px 24px 24px;
+    display: flex; align-items: flex-end; justify-content: space-between;
+    gap: 24px; flex-wrap: wrap;
+  }
+  h1 {
+    font-family: var(--serif); font-weight: 700; letter-spacing: -.02em;
+    font-size: clamp(24px, 3.2vw, 32px); margin: 0 0 6px; text-wrap: balance;
+  }
+  .lede { margin: 0; color: var(--ink-2); font-size: 14px; max-width: 60ch; }
+  .meta { font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); text-align: right; }
+  .meta b { color: var(--primary); font-weight: 600; }
+
+  /* ── 레이아웃 ─────────────────────────────────────── */
+  .wrap {
+    max-width: 1280px; margin: 0 auto; padding: 28px 24px 80px;
+    display: grid; grid-template-columns: 208px minmax(0, 1fr); gap: 36px;
+    align-items: start;
+  }
+  @media (max-width: 900px) { .wrap { grid-template-columns: 1fr; gap: 20px; } }
+
+  nav { position: sticky; top: 20px; }
+  @media (max-width: 900px) { nav { position: static; } }
+  nav h2 {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--ink-3); margin: 0 0 10px; font-weight: 600;
+  }
+  nav ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+  nav a {
+    display: flex; gap: 8px; padding: 5px 8px; border-radius: 4px;
+    color: var(--ink-2); text-decoration: none; font-size: 13.5px;
+  }
+  nav a:hover { background: var(--primary-wash); color: var(--primary); }
+  nav a .n { font-family: var(--mono); font-size: 11px; color: var(--ink-3); padding-top: 2px; }
+
+  main { display: flex; flex-direction: column; gap: 44px; min-width: 0; }
+
+  /* ── 섹션 ─────────────────────────────────────────── */
+  section { scroll-margin-top: 20px; }
+  .sec-head { margin-bottom: 16px; }
+  .eyebrow {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--primary); margin: 0 0 4px; font-weight: 600;
+  }
+  h3 {
+    font-family: var(--serif); font-size: 21px; font-weight: 700;
+    margin: 0 0 4px; letter-spacing: -.01em;
+  }
+  .sec-head p { margin: 0; color: var(--ink-2); font-size: 14px; max-width: 68ch; }
+
+  .split { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 28px; align-items: start; }
+  @media (max-width: 760px) { .split { grid-template-columns: 1fr; } }
+
+  /* ── 폰 프레임 ────────────────────────────────────── */
+  .phone {
+    width: 300px; border: 1px solid var(--line); border-radius: 18px;
+    background: var(--surface); box-shadow: var(--shadow); overflow: hidden;
+    font-size: 11.5px; line-height: 1.5;
+  }
+  .status {
+    display: flex; justify-content: space-between; padding: 6px 14px 2px;
+    font-family: var(--mono); font-size: 9.5px; color: var(--ink-3);
+  }
+  .appbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px; border-bottom: 1px solid var(--line-soft);
+    font-weight: 700; font-size: 13px;
+  }
+  .appbar .ico { color: var(--ink-3); font-size: 14px; }
+  .screen { padding: 12px 14px; display: flex; flex-direction: column; gap: 9px;
+    background: var(--paper); min-height: 380px; }
+  .tabbar {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px;
+    border-top: 1px solid var(--line-soft); background: var(--surface);
+    padding: 7px 4px 9px; text-align: center;
+  }
+  .tabbar span { font-size: 9px; color: var(--ink-3); }
+  .tabbar span.on { color: var(--primary); font-weight: 700; }
+
+  /* 프레임 안 부품 */
+  .card {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 8px; padding: 9px 10px;
+  }
+  .card.lead { border-left: 3px solid var(--pass); }
+  .card.bad  { border-left: 3px solid var(--fail); }
+  .row { display: flex; align-items: center; gap: 6px; }
+  .row.between { justify-content: space-between; }
+  .pill {
+    font-family: var(--mono); font-size: 8.5px; font-weight: 600;
+    padding: 2px 5px; border-radius: 3px; border: 1px solid currentColor;
+  }
+  .pill.apt { color: var(--apt); } .pill.rem { color: var(--rem); }
+  .pill.oft { color: var(--oft); }
+  .badge { font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 3px; }
+  .badge.ok { background: color-mix(in srgb, var(--pass) 14%, transparent); color: var(--pass); }
+  .badge.no { background: color-mix(in srgb, var(--fail) 14%, transparent); color: var(--fail); }
+  .title-s { font-weight: 700; font-size: 12.5px; }
+  .sub-s { color: var(--ink-3); font-size: 10px; }
+  .amount { font-family: var(--serif); font-weight: 700; font-size: 19px; color: var(--primary); }
+  .bar { height: 5px; border-radius: 3px; background: var(--surface-2); overflow: hidden; }
+  .bar > i { display: block; height: 100%; background: var(--fail); }
+  .field {
+    border: 1px solid var(--line); border-radius: 5px; padding: 6px 8px;
+    background: var(--surface); color: var(--ink-3); font-size: 10.5px;
+  }
+  .chips { display: flex; gap: 4px; flex-wrap: wrap; }
+  .chip {
+    border: 1px solid var(--line); border-radius: 999px; padding: 2px 8px;
+    font-size: 9.5px; color: var(--ink-2); background: var(--surface);
+  }
+  .chip.on { border-color: var(--primary); background: var(--primary-wash); color: var(--primary); font-weight: 700; }
+  .btn-p {
+    background: var(--primary); color: #fff; text-align: center; font-weight: 700;
+    padding: 8px; border-radius: 5px; font-size: 11.5px;
+  }
+  .grid7 { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; text-align: center; }
+  .grid7 .d { padding: 4px 0; font-size: 9px; border-radius: 4px; color: var(--ink-2); }
+  .grid7 .d.sel { background: var(--primary-wash); color: var(--primary); font-weight: 700; }
+  .dot { width: 4px; height: 4px; border-radius: 50%; display: inline-block; }
+  .mapbg {
+    background:
+      repeating-linear-gradient(0deg, var(--line-soft) 0 1px, transparent 1px 26px),
+      repeating-linear-gradient(90deg, var(--line-soft) 0 1px, transparent 1px 26px),
+      var(--surface-2);
+    border-radius: 8px; height: 190px; position: relative; border: 1px solid var(--line);
+  }
+  .marker {
+    position: absolute; font-size: 8.5px; font-weight: 700; color: #fff;
+    padding: 2px 6px; border-radius: 4px; white-space: nowrap;
+  }
+
+  /* 콜아웃 번호 */
+  .cn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 15px; height: 15px; border-radius: 50%; flex: none;
+    background: var(--accent); color: #3a2600;
+    font-family: var(--mono); font-size: 9.5px; font-weight: 600;
+  }
+
+  /* ── 주석표 ───────────────────────────────────────── */
+  .notes { display: flex; flex-direction: column; gap: 10px; }
+  .note { display: grid; grid-template-columns: 15px 1fr; gap: 10px; align-items: start; }
+  .note h4 { margin: 0 0 1px; font-size: 13.5px; font-weight: 700; }
+  .note p { margin: 0; font-size: 13px; color: var(--ink-2); }
+  .src {
+    display: inline-block; margin-top: 3px; font-family: var(--mono);
+    font-size: 10.5px; color: var(--ink-3);
+    border: 1px solid var(--line); border-radius: 3px; padding: 1px 5px;
+  }
+  .src.warn { color: var(--fail); border-color: color-mix(in srgb, var(--fail) 40%, var(--line)); }
+
+  /* ── 흐름도 ───────────────────────────────────────── */
+  .flow {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 8px;
+    padding: 18px; box-shadow: var(--shadow); overflow-x: auto;
+  }
+  .flow-row { display: flex; align-items: center; gap: 10px; min-width: max-content; }
+  .node {
+    border: 1px solid var(--line); border-radius: 6px; padding: 8px 12px;
+    font-size: 12.5px; background: var(--surface-2); white-space: nowrap;
+  }
+  .node.start { border-color: var(--primary); color: var(--primary); font-weight: 700; }
+  .node.end { border-color: var(--pass); color: var(--pass); font-weight: 700; }
+  .arrow { color: var(--ink-3); font-family: var(--mono); font-size: 12px; }
+  .flow-note { margin: 12px 0 0; font-size: 12.5px; color: var(--ink-3); }
+
+  /* ── 표 ───────────────────────────────────────────── */
+  .tbl-scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line-soft); }
+  th {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .07em;
+    text-transform: uppercase; color: var(--ink-3); font-weight: 600; white-space: nowrap;
+  }
+  td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  .ok  { color: var(--pass); font-weight: 700; }
+  .no  { color: var(--fail); font-weight: 700; }
+  .wait{ color: var(--accent); font-weight: 700; }
+
+  .panel {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 8px; padding: 18px; box-shadow: var(--shadow);
+  }
+
+  code {
+    font-family: var(--mono); font-size: 12px;
+    background: var(--surface-2); padding: 1px 5px; border-radius: 3px;
+  }
+
+  footer {
+    border-top: 1px solid var(--line); margin-top: 12px; padding-top: 18px;
+    color: var(--ink-3); font-size: 12.5px;
+  }
+
+  a { color: var(--primary); }
+  a:focus-visible, nav a:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="head-in">
+    <div>
+      <h1>ourcheck 화면설계서</h1>
+      <p class="lede">
+        앱 9개 화면과 웹 시뮬레이터의 구성·동작·데이터 출처를 정리했습니다.
+        프레임의 문구는 실제 화면에 들어가는 문장 그대로입니다.
+      </p>
+    </div>
+    <div class="meta">
+      v1.0 · 2026-08-31<br>
+      데이터 연결 <b>2/5</b> · 화면 <b>10</b>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <nav>
+    <h2>화면</h2>
+    <ol>
+      <li><a href="#flow"><span class="n">—</span> 화면 흐름</a></li>
+      <li><a href="#s1"><span class="n">01</span> 온보딩</a></li>
+      <li><a href="#s2"><span class="n">02</span> 홈</a></li>
+      <li><a href="#s3"><span class="n">03</span> 전체 공고</a></li>
+      <li><a href="#s4"><span class="n">04</span> 공고 상세</a></li>
+      <li><a href="#s5"><span class="n">05</span> 캘린더</a></li>
+      <li><a href="#s6"><span class="n">06</span> 지도</a></li>
+      <li><a href="#s7"><span class="n">07</span> 정책·법령</a></li>
+      <li><a href="#s8"><span class="n">08</span> 알림</a></li>
+      <li><a href="#s9"><span class="n">09</span> MY</a></li>
+      <li><a href="#s10"><span class="n">10</span> 웹 시뮬레이터</a></li>
+      <li><a href="#status"><span class="n">—</span> 연결 현황</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+    <!-- 흐름 -->
+    <section id="flow">
+      <div class="sec-head">
+        <p class="eyebrow">화면 흐름</p>
+        <h3>앱을 열면 어디로 가나</h3>
+        <p>로그인이 없다. 조건을 입력했는지만 보고 갈라진다.</p>
+      </div>
+      <div class="flow">
+        <div class="flow-row">
+          <span class="node start">앱 실행</span>
+          <span class="arrow">→</span>
+          <span class="node">조건 입력했나?</span>
+          <span class="arrow">아니오 →</span>
+          <span class="node">온보딩 4단계</span>
+          <span class="arrow">→</span>
+          <span class="node end">홈</span>
+        </div>
+        <div class="flow-row" style="margin-top:10px">
+          <span class="node" style="visibility:hidden">앱 실행</span>
+          <span class="arrow" style="visibility:hidden">→</span>
+          <span class="node" style="visibility:hidden">조건 입력했나?</span>
+          <span class="arrow">예 &nbsp;&nbsp;&nbsp;→</span>
+          <span class="node end">홈</span>
+          <span class="arrow">+</span>
+          <span class="node">놓친 알림 확인</span>
+        </div>
+        <p class="flow-note">
+          홈에서 하단 탭으로 캘린더·지도·정책·MY로 이동한다.
+          알림을 탭하면 해당 공고 상세로 바로 들어간다.
+        </p>
+      </div>
+    </section>
+
+    <!-- 01 온보딩 -->
+    <section id="s1">
+      <div class="sec-head">
+        <p class="eyebrow">01</p>
+        <h3>온보딩 — 내 조건 입력</h3>
+        <p>4단계. 여기서 받은 값이 모든 판정의 입력이 된다. 저장은 기기에만 한다.</p>
+      </div>
+      <div class="split">
+        <div class="phone">
+          <div class="status"><span>9:41</span><span>▮▮▮</span></div>
+          <div class="appbar"><span>내 조건 입력 (2/4)</span><span class="ico">✕</span></div>
+          <div class="screen">
+            <div style="font-family:var(--serif);font-weight:700;font-size:15px">지금 동원할 수 있는 자금은?</div>
+            <div class="sub-s">현금과 대출 가능액을 합쳐 감당 가능한 분양가를 계산합니다. 단위는 만원입니다.</div>
+            <div class="sub-s" style="margin-top:4px;font-weight:700;color:var(--ink-2)">본인</div>
+            <div class="field">현금성 자산 &nbsp;&nbsp; 8000 만원</div>
+            <div class="field">대출 가능액 &nbsp;&nbsp; 25000 만원</div>
+            <div class="sub-s" style="font-weight:700;color:var(--ink-2)">배우자 / 파트너</div>
+            <div class="field">현금성 자산 &nbsp;&nbsp; 5000 만원</div>
+            <div class="field">대출 가능액 &nbsp;&nbsp; 15000 만원</div>
+            <div class="card" style="background:var(--primary-wash);border:0">
+              <div class="row between">
+                <span class="sub-s" style="color:var(--primary);font-weight:700">합산 가용 자금</span>
+                <span class="amount">5억 3,000만</span>
+              </div>
+            </div>
+            <div style="flex:1"></div>
+            <div class="btn-p">다음</div>
+          </div>
+        </div>
+        <div class="notes">
+          <div class="note"><span class="cn">1</span><div>
+            <h4>진행 표시</h4>
+            <p>상단에 단계(2/4)와 진행 막대. 1단계에서만 뒤로가기가 없다.</p>
+          </div></div>
+          <div class="note"><span class="cn">2</span><div>
+            <h4>가구 구성에 따라 입력이 바뀐다</h4>
+            <p>1인 가구를 고르면 파트너 자산 칸이 사라진다. 자녀 수는 '자녀 포함 가구'일 때만 나온다.</p>
+          </div></div>
+          <div class="note"><span class="cn">3</span><div>
+            <h4>합산 결과를 즉시 보여준다</h4>
+            <p>입력할 때마다 다시 계산한다. 만원 단위 입력이라 자릿수 실수를 여기서 알아챌 수 있다.</p>
+            <span class="src">totalBudget = 현금 + 대출한도 (본인+파트너)</span>
+          </div></div>
+          <div class="note"><span class="cn">4</span><div>
+            <h4>4단계 구성</h4>
+            <p>① 가구 구성 ② 합산 자산 ③ 거주지·무주택·소유 이력 ④ 청약통장·관심 유형</p>
+          </div></div>
+          <div class="note"><span class="cn">5</span><div>
+            <h4>거주지는 주소 검색으로</h4>
+            <p>주소를 넣으면 좌표와 시·도/시·군·구를 채운다. 지역 요건 판정에 쓰인다.</p>
+            <span class="src warn">카카오 REST 키 필요 — 미발급</span>
+          </div></div>
+          <div class="note"><span class="cn">6</span><div>
+            <h4>완료 시 동작</h4>
+            <p>기기에 저장하고, 알림 권한을 요청한 뒤 백그라운드 확인을 등록한다. 홈으로 이동.</p>
+            <span class="src">ProfileStore · SharedPreferences</span>
+          </div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 02 홈 -->
+    <section id="s2">
+      <div class="sec-head">
+        <p class="eyebrow">02</p>
+        <h3>홈 — 오늘의 청약</h3>
+        <p>신청 가능한 것만 추려 보여준다. 아래로 당기면 다시 수집한다.</p>
+      </div>
+      <div class="split">
+        <div class="phone">
+          <div class="status"><span>9:41</span><span>▮▮▮</span></div>
+          <div class="appbar"><span>오늘의 청약</span><span class="ico">🔔</span></div>
+          <div class="screen">
+            <div class="card">
+              <div class="sub-s" style="font-weight:700">내 청약 가용 자금</div>
+              <div class="amount">5억 3,000만</div>
+              <div class="chips" style="margin-top:5px">
+                <span class="chip">현금 1억 3,000만</span><span class="chip">무주택</span>
+                <span class="chip">서울 성동구</span><span class="chip">통장 60회</span>
+              </div>
+            </div>
+            <div class="row between">
+              <b style="font-size:13px">신청 가능한 단지</b>
+              <span class="row" style="gap:8px"><span class="ok" style="font-size:11px">3건</span>
+              <span style="font-size:10.5px;color:var(--primary)">전체 공고</span></span>
+            </div>
+            <div class="card lead">
+              <div class="row between">
+                <span class="row"><span class="pill apt">아파트</span><span class="badge ok">신청 가능</span></span>
+                <span style="font-size:9.5px;color:var(--accent);font-weight:700">접수 D-3</span>
+              </div>
+              <div class="title-s" style="margin-top:5px">검단 신도시 파크뷰</div>
+              <div class="sub-s">인천광역시 서구 · 4억 2,000만 ~ 5억 1,000만</div>
+            </div>
+            <div class="card lead">
+              <div class="row between">
+                <span class="row"><span class="pill rem">무순위</span><span class="badge ok">신청 가능</span></span>
+                <span style="font-size:9.5px;color:var(--accent);font-weight:700">접수 D-1</span>
+              </div>
+              <div class="title-s" style="margin-top:5px">장위 푸르지오 마크원(2차)</div>
+              <div class="sub-s">서울특별시 성북구 · 7억 3,220만</div>
+            </div>
+            <div class="row between" style="margin-top:2px">
+              <b style="font-size:13px">청약 관련 정책 · 법령</b>
+              <span style="font-size:10.5px;color:var(--primary)">전체보기</span>
+            </div>
+            <div class="card"><div class="title-s" style="font-size:11.5px">주택공급에 관한 규칙 일부개정</div>
+              <div class="sub-s">법제처 · 일부개정 · 시행 예정</div></div>
+          </div>
+          <div class="tabbar"><span class="on">홈</span><span>캘린더</span><span>지도</span><span>정책</span><span>MY</span></div>
+        </div>
+        <div class="notes">
+          <div class="note"><span class="cn">1</span><div>
+            <h4>자산 요약이 맨 위</h4>
+            <p>판정의 기준값을 먼저 보여준다. 조건이 잘못 들어갔으면 여기서 눈에 띈다.</p>
+          </div></div>
+          <div class="note"><span class="cn">2</span><div>
+            <h4>신청 가능한 것만</h4>
+            <p>부적격은 홈에 넣지 않는다. 개수와 함께 <b>전체 공고</b> 진입점을 둔다.</p>
+            <span class="src">MatchingEngine.evaluateAll(onlyEligible: true)</span>
+          </div></div>
+          <div class="note"><span class="cn">3</span><div>
+            <h4>카드는 결정에 필요한 것만</h4>
+            <p>유형·판정·D-day·단지명·지역·분양가 범위. 나머지는 상세에서.</p>
+          </div></div>
+          <div class="note"><span class="cn">4</span><div>
+            <h4>0건일 때가 중요하다</h4>
+            <p>"조건에 맞는 공고가 없습니다"로 끝내지 않고, 전체 공고에서 이유를 볼 수 있게 유도한다.</p>
+          </div></div>
+          <div class="note"><span class="cn">5</span><div>
+            <h4>키가 없으면 배너로 알린다</h4>
+            <p>API 키가 빠져 화면이 비는 것과, 정말 공고가 없는 것을 구분해 준다.</p>
+          </div></div>
+          <div class="note"><span class="cn">6</span><div>
+            <h4>당겨서 새로고침</h4>
+            <p>캐시가 6시간보다 오래되면 화면 진입 시 자동으로도 다시 받는다.</p>
+            <span class="src">SubscriptionRepository.refresh()</span>
+          </div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 03 전체 공고 -->
+    <section id="s3">
+      <div class="sec-head">
+        <p class="eyebrow">03</p>
+        <h3>전체 공고 — 왜 안 되는지 보는 화면</h3>
+        <p>적격·부적격을 모두 보여준다. "조건에 맞는 게 하나도 없다"는 상황의 원인을 여기서 찾는다.</p>
+      </div>
+      <div class="split">
+        <div class="phone">
+          <div class="status"><span>9:41</span><span>▮▮▮</span></div>
+          <div class="appbar"><span>전체 공고</span><span class="ico">↻</span></div>
+          <div class="screen">
+            <div class="row between" style="font-size:11px">
+              <span><b>16건</b> 표시 중 · 신청 가능 <span class="ok">3건</span></span>
+              <span style="color:var(--primary);font-weight:700">접수 임박순 ▾</span>
+            </div>
+            <div class="chips">
+              <span class="chip on">신청 가능만</span><span class="chip">아파트</span>
+              <span class="chip">오피스텔</span><span class="chip">무순위</span><span class="chip">서울</span>
+            </div>
+            <div class="card bad">
+              <div class="row between">
+                <span class="row"><span class="pill apt">아파트</span><span class="badge no">요건 미달</span></span>
+                <span style="font-size:9.5px;color:var(--ink-3)">접수 D-7</span>
+              </div>
+              <div class="title-s" style="margin-top:5px">성남복정2 A1블록 신혼희망타운</div>
+              <div class="sub-s">경기도 성남시 · 7억 9,831만 ~ 8억 1,214만</div>
+              <div class="no" style="font-size:10px;margin-top:4px">자금 2억 6,831만 부족</div>
+            </div>
+            <div class="card lead">
+              <div class="row between">
+                <span class="row"><span class="pill rem">무순위</span><span class="badge ok">신청 가능</span></span>
+                <span style="font-size:9.5px;color:var(--accent);font-weight:700">접수 D-1</span>
+              </div>
+              <div class="title-s" style="margin-top:5px">에스아이팰리스 강동 센텀Ⅱ</div>
+              <div class="sub-s">서울특별시 강동구 · 3억 6,900만 ~ 6억 1,900만</div>
+            </div>
+            <div class="card bad">
+              <div class="row between">
+                <span class="row"><span class="pill apt">아파트</span><span class="badge no">요건 미달</span></span>
+                <span style="font-size:9.5px;color:var(--ink-3)">접수 D-14</span>
+              </div>
+              <div class="title-s" style="margin-top:5px">창원 한신더휴 메가센텀</div>
+              <div class="sub-s">경상남도 창원시 · 2억 7,100만 ~</div>
+              <div class="no" style="font-size:10px;margin-top:4px">지역 요건</div>
+            </div>
+          </div>
+          <div class="tabbar"><span>홈</span><span>캘린더</span><span>지도</span><span>정책</span><span>MY</span></div>
+        </div>
+        <div class="notes">
+          <div class="note"><span class="cn">1</span><div>
+            <h4>요약 줄</h4>
+            <p>표시 중인 건수와 그중 신청 가능한 건수를 함께 보여준다.</p>
+          </div></div>
+          <div class="note"><span class="cn">2</span><div>
+            <h4>필터와 정렬</h4>
+            <p>신청 가능만 / 유형 / 시·도. 정렬은 접수 임박순·적합도순·분양가 낮은순.</p>
+          </div></div>
+          <div class="note"><span class="cn">3</span><div>
+            <h4>부적격 카드에 막는 요건을 적는다</h4>
+            <p>자금이면 부족액까지, 그 외는 요건 이름을 최대 2개까지. 이 한 줄이 이 화면의 핵심이다.</p>
+            <span class="src">MatchEvaluation.blockers</span>
+          </div></div>
+          <div class="note"><span class="cn">4</span><div>
+            <h4>조건 미입력 상태</h4>
+            <p>프로필이 없으면 판정 없이 목록만 접수 임박순으로 보여준다.</p>
+          </div></div>
+          <div class="note"><span class="cn">5</span><div>
+            <h4>수집 시각</h4>
+            <p>목록 끝에 "3시간 전 갱신"을 적는다. 데이터가 언제 것인지 알 수 있어야 한다.</p>
+          </div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 04 상세 -->
+    <section id="s4">
+      <div class="sec-head">
+        <p class="eyebrow">04</p>
+        <h3>공고 상세 — 판정 근거 · 공고 요약 · 주변 시세</h3>
+        <p>가장 정보가 많은 화면. 위에서부터 판정 → 공고문 요약 → 시세 순으로 읽힌다.</p>
+      </div>
+      <div class="split">
+        <div class="phone">
+          <div class="status"><span>9:41</span><span>▮▮▮</span></div>
+          <div class="appbar"><span>공고 상세</span><span class="ico">←</span></div>
+          <div class="screen">
+            <div class="card">
+              <div class="row"><span class="pill apt">아파트</span>
+                <span class="pill" style="color:var(--fail)">규제지역</span></div>
+              <div style="font-family:var(--serif);font-weight:700;font-size:15px;margin-top:5px">
+                성남복정2 A1블록</div>
+              <div class="sub-s">경기도 성남시 수정구 신흥동 81-8</div>
+            </div>
+            <div class="card">
+              <div class="row between">
+                <span class="no" style="font-size:12px">요건을 충족하지 못했습니다</span>
+                <span class="sub-s">62점</span>
+              </div>
+              <div style="font-size:10px;margin-top:5px;display:flex;flex-direction:column;gap:3px">
+                <span><span class="ok">PASS</span> 지역 요건 · 수도권 기타 지역</span>
+                <span><span class="ok">PASS</span> 무주택 · 무주택 기간 10.3년</span>
+                <span><span class="ok">PASS</span> 청약통장 · 국민주택 1순위 충족</span>
+                <span><span class="no">FAIL</span> 자금 · 2억 6,831만 부족</span>
+              </div>
+            </div>
+            <div class="card">
+              <div class="sub-s" style="font-family:var(--mono);font-size:9px;letter-spacing:.08em">모집공고 요약</div>
+              <div style="font-size:10px;margin-top:4px">공급 규모 <b>4세대</b> · 주택형 4개<br>
+                특별공급 08-31 · 1순위 09-01 · 발표 10-08<br>
+                <span class="pill" style="color:var(--fail)">분양가상한제</span>
+                <span class="pill" style="color:var(--fail)">공공주택지구</span></div>
+            </div>
+            <div class="card">
+              <div class="sub-s" style="font-family:var(--mono);font-size:9px;letter-spacing:.08em">근처 시세</div>
+              <div style="font-size:10px;margin-top:4px">
+                길음뉴타운2단지푸르지오 · 84.97㎡<br>
+                <b>11억 8,000만</b> · 평당 4,590만 · 2026.07</div>
+            </div>
+            <div class="card" style="text-align:center;color:var(--primary);font-weight:700;font-size:11px">
+              청약홈에서 모집공고문 보기 →</div>
+          </div>
+        </div>
+        <div class="notes">
+          <div class="note"><span class="cn">1</span><div>
+            <h4>판정을 맨 위에</h4>
+            <p>결론(가능/불가)과 적합도 점수를 먼저. 이어서 7개 규칙의 통과 여부와 사유를 모두 나열한다.</p>
+            <span class="src">MatchReason[] — code · label · passed · detail</span>
+          </div></div>
+          <div class="note"><span class="cn">2</span><div>
+            <h4>자금은 숫자로 말한다</h4>
+            <p>부족하면 부족액, 여유면 여유액. 계약금(약 10%) 준비 금액도 함께.</p>
+          </div></div>
+          <div class="note"><span class="cn">3</span><div>
+            <h4>모집공고 요약</h4>
+            <p>공급 위치·규모·시공사 / 일정(특별공급·1순위·발표·입주) / 특이사항 배지 /
+               주택형별 표(전용㎡·일반·특별·분양가)와 특별공급 유형별 세대수.</p>
+            <span class="src">청약홈 Detail + Mdl</span>
+          </div></div>
+          <div class="note"><span class="cn">4</span><div>
+            <h4>근처 시세</h4>
+            <p>같은 시·군·구 최근 2개월 아파트 매매. 단지명·전용㎡·거래가·평당가·계약월.
+               분양가가 주변 대비 어떤지 판단하는 근거다.</p>
+            <span class="src">국토교통부 실거래가 · 거래 많은 단지 5곳</span>
+          </div></div>
+          <div class="note"><span class="cn">5</span><div>
+            <h4>API가 주지 않는 것</h4>
+            <p>계약금·중도금·잔금 비율, 전매제한·재당첨 제한 기간은 공고문 PDF에만 있다.
+               그 사실을 화면에 적고 공고문 링크로 보낸다.</p>
+          </div></div>
+          <div class="note"><span class="cn">6</span><div>
+            <h4>분양가를 아직 못 받은 공고</h4>
+            <p>목록에서 상한에 밀린 공고는 상세를 열 때 그 자리에서 주택형을 받아 채운다.</p>
+          </div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 05 캘린더 -->
+    <section id="s5">
+      <div class="sec-head">
+        <p class="eyebrow">05</p>
+        <h3>캘린더 — 월별 청약 일정</h3>
+        <p>공고 하나가 일정마다 점을 남긴다. 날짜를 누르면 그날 일정이 아래에 펼쳐진다.</p>
+      </div>
+      <div class="split">
+        <div class="phone">
+          <div class="status"><span>9:41</span><span>▮▮▮</span></div>
+          <div class="appbar"><span>청약 캘린더</span><span class="chip on" style="font-size:9px">내 조건만</span></div>
+          <div class="screen">
+            <div class="row between" style="font-size:12px;font-weight:700">
+              <span style="color:var(--ink-3)">‹</span><span>2026년 9월</span><span style="color:var(--ink-3)">›</span>
+            </div>
+            <div class="grid7" style="color:var(--ink-3);font-size:9px">
+              <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
+            </div>
+            <div class="grid7">
+              <span class="d">30</span><span class="d">31</span>
+              <span class="d">1<br><span class="dot" style="background:var(--pass)"></span></span>
+              <span class="d">2</span>
+              <span class="d sel">3<br><span class="dot" style="background:var(--rem)"></span></span>
+              <span class="d">4</span><span class="d">5</span>
+              <span class="d">6</span>
+              <span class="d">7<br><span class="dot" style="background:var(--apt)"></span></span>
+              <span class="d">8</span><span class="d">9</span><span class="d">10</span>
+              <span class="d">11</span><span class="d">12</span>
+              <span class="d">13</span>
+              <span class="d">14<br><span class="dot" style="background:var(--apt)"></span></span>
+              <span class="d">15</span><span class="d">16</span><span class="d">17</span>
+              <span class="d">18</span><span class="d">19</span>
+            </div>
+            <div class="card" style="margin-top:4px">
+              <div class="row"><span class="pill rem" style="margin-right:4px">03</span>
+                <div><div class="title-s" style="font-size:11.5px">에스아이팰리스 강동 센텀Ⅱ</div>
+                <div class="sub-s">접수 시작 · 무순위 · 강동구</div></div></div>
+            </div>
+            <div class="card">
+              <div class="row"><span class="pill apt" style="margin-right:4px">07</span>
+                <div><div class="title-s" style="font-size:11.5px">의정부우정 A2블록</div>
+                <div class="sub-s">1순위 · 아파트 · 의정부시</div></div></div>
+            </div>
+          </div>
+          <div class="tabbar"><span>홈</span><span class="on">캘린더</span><span>지도</span><span>정책</span><span>MY</span></div>
+        </div>
+        <div class="notes">
+          <div class="note"><span class="cn">1</span><div>
+            <h4>점 하나가 일정 하나</h4>
+            <p>특별공급·1순위·2순위·접수 시작·당첨자 발표를 각각 찍는다. 최대 3개까지 표시.</p>
+          </div></div>
+          <div class="note"><span class="cn">2</span><div>
+            <h4>색은 유형, 초록은 적격</h4>
+            <p>신청 가능한 공고의 점은 초록으로 덮어쓴다. 한눈에 내 것이 보인다.</p>
+          </div></div>
+          <div class="note"><span class="cn">3</span><div>
+            <h4>내 조건만 토글</h4>
+            <p>켜면 적격 공고의 일정만 남는다. 조건 미입력이면 이 토글이 나오지 않는다.</p>
+          </div></div>
+          <div class="note"><span class="cn">4</span><div>
+            <h4>외부 캘린더 패키지를 쓰지 않았다</h4>
+            <p>격자를 직접 그린다. 의존성을 줄이고 점·색 규칙을 자유롭게 하기 위해서다.</p>
+          </div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 06 지도 -->
+    <section id="s6">
+      <div class="sec-head">
+        <p class="eyebrow">06</p>
+        <h3>지도 — 어디에 있는 단지인가</h3>
+        <p>마커를 누르면 하단에 요약 카드가 뜬다. 카드를 누르면 상세로 간다.</p>
+      </div>
+      <div class="split">
+        <div class="phone">
+          <div class="status"><span>9:41</span><span>▮▮▮</span></div>
+          <div class="appbar"><span>청약 지도</span><span class="ico">↻</span></div>
+          <div class="screen">
+            <div class="chips">
+              <span class="chip on">전체</span><span class="chip">아파트</span>
+              <span class="chip">오피스텔</span><span class="chip">무순위</span>
+            </div>
+            <div class="mapbg">
+              <span class="marker" style="background:var(--pass);left:38px;top:44px">검단 신도시 ●</span>
+              <span class="marker" style="background:var(--apt);left:150px;top:92px">성남복정2 ●</span>
+              <span class="marker" style="background:var(--rem);left:64px;top:132px">강동 센텀Ⅱ ●</span>
+              <span class="marker" style="background:var(--primary-2);left:176px;top:36px">내 거주지</span>
+            </div>
+            <div class="card lead">
+              <div class="row between">
+                <span class="row"><span class="pill apt">아파트</span><span class="badge ok">신청 가능</span></span>
+                <span style="font-size:9.5px;color:var(--accent);font-weight:700">접수 D-3</span>
+              </div>
+              <div class="title-s" style="margin-top:5px">검단 신도시 파크뷰</div>
+              <div class="sub-s">인천광역시 서구 · 4억 2,000만 ~</div>
+            </div>
+          </div>
+          <div class="tabbar"><span>홈</span><span>캘린더</span><span class="on">지도</span><span>정책</span><span>MY</span></div>
+        </div>
+        <div class="notes">
+          <div class="note"><span class="cn">1</span><div>
+            <h4>마커 색이 곧 판정</h4>
+            <p>신청 가능하면 초록, 아니면 공고 유형 색. 라벨에 단지명과 일정·분양가를 함께 넣는다.</p>
+          </div></div>
+          <div class="note"><span class="cn">2</span><div>
+            <h4>내 거주지도 찍는다</h4>
+            <p>거리 감을 주기 위해서다. 온보딩에서 주소를 넣었을 때만 표시.</p>
+          </div></div>
+          <div class="note"><span class="cn">3</span><div>
+            <h4>좌표가 있는 공고만 뜬다</h4>
+            <p>청약홈은 좌표를 주지 않는다. 수집 때 후보 공고의 주소만 좌표로 바꾼다.
+               좌표가 없는 공고는 목록·캘린더에는 나온다.</p>
+            <span class="src warn">카카오 REST + JavaScript 키 필요 — 미발급</span>
+          </div></div>
+          <div class="note"><span class="cn">4</span><div>
+            <h4>지도는 WebView</h4>
+            <p>카카오맵 JavaScript SDK를 앱 내부 WebView로 띄운다. 키가 없으면 안내 문구와 재시도 버튼.</p>
+          </div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 07 정책 -->
+    <section id="s7">
+      <div class="sec-head">
+        <p class="eyebrow">07</p>
+        <h3>정책 · 법령</h3>
+        <p>규칙이 바뀌면 판정도 바뀐다. 그 변화를 미리 보는 화면이다.</p>
+      </div>
+      <div class="split">
+        <div class="phone">
+          <div class="status"><span>9:41</span><span>▮▮▮</span></div>
+          <div class="appbar"><span>정책 · 법령</span><span class="ico">↻</span></div>
+          <div class="screen">
+            <div class="row" style="gap:14px;font-size:11px;font-weight:700">
+              <span style="color:var(--primary);border-bottom:2px solid var(--primary);padding-bottom:3px">최신 소식</span>
+              <span style="color:var(--ink-3)">타임라인</span>
+            </div>
+            <div class="card" style="background:color-mix(in srgb,var(--accent) 12%, var(--surface));border-color:color-mix(in srgb,var(--accent) 35%, var(--line))">
+              <div style="font-size:10.5px;font-weight:700">수집하지 못한 소스 2곳</div>
+              <div class="sub-s" style="margin-top:2px">· 법제처 — 호출 IP 미등록<br>· NKIS — 인증키 미설정</div>
+            </div>
+            <div class="chips">
+              <span class="chip on">전체</span><span class="chip">개정 법령</span>
+              <span class="chip">정책 발표</span><span class="chip">#청약</span>
+            </div>
+            <div class="card">
+              <div class="row between"><span class="sub-s">법제처</span>
+                <span class="badge" style="background:color-mix(in srgb,var(--accent) 18%,transparent);color:#8a5a00">시행 예정</span></div>
+              <div class="title-s" style="margin-top:3px">주택공급에 관한 규칙</div>
+              <div class="sub-s">일부개정 · 국토교통부 · 시행일 2026-10-01</div>
+            </div>
+            <div class="card">
+              <div class="row between"><span class="sub-s">국토교통부</span><span class="sub-s">8/28</span></div>
+              <div class="title-s" style="margin-top:3px">무주택 실수요자 대출 지원 방안</div>
+              <div class="sub-s">#청약 #대출</div>
+            </div>
+          </div>
+          <div class="tabbar"><span>홈</span><span>캘린더</span><span>지도</span><span class="on">정책</span><span>MY</span></div>
+        </div>
+        <div class="notes">
+          <div class="note"><span class="cn">1</span><div>
+            <h4>소스 상태 배너</h4>
+            <p>화면이 비었을 때 "키가 없어서인지, 인증이 막힌 건지"를 알려준다.
+               이게 없으면 빈 화면의 원인을 알 수 없다.</p>
+            <span class="src">PolicySourceStatus — 소스별 성공/실패·건수·사유</span>
+          </div></div>
+          <div class="note"><span class="cn">2</span><div>
+            <h4>시행 예정 배지</h4>
+            <p>시행일이 아직 오지 않은 개정을 강조한다. 앞으로 바뀔 규칙을 미리 아는 게 목적이다.</p>
+          </div></div>
+          <div class="note"><span class="cn">3</span><div>
+            <h4>주제 태그</h4>
+            <p>청약·대출·세제·공급·규제지역. 제목·요약의 키워드로 자동 분류한다.</p>
+          </div></div>
+          <div class="note"><span class="cn">4</span><div>
+            <h4>타임라인 탭</h4>
+            <p>월 단위로 묶어 정책 흐름을 본다.</p>
+          </div></div>
+          <div class="note"><span class="cn">5</span><div>
+            <h4>연결 상태</h4>
+            <p>법제처는 호출 IP 등록이 필요하고, 관보는 요청 파라미터를 확인 중이다.
+               부처 RSS는 주소 개편으로 재확인이 필요하다.</p>
+            <span class="src warn">3개 소스 모두 미연결</span>
+          </div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 08 알림 -->
+    <section id="s8">
+      <div class="sec-head">
+        <p class="eyebrow">08</p>
+        <h3>알림 — 하루 한 번</h3>
+        <p>조건에 맞는 <b>새</b> 공고가 있을 때만 보낸다. 이미 알린 단지는 다시 알리지 않는다.</p>
+      </div>
+      <div class="split">
+        <div class="phone">
+          <div class="status"><span>9:41</span><span>▮▮▮</span></div>
+          <div class="appbar"><span>알림 설정</span><span class="ico">←</span></div>
+          <div class="screen">
+            <div class="card">
+              <div class="row between"><span class="title-s">맞춤 청약 알림</span>
+                <span style="color:var(--pass)">●━</span></div>
+              <div class="sub-s">조건에 맞는 새 공고가 있을 때 하루 한 번</div>
+            </div>
+            <div class="card">
+              <div class="title-s">알림 받을 시각</div>
+              <div class="sub-s">이 시각이 지난 뒤 처음 확인될 때 하루 한 번만 보냅니다.</div>
+              <div class="chips" style="margin-top:6px">
+                <span class="chip">6시</span><span class="chip">7시</span><span class="chip on">8시</span>
+                <span class="chip">9시</span><span class="chip">12시</span><span class="chip">18시</span>
+              </div>
+            </div>
+            <div class="card"><div class="title-s">지금 확인하고 알림 보내기</div>
+              <div class="sub-s">수집 → 매칭 → 알림을 즉시 실행합니다</div></div>
+            <div class="card" style="background:var(--surface-2)">
+              <div class="title-s" style="font-size:11px">알림은 이렇게 동작합니다</div>
+              <div class="sub-s" style="margin-top:2px">
+                서버 없이 기기에서 직접 수집·판정합니다.<br>
+                · Android: 백그라운드에서 주기적으로 확인<br>
+                · iOS: 앱을 열 때 놓친 알림을 채웁니다</div>
+            </div>
+          </div>
+        </div>
+        <div class="notes">
+          <div class="note"><span class="cn">1</span><div>
+            <h4>발송 조건</h4>
+            <p>알림 켜짐 · 설정 시각 지남 · 오늘 미발송 · 온보딩 완료 · <b>새 적격 공고 있음</b>.
+               다섯 개가 모두 참일 때만 보낸다.</p>
+          </div></div>
+          <div class="note"><span class="cn">2</span><div>
+            <h4>보낼 게 없으면 표시하지 않는다</h4>
+            <p>"오늘 보냈음"으로 찍지 않는다. 오후에 새 공고가 뜨면 그날 안에 알릴 수 있어야 한다.</p>
+          </div></div>
+          <div class="note"><span class="cn">3</span><div>
+            <h4>다이제스트 구성</h4>
+            <p>적합도 상위 5건 + 최근 정책 3건. 제목은 "오늘의 맞춤 청약 3건 · ○○ 외 2곳".</p>
+          </div></div>
+          <div class="note"><span class="cn">4</span><div>
+            <h4>알림함</h4>
+            <p>발송 이력을 기기에 남긴다(최근 100건). 탭하면 해당 공고 상세로 이동.</p>
+          </div></div>
+          <div class="note"><span class="cn">5</span><div>
+            <h4>정시를 보장하지 않는다</h4>
+            <p>서버 푸시가 아니라 기기 로컬 알림이다. Android는 ±수십 분, iOS는 앱 실행 시.
+               그 사실을 설정 화면에 그대로 적었다.</p>
+          </div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 09 MY -->
+    <section id="s9">
+      <div class="sec-head">
+        <p class="eyebrow">09</p>
+        <h3>MY</h3>
+        <p>계정이 없다. 대신 "이 기기의 데이터"를 관리한다.</p>
+      </div>
+      <div class="split">
+        <div class="phone">
+          <div class="status"><span>9:41</span><span>▮▮▮</span></div>
+          <div class="appbar"><span>MY</span><span></span></div>
+          <div class="screen">
+            <div class="card">
+              <div class="row"><span style="width:30px;height:30px;border-radius:50%;background:var(--primary)"></span>
+                <div><div class="title-s">배우자·예비배우자와 함께</div>
+                <div class="sub-s">서울특별시 성동구</div></div></div>
+              <div style="font-size:10px;margin-top:6px;display:flex;flex-direction:column;gap:2px">
+                <span class="row between"><span class="sub-s">합산 가용 자금</span><b>5억 3,000만</b></span>
+                <span class="row between"><span class="sub-s">보유 현금</span><b>1억 3,000만</b></span>
+                <span class="row between"><span class="sub-s">무주택 여부</span><b>무주택</b></span>
+                <span class="row between"><span class="sub-s">청약통장</span><b>60회 · 1,500만원</b></span>
+              </div>
+            </div>
+            <div class="card"><div class="title-s">내 청약 조건 수정</div>
+              <div class="sub-s">자산 · 거주지 · 무주택 · 청약통장</div></div>
+            <div class="card"><div class="title-s">알림 설정</div>
+              <div class="sub-s">1일 1회 맞춤 알림 수신 시각</div></div>
+            <div class="card" style="background:var(--surface-2)">
+              <div class="title-s" style="font-size:11px">데이터는 이 기기에만</div>
+              <div class="sub-s" style="margin-top:2px">서버를 쓰지 않습니다. 입력한 자산·소유 이력은
+                기기 밖으로 나가지 않고, 공공 API 조회도 앱이 직접 합니다.</div>
+            </div>
+            <div class="card"><div class="title-s no">데이터 초기화</div>
+              <div class="sub-s">입력한 조건과 캐시를 모두 삭제</div></div>
+          </div>
+          <div class="tabbar"><span>홈</span><span>캘린더</span><span>지도</span><span>정책</span><span class="on">MY</span></div>
+        </div>
+        <div class="notes">
+          <div class="note"><span class="cn">1</span><div>
+            <h4>조건 요약을 그대로 보여준다</h4>
+            <p>판정에 쓰이는 값이 무엇인지 확인할 수 있어야 한다.</p>
+          </div></div>
+          <div class="note"><span class="cn">2</span><div>
+            <h4>로그아웃·탈퇴가 없다</h4>
+            <p>계정이 없으므로 대신 데이터 초기화를 둔다. 되돌릴 수 없어 확인 대화상자를 거친다.</p>
+          </div></div>
+          <div class="note"><span class="cn">3</span><div>
+            <h4>어디에 저장되는지 밝힌다</h4>
+            <p>자산 정보를 다루는 앱이다. 서버로 보내지 않는다는 사실을 화면에 적는다.</p>
+          </div></div>
+          <div class="note"><span class="cn">4</span><div>
+            <h4>빠진 API 키 안내</h4>
+            <p>설정되지 않은 키가 있으면 여기에도 표시한다.</p>
+          </div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10 웹 -->
+    <section id="s10">
+      <div class="sec-head">
+        <p class="eyebrow">10</p>
+        <h3>웹 시뮬레이터</h3>
+        <p>앱을 설치하지 않고 어디서나 조건을 검토하는 한 장짜리 페이지.
+           <a href="https://soyoungnadk.github.io/ourcheck-web/">soyoungnadk.github.io/ourcheck-web</a></p>
+      </div>
+      <div class="panel">
+        <div class="tbl-scroll">
+          <table>
+            <thead><tr><th>영역</th><th>구성</th><th>앱과 다른 점</th></tr></thead>
+            <tbody>
+              <tr><td>왼쪽 패널</td><td>가구 구성 · 합산 자산 · 거주지/무주택 · 청약통장 · 관심 유형 · 규칙 실험</td>
+                  <td>한 화면에 다 있다(앱은 4단계)</td></tr>
+              <tr><td>찾기 버튼</td><td>다시 계산하고 결과로 스크롤</td><td>앱에는 없다(자동 갱신)</td></tr>
+              <tr><td>저장 표시</td><td>“저장됨 · 14:32 (이 브라우저에만)”</td><td>localStorage · 기기마다 별도</td></tr>
+              <tr><td>요약 스트립</td><td>신청 가능 / 요건 미달 / 감당 가능 분양가</td><td>동일</td></tr>
+              <tr><td>진단 카드</td><td>0건일 때 규칙별로 몇 건이 막혔는지 막대 + 가장 가까운 공고 안내</td>
+                  <td><b>웹에만 있다</b></td></tr>
+              <tr><td>공고 카드</td><td>펼치면 판정 근거 · 모집공고 요약 · 주변 시세</td><td>동일</td></tr>
+              <tr><td>데이터</td><td>매일 06:00 스냅샷</td><td>앱은 실시간</td></tr>
+              <tr><td>없는 것</td><td>—</td><td>지도 · 캘린더 · 알림</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="flow-note">
+          브라우저에서는 공공데이터포털 API가 CORS로 차단된다. 그래서 GitHub Actions가
+          매일 06:00(KST)에 대신 받아 <code>index.html</code>에 구워 넣고 배포한다.
+        </p>
+      </div>
+    </section>
+
+    <!-- 연결 현황 -->
+    <section id="status">
+      <div class="sec-head">
+        <p class="eyebrow">현황</p>
+        <h3>데이터 연결 상태</h3>
+        <p>화면은 다 만들어져 있다. 비어 있는 화면은 아래 연결이 뚫리면 채워진다.</p>
+      </div>
+      <div class="panel">
+        <div class="tbl-scroll">
+          <table>
+            <thead><tr><th>API</th><th>쓰이는 화면</th><th>상태</th><th>필요한 조치</th></tr></thead>
+            <tbody>
+              <tr><td>청약홈 분양정보</td><td>홈 · 목록 · 상세 · 캘린더 · 지도</td>
+                  <td class="ok">연결됨</td><td>—</td></tr>
+              <tr><td>국토부 실거래가</td><td>상세 · 근처 시세</td>
+                  <td class="ok">연결됨</td><td>—</td></tr>
+              <tr><td>행정안전부 관보</td><td>정책 · 법령</td>
+                  <td class="wait">승인됨</td><td>요청 파라미터 확인 (미리보기 URL)</td></tr>
+              <tr><td>카카오 로컬</td><td>온보딩 주소검색 · 지도</td>
+                  <td class="no">미발급</td><td>REST 키 + JavaScript 키</td></tr>
+              <tr><td>법제처</td><td>정책 · 법령</td>
+                  <td class="no">차단됨</td><td>호출 IP 등록 (open.law.go.kr)</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      판정은 입력값에 근거한 참고용 계산입니다. 실제 신청 전에는 반드시 청약홈 모집공고문을 확인하세요.<br>
+      규칙의 정본은 <code>src/app/lib/domain/matching_engine.dart</code>이며,
+      상수를 바꾸면 테스트와 이 문서를 함께 고칩니다.
+    </footer>
+
+  </main>
+</div>
+
+</body>
+</html>
