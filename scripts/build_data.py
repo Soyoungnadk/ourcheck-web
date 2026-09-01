@@ -29,6 +29,8 @@ APPLYHOME_BASE = "https://api.odcloud.kr/api/ApplyhomeInfoDetailSvc/v1"
 RTMS_URL = (
     "https://apis.data.go.kr/1613000/RTMSDataSvcAptTrade/getRTMSDataSvcAptTrade"
 )
+GWANBO_URL = "https://apis.data.go.kr/1741000/ApiTotalService/getApiTotalList"
+GWANBO_HOST = "https://gwanbo.go.kr"
 KAKAO_ADDRESS_URL = "https://dapi.kakao.com/v2/local/search/address.json"
 KAKAO_KEYWORD_URL = "https://dapi.kakao.com/v2/local/search/keyword.json"
 
@@ -88,11 +90,15 @@ LAWD_CODES = {
 }
 
 # 특별공급 유형별 세대수 필드
+# 공식 명세 기준. NWWDS=NeWlyWeDS(신혼부부), NWBB=NeW BaBy(신생아) 로
+# 이름이 헷갈려 한때 둘을 바꿔 매핑하고 있었다.
+# 청년·신생아는 공공주택일 때만 값이 있다.
 SPECIAL_FIELDS = [
-    ("NWBB_HSHLDCO", "신혼부부"), ("LFE_FRST_HSHLDCO", "생애최초"),
+    ("NWWDS_HSHLDCO", "신혼부부"), ("LFE_FRST_HSHLDCO", "생애최초"),
     ("MNYCH_HSHLDCO", "다자녀"), ("OLD_PARNTS_SUPORT_HSHLDCO", "노부모부양"),
-    ("NWWDS_HSHLDCO", "신생아"), ("YGMN_HSHLDCO", "청년"),
-    ("INSTT_RECOMEND_HSHLDCO", "기관추천"), ("ETC_HSHLDCO", "기타"),
+    ("NWBB_HSHLDCO", "신생아"), ("YGMN_HSHLDCO", "청년"),
+    ("INSTT_RECOMEND_HSHLDCO", "기관추천"),
+    ("TRANSR_INSTT_ENFSN_HSHLDCO", "이전기관"), ("ETC_HSHLDCO", "기타"),
 ]
 
 TIMEOUT = 40
@@ -154,6 +160,12 @@ def area_of(house_ty: str | None) -> float | None:
 def to_int(value) -> int | None:
     digits = re.sub(r"[^0-9]", "", str(value or ""))
     return int(digits) if digits else None
+
+
+def to_float(value) -> float | None:
+    """'84.5775' → 84.58. 오피스텔 전용면적(EXCLUSE_AR)은 숫자로 그냥 온다."""
+    match = re.match(r"^\s*(\d+(?:\.\d+)?)", str(value or ""))
+    return round(float(match.group(1)), 2) if match else None
 
 
 # ---------------------------------------------------------------------------
@@ -239,21 +251,32 @@ def geocode(address: str, name: str, kakao_key: str) -> dict | None:
     return None
 
 
-def geocode_apt(sido: str, sigungu: str, dong: str, apt: str,
+def geocode_apt(sido: str, sigungu: str, dong: str, jibun: str, apt: str,
                 kakao_key: str) -> tuple[float, float] | None:
-    """실거래 아파트 단지의 좌표. 장소 검색만 쓴다.
+    """실거래 아파트 단지의 좌표.
 
-    주소 검색을 쓰면 동(洞) 중심 좌표가 돌아와 단지들이 한 점에 겹친다.
-    지도에서 시세를 비교하려면 단지가 각자 제자리에 있어야 한다.
+    지번이 있으면 주소 검색이 가장 정확하다(실거래가 API 가 지번을 준다).
+    지번이 없거나 못 찾으면 단지명으로 장소 검색을 한다.
+    동(洞)까지만으로 주소 검색을 하면 동 중심 좌표가 돌아와 단지들이
+    한 점에 겹치므로, 지번 없이 주소 검색으로 내려가지는 않는다.
     """
     if not kakao_key or not apt:
         return None
 
     headers = {"Authorization": f"KakaoAK {kakao_key}"}
-    for query in (f"{sigungu} {dong} {apt}", f"{sido} {sigungu} {apt}", f"{dong} {apt}"):
+    # 지번이 있으면 주소 검색이 가장 정확하다. 없거나 못 찾으면 장소 검색으로 간다.
+    attempts = []
+    if jibun:
+        attempts.append((KAKAO_ADDRESS_URL, f"{sido} {sigungu} {dong} {jibun}"))
+    attempts += [
+        (KAKAO_KEYWORD_URL, f"{sigungu} {dong} {apt}"),
+        (KAKAO_KEYWORD_URL, f"{sido} {sigungu} {apt}"),
+        (KAKAO_KEYWORD_URL, f"{dong} {apt}"),
+    ]
+    for url, query in attempts:
         try:
             body = json.loads(
-                fetch(KAKAO_KEYWORD_URL, {"query": query.strip(), "size": 1},
+                fetch(url, {"query": query.strip(), "size": 1},
                       headers=headers).decode("utf-8")
             )
         except Exception:
@@ -315,25 +338,48 @@ def collect_notices(key: str, today: date, kakao_key: str = "") -> list[dict]:
                 "cond[HOUSE_MANAGE_NO::EQ]": house_manage_no,
                 "cond[PBLANC_NO::EQ]": pblanc_no,
             }):
+                # 오피스텔은 주택형별 필드 이름이 다르다.
+                #   APT·무순위 : HOUSE_TY(주택형=전용면적) · LTTOT_TOP_AMOUNT
+                #   오피스텔   : TP(타입) · EXCLUSE_AR(전용면적) · SUPLY_AMOUNT
+                # APT 필드를 그대로 읽으면 분양가와 면적이 통째로 빈다.
+                if kind == "OFFICETEL":
+                    label = unit.get("TP") or unit.get("GP") or ""
+                    area = to_float(unit.get("EXCLUSE_AR"))
+                    price = to_int(unit.get("SUPLY_AMOUNT"))
+                else:
+                    label = unit.get("HOUSE_TY")
+                    area = area_of(unit.get("HOUSE_TY"))
+                    price = to_int(unit.get("LTTOT_TOP_AMOUNT"))
+
                 units.append({
-                    "ty": unit.get("HOUSE_TY"),
-                    "area": area_of(unit.get("HOUSE_TY")),
+                    "ty": label,
+                    "area": area,
                     "gen": to_int(unit.get("SUPLY_HSHLDCO")) or 0,
                     "spc": to_int(unit.get("SPSPLY_HSHLDCO")) or 0,
-                    "price": to_int(unit.get("LTTOT_TOP_AMOUNT")),
+                    "price": price,
                     "sp": {
-                        label: to_int(unit.get(field))
-                        for field, label in SPECIAL_FIELDS
+                        name: to_int(unit.get(field))
+                        for field, name in SPECIAL_FIELDS
                         if to_int(unit.get(field))
                     },
                 })
             units.sort(key=lambda u: u["area"] or 0)
             prices = [u["price"] for u in units if u["price"]]
 
+            # 규제지역은 둘이 함께 지정되는 일이 많다(서울 전역이 그렇다).
+            # 겹치면 더 강한 투기과열지구 기준을 쓴다.
+            speculation = row.get("SPECLT_RDN_EARTH_AT") == "Y"
+            adjustment = row.get("MDAT_TRGET_AREA_SECD") == "Y"
+            # 수도권 내 민영 공공주택지구는 가점제 비율이 따로 있다
+            metro_public = row.get("NPLN_PRVOPR_PUBLIC_HOUSE_AT") == "Y"
+            # 주택상세구분코드 01:민영, 03:국민. 오피스텔·무순위는 이 코드의 뜻이
+            # 달라서(01:도시형생활주택 …) APT 에만 적용한다.
+            national = kind == "APT" and str(row.get("HOUSE_DTL_SECD") or "") == "03"
+
             flags = []
-            if row.get("SPECLT_RDN_EARTH_AT") == "Y":
+            if speculation:
                 flags.append("투기과열지구")
-            if row.get("MDAT_TRGET_AREA_SECD") == "Y":
+            if adjustment:
                 flags.append("조정대상지역")
             if row.get("PARCPRC_ULS_AT") == "Y":
                 flags.append("분양가상한제")
@@ -343,6 +389,8 @@ def collect_notices(key: str, today: date, kakao_key: str = "") -> list[dict]:
                 flags.append("대규모 택지")
             if row.get("IMPRMN_BSNS_AT") == "Y":
                 flags.append("정비사업")
+            if metro_public:
+                flags.append("수도권 민영 공공주택지구")
 
             notices.append({
                 "name": (row.get("HOUSE_NM") or "").strip(),
@@ -352,10 +400,11 @@ def collect_notices(key: str, today: date, kakao_key: str = "") -> list[dict]:
                 "lng": place["lng"] if place else None,
                 "builder": (row.get("CNSTRCT_ENTRPS_NM")
                             or row.get("BSNS_MBY_NM") or "")[:40],
-                # 국민/민영 구분은 HOUSE_DTL_SECD_NM 에 있다(HOUSE_SECD_NM 은 주택 종류)
-                "isNationalHousing": "국민" in (row.get("HOUSE_DTL_SECD_NM") or ""),
-                "isSpeculationArea": row.get("SPECLT_RDN_EARTH_AT") == "Y"
-                                     or row.get("MDAT_TRGET_AREA_SECD") == "Y",
+                "isNationalHousing": national,
+                "isSpeculationArea": speculation or adjustment,
+                "speculation": speculation,          # 투기과열지구
+                "adjustment": adjustment,            # 조정대상지역
+                "metroPublicLand": metro_public,     # 수도권 내 민영 공공주택지구
                 "price": min(prices) if prices else None,
                 "priceMax": max(prices) if prices else None,
                 "area": units[0]["area"] if units else None,
@@ -408,9 +457,17 @@ def collect_trades(key: str, regions: set[tuple[str, str]], today: date,
                 area = text("excluUseAr")
                 if not amount or not area:
                     continue
+                # 계약이 해제된 거래는 시세가 아니다. 남겨 두면 가격이 왜곡된다.
+                if text("cdealType") or text("cdealDay"):
+                    continue
+                # 토지임대부는 땅값이 빠져 있어 일반 매매와 나란히 둘 수 없다.
+                if text("landLeaseholdGbn").upper() == "Y":
+                    continue
                 rows.append({
                     "apt": text("aptNm"), "dong": text("umdNm"),
+                    "jibun": text("jibun"),
                     "area": round(float(area), 2), "amount": amount,
+                    "floor": to_int(text("floor")),
                     "year": to_int(text("buildYear")),
                     "ym": f"{text('dealYear')}.{text('dealMonth').zfill(2)}",
                 })
@@ -424,12 +481,84 @@ def collect_trades(key: str, regions: set[tuple[str, str]], today: date,
         picked = sorted(by_apt.values(), key=lambda r: -counts[r["apt"]])[:5]
         # 지도에 시세를 함께 찍으려면 단지 좌표가 있어야 한다
         for row in picked:
-            spot = geocode_apt(sido, sigungu, row["dong"], row["apt"], kakao_key)
+            spot = geocode_apt(sido, sigungu, row["dong"], row["jibun"],
+                               row["apt"], kakao_key)
             row["lat"], row["lng"] = spot if spot else (None, None)
         if picked:
             trades[f"{sido} {sigungu}"] = picked
 
     return trades
+
+
+# ---------------------------------------------------------------------------
+# 관보 — 법령이 공포되면 반드시 여기에 실린다.
+# 「주택공급에 관한 규칙」은 국토교통부령이라 국회를 거치지 않으므로,
+# 관보가 개정 시점을 잡는 가장 직접적인 창구다.
+#
+# 필수 파라미터가 흔치 않은 이름이다. numOfRows 가 아니라 pageSize 고,
+# type 은 'json' 이 아니라 '1' 이다(type=json 은 200 에 본문 0바이트가 온다).
+GWANBO_KEYWORDS = ["주택", "청약", "분양", "부동산", "주거"]
+
+# 제목에 이 말이 있으면 우리와 상관없는 개별 사업 고시다. 목록이 이런 걸로 덮인다.
+GWANBO_NOISE = [
+    "행정처분", "지구계획", "사업계획", "준공", "환경영향평가", "공람",
+    "지장물", "수용", "재결", "감정평가", "실시계획", "지구단위계획",
+]
+
+# 우리에게 중요한 순서. 규칙·법률 개정이 위로 오게 한다.
+GWANBO_WEIGHTS = {
+    "주택공급에 관한 규칙": 100, "주택법": 70, "공공주택 특별법": 60,
+    "청약": 55, "분양가": 50, "주택공급": 45,
+    "시행령": 20, "시행규칙": 20, "일부개정령": 25, "입법예고": 15,
+}
+
+
+def collect_policies(key: str, today: date) -> list[dict]:
+    """최근 3개월 관보에서 주택·청약 관련 공포·입법예고만 추린다."""
+    since = today - timedelta(days=90)
+    seen: dict[str, dict] = {}
+
+    for word in GWANBO_KEYWORDS:
+        try:
+            body = json.loads(fetch(GWANBO_URL, {
+                "serviceKey": key, "pageNo": 1, "pageSize": 100,
+                "reqFrom": since.strftime("%Y%m%d"),
+                "reqTo": today.strftime("%Y%m%d"),
+                "search": word, "type": 1,
+            }).decode("utf-8"))
+        except Exception as error:
+            print(f"  ! 관보 '{word}' 조회 실패: {error}", file=sys.stderr)
+            continue
+
+        items = ((body.get("response") or {}).get("items") or {}).get("item") or []
+        if isinstance(items, dict):
+            items = [items]
+
+        for item in items:
+            title = (item.get("cntntSj") or "").strip()
+            if not title or any(noise in title for noise in GWANBO_NOISE):
+                continue
+
+            key_no = item.get("cntntSeqNo") or title
+            if key_no in seen:
+                continue
+
+            score = sum(w for k, w in GWANBO_WEIGHTS.items() if k in title)
+            pdf = item.get("pdfFilePath") or ""
+            seen[key_no] = {
+                "title": title[:200],
+                "org": (item.get("pblcnInstNm") or "").strip(),
+                "date": (item.get("hopePblictDt") or "").replace(".", "-"),
+                "kind": (item.get("cmplatSeNm") or "").strip(),
+                "law": (item.get("basisLawNm") or "").strip(),
+                "summary": (item.get("rvsnRsnMainCn") or "").strip()[:400] or None,
+                "url": (GWANBO_HOST + pdf) if pdf.startswith("/") else (pdf or None),
+                "score": score,
+            }
+
+    rows = sorted(seen.values(), key=lambda r: (-r["score"], r["date"]), reverse=False)
+    rows.sort(key=lambda r: (-r["score"], r["date"]))
+    return rows[:30]
 
 
 # ---------------------------------------------------------------------------
@@ -456,7 +585,7 @@ def main() -> int:
         print("      (KAKAO_REST_API_KEY 없음 — 좌표 없이 진행합니다)")
 
     today = date.today()
-    print(f"[1/3] 청약 공고 수집 (기준일 {today})")
+    print(f"[1/4] 청약 공고 수집 (기준일 {today})")
     notices = collect_notices(key, today, kakao_key)
     priced = sum(1 for n in notices if n["price"])
     located = sum(1 for n in notices if n["lat"])
@@ -464,13 +593,17 @@ def main() -> int:
           f" · 좌표 확보 {located}건")
 
     regions = {(n["sido"], n["sigungu"]) for n in notices if n["sido"] and n["sigungu"]}
-    print(f"[2/3] 주변 시세 수집 ({len(regions)}개 시·군·구)")
+    print(f"[2/4] 주변 시세 수집 ({len(regions)}개 시·군·구)")
     trades = collect_trades(key, regions, today, kakao_key)
     rows = [row for group in trades.values() for row in group]
     print(f"      시세 확보 {len(trades)}개 지역 · 단지 {len(rows)}곳"
           f" (좌표 {sum(1 for r in rows if r['lat'])}곳)")
 
-    print(f"[3/3] {args.out} 갱신")
+    print("[3/4] 정책·법령 수집 (관보)")
+    policies = collect_policies(key, today)
+    print(f"      주택 관련 {len(policies)}건")
+
+    print(f"[4/4] {args.out} 갱신")
     path = __import__("pathlib").Path(args.out)
     html = path.read_text(encoding="utf-8")
 
@@ -480,6 +613,8 @@ def main() -> int:
         + json.dumps(notices, ensure_ascii=False, indent=2).replace("\n", "\n  ")
         + ";\n  var TRADES = "
         + json.dumps(trades, ensure_ascii=False, indent=2).replace("\n", "\n  ")
+        + ";\n  var POLICIES = "
+        + json.dumps(policies, ensure_ascii=False, indent=2).replace("\n", "\n  ")
         + ";\n"
         + f'  var DATA_DATE = "{today.isoformat()}";\n'
         "  /* DATA:END */"
@@ -497,7 +632,8 @@ def main() -> int:
         return 1
 
     path.write_text(updated, encoding="utf-8")
-    print(f"      완료: 공고 {len(notices)}건, 시세 {len(trades)}개 지역")
+    print(f"      완료: 공고 {len(notices)}건, 시세 {len(trades)}개 지역, "
+          f"정책 {len(policies)}건")
     return 0
 
 

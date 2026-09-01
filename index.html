@@ -411,6 +411,50 @@
   }
   .kv > span { color: var(--ink-3); }
   .kv > b { font-weight: 600; }
+  /* ── 정책 · 법령 (관보) ─────────────────────────── */
+  .policy-panel { margin-top: 18px; padding: 0; }
+  .policy-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    gap: 10px; padding: 14px 16px 10px;
+  }
+  .policy-head h2 {
+    margin: 0; font-family: var(--serif); font-size: 16px; font-weight: 700;
+  }
+  .policy-head .src {
+    font-family: var(--mono); font-size: 10.5px; color: var(--ink-3);
+    letter-spacing: .03em;
+  }
+  .policy-list { list-style: none; margin: 0; padding: 0 16px 14px; }
+  .policy-list li {
+    display: grid; grid-template-columns: 74px 1fr; gap: 10px;
+    padding: 9px 0; border-top: 1px solid var(--line-soft);
+  }
+  .policy-list li:first-child { border-top: 0; }
+  .policy-when {
+    font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+    font-variant-numeric: tabular-nums; padding-top: 2px;
+  }
+  .policy-title {
+    margin: 0; font-size: 13.5px; font-weight: 600; color: var(--ink);
+    line-height: 1.5;
+  }
+  .policy-title a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--line); }
+  .policy-title a:hover { border-bottom-color: var(--accent); }
+  .policy-meta {
+    margin: 3px 0 0; font-size: 11.5px; color: var(--ink-3);
+    display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center;
+  }
+  .policy-why {
+    margin: 4px 0 0; font-size: 12px; color: var(--ink-2); line-height: 1.55;
+  }
+  .policy-list li.key .policy-title { color: var(--accent); }
+  .tag.rule {
+    background: var(--accent-wash); color: var(--accent);
+  }
+  .policy-empty {
+    padding: 0 16px 16px; font-size: 12.5px; color: var(--ink-3); line-height: 1.6;
+  }
+
   /* ── 지도 (화면설계서 06) ───────────────────────── */
   .map-panel { margin-top: 18px; padding: 0; overflow: hidden; }
   .map-bar {
@@ -543,14 +587,8 @@
   .pblanc:hover { text-decoration: underline; }
 
   /* ── 규칙 참고 ──────────────────────────────────────── */
-  .ref { margin-top: 28px; }
-  .ref summary {
-    grid-template-columns: 1fr; padding: 14px 18px;
-    font-size: 13px; font-weight: 600; color: var(--ink-2);
-  }
   .ref summary::after { content: " ▸"; color: var(--ink-3); }
   .ref[open] summary::after { content: " ▾"; }
-  .ref-body { padding: 0 18px 18px; }
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
   .tbl-scroll { overflow-x: auto; }
   th, td {
@@ -577,17 +615,6 @@
   }
   .btn:hover { border-color: var(--accent); color: var(--accent); }
 
-  .note-box {
-    margin-top: 28px; padding: 16px 18px;
-    border: 1px solid var(--line); border-left: 3px solid var(--note);
-    border-radius: 4px; background: var(--surface);
-    font-size: 13px; color: var(--ink-2); line-height: 1.7;
-  }
-  .note-box strong { color: var(--ink); }
-  .note-box code {
-    font-family: var(--mono); font-size: 12px;
-    background: var(--surface-2); padding: 1px 5px; border-radius: 2px;
-  }
 
   .empty {
     padding: 40px 20px; text-align: center; color: var(--ink-3); font-size: 14px;
@@ -828,59 +855,15 @@
 
       <div class="cards" id="cards"></div>
 
-      <details class="panel ref">
-        <summary>적용 중인 규칙 상수 보기</summary>
-        <div class="ref-body">
-          <h4>민영주택 지역별·면적별 예치금 (만원)</h4>
-          <div class="tbl-scroll">
-            <table>
-              <thead>
-                <tr><th>지역</th><th style="text-align:right">~85㎡</th><th style="text-align:right">~102㎡</th><th style="text-align:right">~135㎡</th><th style="text-align:right">초과</th></tr>
-              </thead>
-              <tbody>
-                <tr><td>서울 · 부산</td><td class="num">300</td><td class="num">600</td><td class="num">1,000</td><td class="num">1,500</td></tr>
-                <tr><td>그 외 광역시</td><td class="num">250</td><td class="num">400</td><td class="num">700</td><td class="num">1,000</td></tr>
-                <tr><td>기타 시 · 군</td><td class="num">200</td><td class="num">300</td><td class="num">400</td><td class="num">500</td></tr>
-              </tbody>
-            </table>
-          </div>
-
-          <h4>1순위 요건</h4>
-          <div class="tbl-scroll">
-            <table>
-              <thead>
-                <tr><th>지역</th><th style="text-align:right">가입 기간</th><th style="text-align:right">국민주택 납입</th></tr>
-              </thead>
-              <tbody>
-                <tr><td>규제지역 (투기과열 · 조정)</td><td class="num">24개월</td><td class="num">24회</td></tr>
-                <tr><td>수도권 (서울 · 경기 · 인천)</td><td class="num">12개월</td><td class="num">12회</td></tr>
-                <tr><td>그 외</td><td class="num">6개월</td><td class="num">6회</td></tr>
-              </tbody>
-            </table>
-          </div>
-
-          <h4>그 밖의 상수</h4>
-          <div class="tbl-scroll">
-            <table>
-              <tbody>
-                <tr><td>계약금 비율</td><td class="num">10%</td><td style="white-space:normal;color:var(--ink-2)">총액이 되더라도 계약금 낼 현금이 없으면 불가로 본다</td></tr>
-                <tr><td>신혼부부 혼인 기간</td><td class="num">7년</td><td style="white-space:normal;color:var(--ink-2)">이내면 신혼부부 특별공급 대상</td></tr>
-                <tr><td>점수 배점</td><td class="num">40 / 25 / 20 / 15</td><td style="white-space:normal;color:var(--ink-2)">자금 여유 · 지역 · 통장 · 특별공급</td></tr>
-              </tbody>
-            </table>
-          </div>
+      <!-- ── 정책 · 법령 (관보) ───────────────────── -->
+      <section class="panel policy-panel">
+        <div class="policy-head">
+          <h2>정책 · 법령</h2>
+          <span class="src">행정안전부 전자관보 · 최근 3개월</span>
         </div>
-      </details>
+        <div id="policies"></div>
+      </section>
 
-      <div class="note-box">
-        <strong>이 페이지가 하는 일과 안 하는 일.</strong><br>
-        판정 규칙만 검증합니다. 아래 공고는 규칙을 확인하려고 만든 <strong>가상의 샘플</strong>이며,
-        실제 청약홈 데이터가 아닙니다. 브라우저에서는 공공데이터포털·법제처 API가 CORS로 막혀
-        실시간 수집은 앱에서만 동작합니다.<br><br>
-        규칙 상수는 「주택공급에 관한 규칙」을 코드로 옮긴 1차 해석입니다.
-        결과가 이상하면 <code>matching_engine.dart</code> 상단 상수와
-        <code>matching_engine_test.dart</code>를 함께 고쳐 주세요.
-      </div>
     </section>
 
   </div>
@@ -1137,11 +1120,14 @@
       "sido": "인천광역시",
       "sigungu": "서해구",
       "addr": "인천광역시 서해구 인천검암역세권 공공주택지구 내 B-1BL",
-      "lat": 37.5651131704531,
-      "lng": 126.66861437054,
+      "lat": 37.5454335160343,
+      "lng": 126.676028468221,
       "builder": "㈜대우건설, 동부건설㈜, ㈜비에스한양, 경화건설㈜, 브니엘네이처㈜",
       "isNationalHousing": true,
       "isSpeculationArea": false,
+      "speculation": false,
+      "adjustment": false,
+      "metroPublicLand": false,
       "price": 46250,
       "priceMax": 63910,
       "area": 60.65,
@@ -1167,11 +1153,11 @@
           "spc": 39,
           "price": 47930,
           "sp": {
-            "신혼부부": 10,
+            "신혼부부": 5,
             "생애최초": 8,
             "다자녀": 5,
             "노부모부양": 3,
-            "신생아": 5,
+            "신생아": 10,
             "기관추천": 8
           }
         },
@@ -1182,11 +1168,11 @@
           "spc": 23,
           "price": 48630,
           "sp": {
-            "신혼부부": 5,
+            "신혼부부": 3,
             "생애최초": 4,
             "다자녀": 3,
             "노부모부양": 2,
-            "신생아": 3,
+            "신생아": 5,
             "기관추천": 3,
             "기타": 3
           }
@@ -1198,11 +1184,11 @@
           "spc": 59,
           "price": 46250,
           "sp": {
-            "신혼부부": 15,
+            "신혼부부": 8,
             "생애최초": 11,
             "다자녀": 8,
             "노부모부양": 4,
-            "신생아": 8,
+            "신생아": 15,
             "기관추천": 13
           }
         },
@@ -1213,11 +1199,11 @@
           "spc": 40,
           "price": 62940,
           "sp": {
-            "신혼부부": 10,
+            "신혼부부": 5,
             "생애최초": 8,
             "다자녀": 5,
             "노부모부양": 3,
-            "신생아": 5,
+            "신생아": 10,
             "기관추천": 8,
             "기타": 1
           }
@@ -1229,11 +1215,11 @@
           "spc": 153,
           "price": 63910,
           "sp": {
-            "신혼부부": 43,
+            "신혼부부": 20,
             "생애최초": 31,
             "다자녀": 20,
             "노부모부양": 8,
-            "신생아": 20,
+            "신생아": 43,
             "기관추천": 28,
             "기타": 3
           }
@@ -1245,11 +1231,11 @@
           "spc": 22,
           "price": 62340,
           "sp": {
-            "신혼부부": 5,
+            "신혼부부": 3,
             "생애최초": 4,
             "다자녀": 3,
             "노부모부양": 2,
-            "신생아": 3,
+            "신생아": 5,
             "기관추천": 5
           }
         }
@@ -1261,11 +1247,14 @@
       "sido": "인천광역시",
       "sigungu": "미추홀구",
       "addr": "인천광역시 미추홀구 학익동 인천 용현·학익 1블록 도시개발구역 공동3BL",
-      "lat": 37.4410179859397,
-      "lng": 126.654380831267,
+      "lat": 37.438504780121,
+      "lng": 126.638619214824,
       "builder": "아이파크현대산업개발(주),현대건설(주),(주)포스코이앤씨",
       "isNationalHousing": false,
       "isSpeculationArea": false,
+      "speculation": false,
+      "adjustment": false,
+      "metroPublicLand": false,
       "price": 48560,
       "priceMax": 170000,
       "area": 59.98,
@@ -1287,11 +1276,11 @@
           "spc": 101,
           "price": 48560,
           "sp": {
-            "신혼부부": 18,
+            "신혼부부": 28,
             "생애최초": 13,
             "다자녀": 18,
             "노부모부양": 6,
-            "신생아": 28,
+            "신생아": 18,
             "기관추천": 18
           }
         },
@@ -1302,11 +1291,11 @@
           "spc": 73,
           "price": 60090,
           "sp": {
-            "신혼부부": 13,
+            "신혼부부": 20,
             "생애최초": 9,
             "다자녀": 13,
             "노부모부양": 5,
-            "신생아": 20,
+            "신생아": 13,
             "기관추천": 13
           }
         },
@@ -1317,11 +1306,11 @@
           "spc": 198,
           "price": 67590,
           "sp": {
-            "신혼부부": 36,
+            "신혼부부": 54,
             "생애최초": 25,
             "다자녀": 36,
             "노부모부양": 11,
-            "신생아": 54,
+            "신생아": 36,
             "기관추천": 36
           }
         },
@@ -1332,11 +1321,11 @@
           "spc": 540,
           "price": 71290,
           "sp": {
-            "신혼부부": 98,
+            "신혼부부": 147,
             "생애최초": 68,
             "다자녀": 98,
             "노부모부양": 31,
-            "신생아": 147,
+            "신생아": 98,
             "기관추천": 98
           }
         },
@@ -1413,6 +1402,9 @@
       "builder": "(주)케이알산업, 동성건설(주)",
       "isNationalHousing": true,
       "isSpeculationArea": true,
+      "speculation": true,
+      "adjustment": true,
+      "metroPublicLand": false,
       "price": 79831,
       "priceMax": 81214,
       "area": 55.97,
@@ -1477,6 +1469,9 @@
       "builder": "장위10구역주택재개발정비사업조합",
       "isNationalHousing": false,
       "isSpeculationArea": false,
+      "speculation": false,
+      "adjustment": false,
+      "metroPublicLand": false,
       "price": 73220,
       "priceMax": 73220,
       "area": 39.77,
@@ -1512,6 +1507,9 @@
       "builder": "회원2구역주택재개발정비사업조합",
       "isNationalHousing": false,
       "isSpeculationArea": false,
+      "speculation": false,
+      "adjustment": false,
+      "metroPublicLand": false,
       "price": 27100,
       "priceMax": 150340,
       "area": 38.03,
@@ -1619,6 +1617,9 @@
       "builder": "(주)무궁화신탁",
       "isNationalHousing": false,
       "isSpeculationArea": false,
+      "speculation": false,
+      "adjustment": false,
+      "metroPublicLand": false,
       "price": 47750,
       "priceMax": 48550,
       "area": 24.91,
@@ -1662,6 +1663,9 @@
       "builder": "인천검단3차피에프브이 주식회사",
       "isNationalHousing": false,
       "isSpeculationArea": false,
+      "speculation": false,
+      "adjustment": false,
+      "metroPublicLand": false,
       "price": 54900,
       "priceMax": 54900,
       "area": 84.93,
@@ -1697,6 +1701,9 @@
       "builder": "한신공영(주)",
       "isNationalHousing": false,
       "isSpeculationArea": false,
+      "speculation": false,
+      "adjustment": false,
+      "metroPublicLand": false,
       "price": 39200,
       "priceMax": 39200,
       "area": 84.95,
@@ -1732,6 +1739,9 @@
       "builder": "부곡가구역주택재개발정비사업조합",
       "isNationalHousing": false,
       "isSpeculationArea": false,
+      "speculation": false,
+      "adjustment": false,
+      "metroPublicLand": false,
       "price": 87300,
       "priceMax": 109300,
       "area": 59.82,
@@ -1770,11 +1780,14 @@
       "sido": "서울특별시",
       "sigungu": "강동구",
       "addr": "서울특별시 강동구 길동 386-4 (길동,에스아이팰리스 강동 센텀II)",
-      "lat": 37.5379270850208,
-      "lng": 127.137528634012,
+      "lat": 37.5344859624469,
+      "lng": 127.142712345548,
       "builder": "길동 386-4외 2필지",
       "isNationalHousing": false,
       "isSpeculationArea": false,
+      "speculation": false,
+      "adjustment": false,
+      "metroPublicLand": false,
       "price": 36900,
       "priceMax": 61900,
       "area": 27.3,
@@ -1842,6 +1855,9 @@
       "builder": "(주)태영건설",
       "isNationalHousing": true,
       "isSpeculationArea": false,
+      "speculation": false,
+      "adjustment": false,
+      "metroPublicLand": false,
       "price": 22100,
       "priceMax": 27900,
       "area": 59.8,
@@ -1895,6 +1911,9 @@
       "builder": "이수건설 주식회사",
       "isNationalHousing": false,
       "isSpeculationArea": true,
+      "speculation": true,
+      "adjustment": true,
+      "metroPublicLand": false,
       "price": 86200,
       "priceMax": 107500,
       "area": 59.93,
@@ -1919,11 +1938,11 @@
           "spc": 9,
           "price": 86200,
           "sp": {
-            "신혼부부": 2,
+            "신혼부부": 3,
             "생애최초": 1,
             "다자녀": 2,
             "노부모부양": 1,
-            "신생아": 3
+            "신생아": 2
           }
         },
         {
@@ -1933,11 +1952,11 @@
           "spc": 21,
           "price": 91000,
           "sp": {
-            "신혼부부": 3,
+            "신혼부부": 5,
             "생애최초": 2,
             "다자녀": 3,
             "노부모부양": 1,
-            "신생아": 5,
+            "신생아": 3,
             "기관추천": 7
           }
         },
@@ -1948,10 +1967,10 @@
           "spc": 5,
           "price": 89200,
           "sp": {
-            "신혼부부": 1,
+            "신혼부부": 2,
             "생애최초": 1,
             "다자녀": 1,
-            "신생아": 2
+            "신생아": 1
           }
         },
         {
@@ -1975,6 +1994,9 @@
       "builder": "남광토건 주식회사, 금광기업(주), 경안종합건설 주식회사, 중앙건설 주식",
       "isNationalHousing": true,
       "isSpeculationArea": false,
+      "speculation": false,
+      "adjustment": false,
+      "metroPublicLand": false,
       "price": 40419,
       "priceMax": 40646,
       "area": 59.92,
@@ -1999,11 +2021,11 @@
           "spc": 120,
           "price": 40646,
           "sp": {
-            "신혼부부": 26,
+            "신혼부부": 13,
             "생애최초": 19,
             "다자녀": 13,
             "노부모부양": 7,
-            "신생아": 13,
+            "신생아": 26,
             "기관추천": 20,
             "기타": 22
           }
@@ -2015,11 +2037,11 @@
           "spc": 38,
           "price": 40419,
           "sp": {
-            "신혼부부": 9,
+            "신혼부부": 4,
             "생애최초": 7,
             "다자녀": 4,
             "노부모부양": 2,
-            "신생아": 4,
+            "신생아": 9,
             "기관추천": 6,
             "기타": 6
           }
@@ -2037,6 +2059,9 @@
       "builder": "상인천초교주변주택재개발정비사업조합",
       "isNationalHousing": false,
       "isSpeculationArea": false,
+      "speculation": false,
+      "adjustment": false,
+      "metroPublicLand": false,
       "price": 48940,
       "priceMax": 66440,
       "area": 49.97,
@@ -2088,6 +2113,9 @@
       "builder": "한국토지주택공사 경기북부지역본부",
       "isNationalHousing": true,
       "isSpeculationArea": false,
+      "speculation": false,
+      "adjustment": false,
+      "metroPublicLand": false,
       "price": 38446,
       "priceMax": 38446,
       "area": 55.0,
@@ -2127,6 +2155,9 @@
       "builder": "양우종합건설 주식회사, (주)우호건설, 주식회사 대명건설",
       "isNationalHousing": true,
       "isSpeculationArea": false,
+      "speculation": false,
+      "adjustment": false,
+      "metroPublicLand": false,
       "price": 35093,
       "priceMax": 49201,
       "area": 59.74,
@@ -2152,11 +2183,11 @@
           "spc": 221,
           "price": 35708,
           "sp": {
-            "신혼부부": 52,
+            "신혼부부": 26,
             "생애최초": 39,
             "다자녀": 26,
             "노부모부양": 13,
-            "신생아": 26,
+            "신생아": 52,
             "기관추천": 39,
             "기타": 26
           }
@@ -2168,11 +2199,11 @@
           "spc": 112,
           "price": 35093,
           "sp": {
-            "신혼부부": 26,
+            "신혼부부": 13,
             "생애최초": 20,
             "다자녀": 13,
             "노부모부양": 7,
-            "신생아": 13,
+            "신생아": 26,
             "기관추천": 20,
             "기타": 13
           }
@@ -2184,11 +2215,11 @@
           "spc": 74,
           "price": 43704,
           "sp": {
-            "신혼부부": 17,
+            "신혼부부": 9,
             "생애최초": 13,
             "다자녀": 9,
             "노부모부양": 4,
-            "신생아": 9,
+            "신생아": 17,
             "기관추천": 13,
             "기타": 9
           }
@@ -2200,11 +2231,11 @@
           "spc": 69,
           "price": 43718,
           "sp": {
-            "신혼부부": 17,
+            "신혼부부": 8,
             "생애최초": 12,
             "다자녀": 8,
             "노부모부양": 4,
-            "신생아": 8,
+            "신생아": 17,
             "기관추천": 12,
             "기타": 8
           }
@@ -2216,11 +2247,11 @@
           "spc": 197,
           "price": 49201,
           "sp": {
-            "신혼부부": 46,
+            "신혼부부": 23,
             "생애최초": 35,
             "다자녀": 23,
             "노부모부양": 12,
-            "신생아": 23,
+            "신생아": 46,
             "기관추천": 35,
             "기타": 23
           }
@@ -2238,6 +2269,9 @@
       "builder": "(주)케이알산업, 우암건설(주)",
       "isNationalHousing": true,
       "isSpeculationArea": false,
+      "speculation": false,
+      "adjustment": false,
+      "metroPublicLand": false,
       "price": 50466,
       "priceMax": 71654,
       "area": 59.71,
@@ -2263,7 +2297,7 @@
           "spc": 1,
           "price": 50466,
           "sp": {
-            "신혼부부": 1
+            "신생아": 1
           }
         },
         {
@@ -2273,11 +2307,11 @@
           "spc": 30,
           "price": 50474,
           "sp": {
-            "신혼부부": 7,
+            "신혼부부": 3,
             "생애최초": 5,
             "다자녀": 3,
             "노부모부양": 2,
-            "신생아": 3,
+            "신생아": 7,
             "기관추천": 6,
             "기타": 4
           }
@@ -2289,11 +2323,11 @@
           "spc": 44,
           "price": 52656,
           "sp": {
-            "신혼부부": 10,
+            "신혼부부": 5,
             "생애최초": 8,
             "다자녀": 5,
             "노부모부양": 3,
-            "신생아": 5,
+            "신생아": 10,
             "기관추천": 7,
             "기타": 6
           }
@@ -2321,11 +2355,11 @@
           "spc": 90,
           "price": 53736,
           "sp": {
-            "신혼부부": 21,
+            "신혼부부": 10,
             "생애최초": 15,
             "다자녀": 10,
             "노부모부양": 5,
-            "신생아": 10,
+            "신생아": 21,
             "기관추천": 17,
             "기타": 12
           }
@@ -2359,11 +2393,11 @@
           "spc": 28,
           "price": 64649,
           "sp": {
-            "신혼부부": 6,
+            "신혼부부": 3,
             "생애최초": 5,
             "다자녀": 3,
             "노부모부양": 2,
-            "신생아": 3,
+            "신생아": 6,
             "기관추천": 5,
             "기타": 4
           }
@@ -2375,8 +2409,8 @@
           "spc": 2,
           "price": 66107,
           "sp": {
-            "신혼부부": 1,
-            "생애최초": 1
+            "생애최초": 1,
+            "신생아": 1
           }
         },
         {
@@ -2424,48 +2458,58 @@
       {
         "apt": "e편한세상평내메트로원",
         "dong": "평내동",
+        "jibun": "667",
         "area": 59.99,
         "amount": 48000,
+        "floor": 19,
         "year": 2022,
         "ym": "2026.08",
-        "lat": 37.6480523514684,
-        "lng": 127.240808485365
+        "lat": 37.6480857978734,
+        "lng": 127.240489502474
       },
       {
         "apt": "평내호평역대명루첸포레스티움",
         "dong": "평내동",
+        "jibun": "661",
         "area": 59.81,
         "amount": 51500,
+        "floor": 18,
         "year": 2020,
         "ym": "2026.08",
-        "lat": 37.65153436138998,
-        "lng": 127.23649435129964
+        "lat": 37.6512871383428,
+        "lng": 127.235229500598
       },
       {
         "apt": "두산알프하임",
         "dong": "호평동",
+        "jibun": "730",
         "area": 72.96,
         "amount": 47000,
+        "floor": 18,
         "year": 2021,
         "ym": "2026.08",
-        "lat": 37.65083984803558,
-        "lng": 127.25418784027003
+        "lat": 37.6503711518721,
+        "lng": 127.253688328041
       },
       {
         "apt": "예당마을신안인스빌",
         "dong": "진접읍 금곡리",
+        "jibun": "1117",
         "area": 84.98,
         "amount": 48000,
+        "floor": 9,
         "year": 2010,
         "ym": "2026.08",
-        "lat": 37.723449823229444,
-        "lng": 127.20803340563795
+        "lat": 37.7234073815234,
+        "lng": 127.208036803209
       },
       {
         "apt": "다산자연앤e편한세상3차",
         "dong": "다산동",
+        "jibun": "6132",
         "area": 59.99,
         "amount": 89500,
+        "floor": 9,
         "year": 2019,
         "ym": "2026.08",
         "lat": 37.6193447952159,
@@ -2476,8 +2520,10 @@
       {
         "apt": "양주옥정신도시디에트르프레스티지",
         "dong": "옥정동",
+        "jibun": "946",
         "area": 84.95,
         "amount": 48700,
+        "floor": 33,
         "year": 2022,
         "ym": "2026.08",
         "lat": 37.8292732998063,
@@ -2486,50 +2532,60 @@
       {
         "apt": "덕계역금강펜테리움센트럴파크",
         "dong": "덕계동",
+        "jibun": "915",
         "area": 59.24,
         "amount": 33900,
+        "floor": 15,
         "year": 2023,
         "ym": "2026.08",
-        "lat": 37.8145976282922,
-        "lng": 127.047989208407
+        "lat": 37.8147615704273,
+        "lng": 127.04828845275
       },
       {
         "apt": "e편한세상옥정메트로포레",
         "dong": "옥정동",
+        "jibun": "1095",
         "area": 84.94,
         "amount": 43000,
+        "floor": 7,
         "year": 2020,
         "ym": "2026.08",
-        "lat": 37.81170877145763,
-        "lng": 127.08895304747745
+        "lat": 37.811709221762,
+        "lng": 127.088953275144
       },
       {
         "apt": "양주옥정신도시제일풍경채레이크시티2단지",
         "dong": "옥정동",
+        "jibun": "1043-1",
         "area": 84.9,
         "amount": 45700,
+        "floor": 16,
         "year": 2023,
         "ym": "2026.08",
-        "lat": 37.823663826425,
-        "lng": 127.1019793085844
+        "lat": 37.8238669432955,
+        "lng": 127.101514242792
       },
       {
         "apt": "옥정센트럴파크푸르지오",
         "dong": "옥정동",
+        "jibun": "955",
         "area": 58.98,
         "amount": 34200,
+        "floor": 28,
         "year": 2016,
         "ym": "2026.08",
-        "lat": null,
-        "lng": null
+        "lat": 37.8244515715755,
+        "lng": 127.089399159954
       }
     ],
     "경기도 의왕시": [
       {
         "apt": "의왕백운 해링턴 플레이스 1단지",
         "dong": "학의동",
+        "jibun": "1150",
         "area": 84.94,
         "amount": 83800,
+        "floor": 9,
         "year": 2019,
         "ym": "2026.08",
         "lat": 37.36949109632329,
@@ -2538,50 +2594,60 @@
       {
         "apt": "한진해모로",
         "dong": "오전동",
+        "jibun": "27-1",
         "area": 84.93,
         "amount": 65000,
+        "floor": 6,
         "year": 2004,
         "ym": "2026.08",
-        "lat": 37.3650487383928,
-        "lng": 126.965894648044
+        "lat": 37.3641568226356,
+        "lng": 126.966245899646
       },
       {
         "apt": "백운밸리레이크포레2단지",
         "dong": "학의동",
+        "jibun": "1078",
         "area": 59.78,
         "amount": 62500,
+        "floor": 5,
         "year": 2020,
         "ym": "2026.08",
-        "lat": 37.3725491355138,
-        "lng": 127.01581701162682
+        "lat": 37.3723276661018,
+        "lng": 127.01579686934
       },
       {
         "apt": "의왕내손e편한세상",
         "dong": "내손동",
+        "jibun": "846",
         "area": 84.92,
         "amount": 110000,
+        "floor": 1,
         "year": 2012,
         "ym": "2026.08",
-        "lat": 37.38759550568254,
-        "lng": 126.97939086671155
+        "lat": 37.3857695691349,
+        "lng": 126.978809952577
       },
       {
-        "apt": "모락산현대",
+        "apt": "대명솔채",
         "dong": "오전동",
-        "area": 79.05,
-        "amount": 60000,
-        "year": 2002,
+        "jibun": "887",
+        "area": 65.22,
+        "amount": 52000,
+        "floor": 11,
+        "year": 2009,
         "ym": "2026.08",
-        "lat": 37.36193747496342,
-        "lng": 126.96911093858208
+        "lat": null,
+        "lng": null
       }
     ],
     "경기도 의정부시": [
       {
         "apt": "민락엘레트",
         "dong": "민락동",
+        "jibun": "890",
         "area": 51.91,
         "amount": 28800,
+        "floor": 19,
         "year": 2017,
         "ym": "2026.08",
         "lat": 37.75015084659523,
@@ -2590,38 +2656,46 @@
       {
         "apt": "e편한세상신곡포레스타뷰",
         "dong": "신곡동",
+        "jibun": "817",
         "area": 74.6,
         "amount": 47800,
+        "floor": 20,
         "year": 2020,
         "ym": "2026.08",
-        "lat": 37.74425958792637,
-        "lng": 127.06783220050566
+        "lat": 37.743827069996,
+        "lng": 127.068080395674
       },
       {
         "apt": "의정부민락푸르지오",
         "dong": "낙양동",
+        "jibun": "757",
         "area": 84.94,
         "amount": 41900,
+        "floor": 22,
         "year": 2015,
         "ym": "2026.08",
-        "lat": 37.75149948923454,
-        "lng": 127.11000018996985
+        "lat": 37.7514392672271,
+        "lng": 127.109943705658
       },
       {
         "apt": "호반베르디움1차",
         "dong": "민락동",
+        "jibun": "847",
         "area": 84.98,
         "amount": 56000,
+        "floor": 18,
         "year": 2017,
         "ym": "2026.08",
-        "lat": 37.74499674110175,
-        "lng": 127.10147869713288
+        "lat": 37.7451486293898,
+        "lng": 127.101286587184
       },
       {
         "apt": "고산리슈빌포레",
         "dong": "고산동",
+        "jibun": "903",
         "area": 59.91,
         "amount": 34900,
+        "floor": 7,
         "year": 2021,
         "ym": "2026.08",
         "lat": 37.74037025725791,
@@ -2632,122 +2706,146 @@
       {
         "apt": "둔촌푸르지오",
         "dong": "둔촌동",
+        "jibun": "630",
         "area": 113.67,
         "amount": 182000,
+        "floor": 1,
         "year": 2010,
         "ym": "2026.08",
-        "lat": 37.534146130429356,
-        "lng": 127.14651776352255
+        "lat": 37.5341452290037,
+        "lng": 127.146518101181
       },
       {
         "apt": "다성이즈빌(349-1)",
         "dong": "길동",
+        "jibun": "349-1",
         "area": 16.88,
         "amount": 12500,
+        "floor": 7,
         "year": 2012,
         "ym": "2026.08",
-        "lat": null,
-        "lng": null
+        "lat": 37.5406649459172,
+        "lng": 127.142548285305
       },
       {
         "apt": "래미안강동팰리스",
         "dong": "천호동",
+        "jibun": "571",
         "area": 84.97,
         "amount": 188000,
+        "floor": 26,
         "year": 2017,
         "ym": "2026.08",
-        "lat": null,
-        "lng": null
+        "lat": 37.5372215425849,
+        "lng": 127.131974711687
       },
       {
         "apt": "고덕리엔파크3단지",
         "dong": "상일동",
+        "jibun": "490",
         "area": 84.87,
         "amount": 139000,
+        "floor": 2,
         "year": 2011,
         "ym": "2026.08",
-        "lat": 37.55268516575942,
-        "lng": 127.17552532997468
+        "lat": 37.5528325043365,
+        "lng": 127.175022524959
       },
       {
         "apt": "강동리버스트4단지",
         "dong": "강일동",
+        "jibun": "114",
         "area": 49.82,
         "amount": 101000,
+        "floor": 8,
         "year": 2020,
         "ym": "2026.08",
-        "lat": 37.57291648482197,
-        "lng": 127.1728333697609
+        "lat": null,
+        "lng": null
       }
     ],
     "서울특별시 성북구": [
       {
         "apt": "정릉풍림아이원",
         "dong": "정릉동",
+        "jibun": "239",
         "area": 59.88,
         "amount": 64000,
+        "floor": 11,
         "year": 2005,
         "ym": "2026.08",
-        "lat": null,
-        "lng": null
+        "lat": 37.6184876142783,
+        "lng": 127.007297911588
       },
       {
         "apt": "종암에스케이",
         "dong": "종암동",
+        "jibun": "104-1",
         "area": 59.04,
         "amount": 98000,
+        "floor": 13,
         "year": 1999,
         "ym": "2026.08",
-        "lat": 37.6011822462255,
-        "lng": 127.037533127344
+        "lat": 37.6011857517073,
+        "lng": 127.036988885164
       },
       {
         "apt": "한진(609-1)",
         "dong": "돈암동",
+        "jibun": "609-1",
         "area": 84.87,
         "amount": 104500,
+        "floor": 15,
         "year": 1998,
         "ym": "2026.08",
-        "lat": null,
-        "lng": null
+        "lat": 37.5941783218836,
+        "lng": 127.010321322145
       },
       {
         "apt": "길음뉴타운4단지(e편한세상)",
         "dong": "길음동",
+        "jibun": "1281",
         "area": 84.64,
         "amount": 136500,
+        "floor": 8,
         "year": 2005,
         "ym": "2026.08",
-        "lat": 37.6126941142614,
-        "lng": 127.019072993331
+        "lat": 37.6120673819839,
+        "lng": 127.019648869071
       },
       {
         "apt": "우남푸르미아",
         "dong": "상월곡동",
+        "jibun": "55-56",
         "area": 59.64,
         "amount": 59500,
+        "floor": 9,
         "year": 1994,
         "ym": "2026.08",
-        "lat": 37.61584785839301,
-        "lng": 127.06745147307085
+        "lat": 37.6058820062924,
+        "lng": 127.046592295148
       }
     ],
     "서울특별시 영등포구": [
       {
         "apt": "삼부",
         "dong": "여의도동",
+        "jibun": "30-2",
         "area": 77.69,
         "amount": 328000,
+        "floor": 5,
         "year": 1975,
         "ym": "2026.08",
-        "lat": 37.52493718404563,
-        "lng": 126.93209650151725
+        "lat": 37.5249360133869,
+        "lng": 126.932097633851
       },
       {
         "apt": "아크로타워스퀘어",
         "dong": "영등포동7가",
+        "jibun": "203",
         "area": 84.69,
         "amount": 180000,
+        "floor": 2,
         "year": 2017,
         "ym": "2026.08",
         "lat": 37.52375784194018,
@@ -2756,144 +2854,172 @@
       {
         "apt": "영등포푸르지오",
         "dong": "영등포동",
+        "jibun": "647",
         "area": 59.91,
         "amount": 154000,
+        "floor": 19,
         "year": 2002,
         "ym": "2026.08",
-        "lat": 37.51185180912726,
-        "lng": 126.90237014189154
+        "lat": 37.5115335007354,
+        "lng": 126.90238989779
       },
       {
         "apt": "쌍용플래티넘S",
         "dong": "대림동",
+        "jibun": "717",
         "area": 18.24,
         "amount": 9000,
+        "floor": 6,
         "year": 2013,
         "ym": "2026.08",
-        "lat": 37.4952967185272,
-        "lng": 126.898078730671
+        "lat": 37.4952957246824,
+        "lng": 126.898075565712
       },
       {
         "apt": "영등포자이르네",
         "dong": "대림동",
+        "jibun": "1132",
         "area": 49.01,
         "amount": 66900,
+        "floor": 3,
         "year": 2022,
         "ym": "2026.08",
-        "lat": null,
-        "lng": null
+        "lat": 37.4883126246883,
+        "lng": 126.904851053938
       }
     ],
     "인천광역시 계양구": [
       {
         "apt": "e편한세상 계양 더프리미어",
         "dong": "효성동",
+        "jibun": "677",
         "area": 59.98,
         "amount": 51500,
+        "floor": 24,
         "year": 2021,
         "ym": "2026.08",
         "lat": 37.52871795930461,
         "lng": 126.71358045698528
       },
       {
-        "apt": "까치마을한진",
-        "dong": "작전동",
-        "area": 37.38,
-        "amount": 14500,
-        "year": 1997,
-        "ym": "2026.08",
-        "lat": 37.5294853428131,
-        "lng": 126.741588317449
-      },
-      {
         "apt": "힐스테이트자이계양",
         "dong": "작전동",
+        "jibun": "953",
         "area": 53.94,
         "amount": 52500,
+        "floor": 6,
         "year": 2024,
         "ym": "2026.08",
-        "lat": 37.531947772142594,
-        "lng": 126.71909600361796
+        "lat": 37.5311120218678,
+        "lng": 126.718044029575
+      },
+      {
+        "apt": "까치마을한진",
+        "dong": "작전동",
+        "jibun": "915-1",
+        "area": 37.38,
+        "amount": 14500,
+        "floor": 17,
+        "year": 1997,
+        "ym": "2026.08",
+        "lat": 37.5293344871721,
+        "lng": 126.740958457492
       },
       {
         "apt": "학마을서해",
         "dong": "병방동",
+        "jibun": "432-5",
         "area": 59.79,
         "amount": 30000,
+        "floor": 4,
         "year": 1997,
         "ym": "2026.08",
-        "lat": 37.543963205703186,
-        "lng": 126.73900479723291
+        "lat": 37.5443362555325,
+        "lng": 126.739879099822
       },
       {
         "apt": "학마을한진",
         "dong": "병방동",
+        "jibun": "433-1",
         "area": 39.84,
         "amount": 16100,
+        "floor": 7,
         "year": 1998,
         "ym": "2026.08",
-        "lat": 37.54511281420207,
-        "lng": 126.74349879740795
+        "lat": 37.5451120010921,
+        "lng": 126.743497781779
       }
     ],
     "인천광역시 남동구": [
       {
         "apt": "구월힐스테이트1단지",
         "dong": "구월동",
+        "jibun": "23",
         "area": 83.78,
         "amount": 51200,
+        "floor": 12,
         "year": 2007,
         "ym": "2026.08",
-        "lat": 37.454553791230836,
-        "lng": 126.71181444697235
+        "lat": 37.4545538788426,
+        "lng": 126.711813429451
       },
       {
         "apt": "포레시안",
         "dong": "만수동",
+        "jibun": "1115-1",
         "area": 59.71,
         "amount": 32500,
+        "floor": 4,
         "year": 2011,
         "ym": "2026.08",
-        "lat": 37.463161767930096,
-        "lng": 126.73119948231965
+        "lat": 37.4632249881833,
+        "lng": 126.731265267786
       },
       {
         "apt": "만수뉴서울아파트",
         "dong": "만수동",
+        "jibun": "1044",
         "area": 34.65,
         "amount": 10600,
+        "floor": 13,
         "year": 1992,
         "ym": "2026.08",
-        "lat": 37.4407078299066,
-        "lng": 126.73525968110592
+        "lat": 37.4407074705086,
+        "lng": 126.735260134374
       },
       {
         "apt": "서창센트럴푸르지오",
         "dong": "서창동",
+        "jibun": "682",
         "area": 74.99,
         "amount": 47500,
+        "floor": 8,
         "year": 2018,
         "ym": "2026.08",
-        "lat": 37.42882764975252,
-        "lng": 126.74916217501088
+        "lat": 37.4287255497335,
+        "lng": 126.749240021346
       },
       {
         "apt": "에코메트로12",
         "dong": "논현동",
+        "jibun": "755-4",
         "area": 115.07,
         "amount": 62000,
+        "floor": 7,
         "year": 2009,
         "ym": "2026.08",
-        "lat": 37.3957926665557,
-        "lng": 126.73307213088
+        "lat": 37.396412888225,
+        "lng": 126.733573727583
       }
     ],
     "인천광역시 미추홀구": [
       {
         "apt": "힐스테이트푸르지오주안",
         "dong": "주안동",
+        "jibun": "1678",
         "area": 59.98,
         "amount": 47500,
+        "floor": 11,
         "year": 2023,
         "ym": "2026.08",
         "lat": 37.452683953100866,
@@ -2902,45 +3028,355 @@
       {
         "apt": "더샵인천스카이타워1단지",
         "dong": "도화동",
+        "jibun": "1011",
         "area": 74.96,
         "amount": 47800,
+        "floor": 43,
         "year": 2020,
         "ym": "2026.08",
-        "lat": 37.47009307099287,
-        "lng": 126.6651727144239
+        "lat": 37.4699734355893,
+        "lng": 126.664956656004
       },
       {
         "apt": "주안파크자이더플래티넘",
         "dong": "주안동",
+        "jibun": "1662",
         "area": 59.96,
         "amount": 45300,
+        "floor": 7,
         "year": 2023,
         "ym": "2026.08",
-        "lat": 37.447261354703954,
-        "lng": 126.67153636243744
+        "lat": 37.4467858389992,
+        "lng": 126.671647156017
       },
       {
         "apt": "주안역센트레빌",
         "dong": "주안동",
+        "jibun": "1628",
         "area": 59.98,
         "amount": 40500,
+        "floor": 3,
         "year": 2021,
         "ym": "2026.08",
-        "lat": 37.46772154176838,
-        "lng": 126.68547519250382
+        "lat": 37.4677214519617,
+        "lng": 126.685475305922
       },
       {
         "apt": "인천 SK Sky VIEW",
         "dong": "용현동",
+        "jibun": "664",
         "area": 84.98,
         "amount": 55800,
+        "floor": 9,
         "year": 2016,
         "ym": "2026.08",
-        "lat": 37.44960054011882,
-        "lng": 126.6460032385599
+        "lat": 37.4497916373064,
+        "lng": 126.645790437881
       }
     ]
   };
+  var POLICIES = [
+    {
+      "title": "국토교통부공고제2026-872호(주택법 시행령 일부개정령안 입법예고)",
+      "org": "국토교통부",
+      "date": "2026-06-29",
+      "kind": "공고",
+      "law": "행정절차법 제42조",
+      "summary": null,
+      "url": "https://gwanbo.go.kr/ezpdf/customLayout.jsp?contentId=I0000000000000001782374733940000&tocId=I0000000000000001782275322681000&isTocOrder=N&name=%EA%B5%AD%ED%86%A0%EA%B5%90%ED%86%B5%EB%B6%80%EA%B3%B5%EA%B3%A0%EC%A0%9C2026-872%ED%98%B8%28%EC%A3%BC%ED%83%9D%EB%B2%95+%EC%8B%9C%ED%96%89%EB%A0%B9+%EC%9D%BC%EB%B6%80%EA%B0%9C%EC%A0%95%EB%A0%B9%EC%95%88+%EC%9E%85%EB%B2%95%EC%98%88%EA%B3%A0%29",
+      "score": 130
+    },
+    {
+      "title": "국토교통부공고제2026-971호(「주택법 시행령」 일부개정령안 입법예고)",
+      "org": "국토교통부",
+      "date": "2026-07-23",
+      "kind": "공고",
+      "law": "행정절차법 제42조",
+      "summary": null,
+      "url": "https://gwanbo.go.kr/ezpdf/customLayout.jsp?contentId=I0000000000000001784618523451000&tocId=I0000000000000001784521005721000&isTocOrder=N&name=%EA%B5%AD%ED%86%A0%EA%B5%90%ED%86%B5%EB%B6%80%EA%B3%B5%EA%B3%A0%EC%A0%9C2026-971%ED%98%B8%28%E3%80%8C%EC%A3%BC%ED%83%9D%EB%B2%95+%EC%8B%9C%ED%96%89%EB%A0%B9%E3%80%8D+%EC%9D%BC%EB%B6%80%EA%B0%9C%EC%A0%95%EB%A0%B9%EC%95%88+%EC%9E%85%EB%B2%95%EC%98%88%EA%B3%A0%29",
+      "score": 130
+    },
+    {
+      "title": "국토교통부공고제2026-1026호(주택법 시행규칙 일부개정령안 입법예고)",
+      "org": "국토교통부",
+      "date": "2026-08-14",
+      "kind": "공고",
+      "law": "행정절차법 제42조",
+      "summary": null,
+      "url": "https://gwanbo.go.kr/ezpdf/customLayout.jsp?contentId=I0000000000000001786519861038000&tocId=I0000000000000001786436529929000&isTocOrder=N&name=%EA%B5%AD%ED%86%A0%EA%B5%90%ED%86%B5%EB%B6%80%EA%B3%B5%EA%B3%A0%EC%A0%9C2026-1026%ED%98%B8%28%EC%A3%BC%ED%83%9D%EB%B2%95+%EC%8B%9C%ED%96%89%EA%B7%9C%EC%B9%99+%EC%9D%BC%EB%B6%80%EA%B0%9C%EC%A0%95%EB%A0%B9%EC%95%88+%EC%9E%85%EB%B2%95%EC%98%88%EA%B3%A0%29",
+      "score": 130
+    },
+    {
+      "title": "국토교통부공고제2026-1076호(주택법 시행령 일부개정령안 입법예고)",
+      "org": "국토교통부",
+      "date": "2026-08-18",
+      "kind": "공고",
+      "law": "행정절차법 제42조",
+      "summary": null,
+      "url": "https://gwanbo.go.kr/ezpdf/customLayout.jsp?contentId=I0000000000000001786605659983000&tocId=I0000000000000001786511497358000&isTocOrder=N&name=%EA%B5%AD%ED%86%A0%EA%B5%90%ED%86%B5%EB%B6%80%EA%B3%B5%EA%B3%A0%EC%A0%9C2026-1076%ED%98%B8%28%EC%A3%BC%ED%83%9D%EB%B2%95+%EC%8B%9C%ED%96%89%EB%A0%B9+%EC%9D%BC%EB%B6%80%EA%B0%9C%EC%A0%95%EB%A0%B9%EC%95%88+%EC%9E%85%EB%B2%95%EC%98%88%EA%B3%A0%29",
+      "score": 130
+    },
+    {
+      "title": "국토교통부공고제2026-972호(공공주택 특별법 시행령 일부개정령안 입법예고)",
+      "org": "국토교통부",
+      "date": "2026-07-24",
+      "kind": "공고",
+      "law": "행정절차법 제41조",
+      "summary": null,
+      "url": "https://gwanbo.go.kr/ezpdf/customLayout.jsp?contentId=I0000000000000001784708376868000&tocId=I0000000000000001784520975641000&isTocOrder=N&name=%EA%B5%AD%ED%86%A0%EA%B5%90%ED%86%B5%EB%B6%80%EA%B3%B5%EA%B3%A0%EC%A0%9C2026-972%ED%98%B8%28%EA%B3%B5%EA%B3%B5%EC%A3%BC%ED%83%9D+%ED%8A%B9%EB%B3%84%EB%B2%95+%EC%8B%9C%ED%96%89%EB%A0%B9+%EC%9D%BC%EB%B6%80%EA%B0%9C%EC%A0%95%EB%A0%B9%EC%95%88+%EC%9E%85%EB%B2%95%EC%98%88%EA%B3%A0%29",
+      "score": 120
+    },
+    {
+      "title": "국토교통부령제1598호(주택법 시행규칙 일부개정령)",
+      "org": "국토교통부",
+      "date": "2026-06-23",
+      "kind": "부령",
+      "law": "법령 등 공포에 관한 법률 제11조",
+      "summary": "[일부개정]\n\n◇ 개정이유 및 주요내용\n\n  전자관보가 제공된 이후에 대다수의 국민들이 인터넷 또는 모바일 웹으로 제공되는 전자관보를 이용하고 있으나, 현행 규정에 따르면 관보는 종이관보를 기본으로 하고 전자관보는 보완적으로만 운영하고 있으며, 관보의 내용 해석 및 적용 시기 등에 대해서도 종이관보를 우선으로 하고 전자관보는 부차적인 효력만을 갖도록 하고 있는 바, 국민 대다수가 전자관보를 이용하는 현실을 반영하고 전자관보에 대한 국민의 신뢰를 보호하기 위하여 종이관보와 전자관보를 대등하게 운영하고, 관보의 내용 해석 및 적용시기 등에 대해서도 종이관보와 전자관보가 동일한 효력을 가지도록 하려는 것임.\n\n<법제처 제공>",
+      "url": "https://gwanbo.go.kr/ezpdf/customLayout.jsp?contentId=I0000000000000001781854624531000&tocId=I0000000000000001781655293518000&isTocOrder=N&name=%EA%B5%AD%ED%86%A0%EA%B5%90%ED%86%B5%EB%B6%80%EB%A0%B9%EC%A0%9C1598%ED%98%B8%28%EC%A3%BC%ED%83%9D%EB%B2%95+%EC%8B%9C%ED%96%89%EA%B7%9C%EC%B9%99+%EC%9D%BC%EB%B6%80%EA%B0%9C%EC%A0%95%EB%A0%B9%29",
+      "score": 115
+    },
+    {
+      "title": "대통령령제36436호(주택법 시행령 일부개정령)",
+      "org": "법제처",
+      "date": "2026-06-23",
+      "kind": "대통령령",
+      "law": "관보규정 제3조",
+      "summary": "[일부개정]\n\n\n\n◇ 개정이유 및 주요내용\n\n\n\n  개인정보 보호를 강화하기 위하여 관보 게재를 의뢰하는 기관 또는 단체의 장은 「개인정보 보호법」에 따른 개인정보 보호 원칙을 준수하도록 하고, 행정안전부장관은 관보 게재를 의뢰받은 사항에 개인의 사생활을 침해하는 내용이 있는지 소프트웨어를 사용하여 검사할 수 있도록 하며, 개인의 사생활 침해가 우려되는 내용이 포함되어 있는 경우 관보 게재를 의뢰한 기관 또는 단체의 장에게 보정을 요구할 수 있도록 하는 한편,\n\n\n\n  관보의 공익적 성격 및 연간 관보 게재료 징수 금액이 미미한 점 등을 고려하여 관보 게재료를 폐지하려는 것임.\n\n\n\n<법제처 제공>",
+      "url": "https://gwanbo.go.kr/ezpdf/customLayout.jsp?contentId=I0000000000000001781854624531000&tocId=I0000000000000001781742746529000&isTocOrder=N&name=%EB%8C%80%ED%86%B5%EB%A0%B9%EB%A0%B9%EC%A0%9C36436%ED%98%B8%28%EC%A3%BC%ED%83%9D%EB%B2%95+%EC%8B%9C%ED%96%89%EB%A0%B9+%EC%9D%BC%EB%B6%80%EA%B0%9C%EC%A0%95%EB%A0%B9%29",
+      "score": 115
+    },
+    {
+      "title": "대통령령제36550호(주택법 시행령 일부개정령)",
+      "org": "법제처",
+      "date": "2026-08-03",
+      "kind": "대통령령",
+      "law": "관보규정 제3조",
+      "summary": "[일부개정]\n\n\n\n◇ 개정이유 및 주요내용\n\n\n\n  개인정보 보호를 강화하기 위하여 관보 게재를 의뢰하는 기관 또는 단체의 장은 「개인정보 보호법」에 따른 개인정보 보호 원칙을 준수하도록 하고, 행정안전부장관은 관보 게재를 의뢰받은 사항에 개인의 사생활을 침해하는 내용이 있는지 소프트웨어를 사용하여 검사할 수 있도록 하며, 개인의 사생활 침해가 우려되는 내용이 포함되어 있는 경우 관보 게재를 의뢰한 기관 또는 단체의 장에게 보정을 요구할 수 있도록 하는 한편,\n\n\n\n  관보의 공익적 성격 및 연간 관보 게재료 징수 금액이 미미한 점 등을 고려하여 관보 게재료를 폐지하려는 것임.\n\n\n\n<법제처 제공>",
+      "url": "https://gwanbo.go.kr/ezpdf/customLayout.jsp?contentId=I0000000000000001785398133921000&tocId=I0000000000000001785298124657000&isTocOrder=N&name=%EB%8C%80%ED%86%B5%EB%A0%B9%EB%A0%B9%EC%A0%9C36550%ED%98%B8%28%EC%A3%BC%ED%83%9D%EB%B2%95+%EC%8B%9C%ED%96%89%EB%A0%B9+%EC%9D%BC%EB%B6%80%EA%B0%9C%EC%A0%95%EB%A0%B9%29",
+      "score": 115
+    },
+    {
+      "title": "국토교통부령제1610호(주택법 시행규칙 일부개정령)",
+      "org": "국토교통부",
+      "date": "2026-08-04",
+      "kind": "부령",
+      "law": "법령 등 공포에 관한 법률 제11조",
+      "summary": "[일부개정]\n\n◇ 개정이유 및 주요내용\n\n  전자관보가 제공된 이후에 대다수의 국민들이 인터넷 또는 모바일 웹으로 제공되는 전자관보를 이용하고 있으나, 현행 규정에 따르면 관보는 종이관보를 기본으로 하고 전자관보는 보완적으로만 운영하고 있으며, 관보의 내용 해석 및 적용 시기 등에 대해서도 종이관보를 우선으로 하고 전자관보는 부차적인 효력만을 갖도록 하고 있는 바, 국민 대다수가 전자관보를 이용하는 현실을 반영하고 전자관보에 대한 국민의 신뢰를 보호하기 위하여 종이관보와 전자관보를 대등하게 운영하고, 관보의 내용 해석 및 적용시기 등에 대해서도 종이관보와 전자관보가 동일한 효력을 가지도록 하려는 것임.\n\n<법제처 제공>",
+      "url": "https://gwanbo.go.kr/ezpdf/customLayout.jsp?contentId=I0000000000000001785474931830000&tocId=I0000000000000001784869904013000&isTocOrder=N&name=%EA%B5%AD%ED%86%A0%EA%B5%90%ED%86%B5%EB%B6%80%EB%A0%B9%EC%A0%9C1610%ED%98%B8%28%EC%A3%BC%ED%83%9D%EB%B2%95+%EC%8B%9C%ED%96%89%EA%B7%9C%EC%B9%99+%EC%9D%BC%EB%B6%80%EA%B0%9C%EC%A0%95%EB%A0%B9%29",
+      "score": 115
+    },
+    {
+      "title": "국토교통부령제1616호(「공공주택 특별법」시행규칙 일부개정령)",
+      "org": "국토교통부",
+      "date": "2026-08-24",
+      "kind": "부령",
+      "law": "법령 등 공포에 관한 법률 제11조",
+      "summary": "[일부개정]\n\n◇ 개정이유 및 주요내용\n\n  전자관보가 제공된 이후에 대다수의 국민들이 인터넷 또는 모바일 웹으로 제공되는 전자관보를 이용하고 있으나, 현행 규정에 따르면 관보는 종이관보를 기본으로 하고 전자관보는 보완적으로만 운영하고 있으며, 관보의 내용 해석 및 적용 시기 등에 대해서도 종이관보를 우선으로 하고 전자관보는 부차적인 효력만을 갖도록 하고 있는 바, 국민 대다수가 전자관보를 이용하는 현실을 반영하고 전자관보에 대한 국민의 신뢰를 보호하기 위하여 종이관보와 전자관보를 대등하게 운영하고, 관보의 내용 해석 및 적용시기 등에 대해서도 종이관보와 전자관보가 동일한 효력을 가지도록 하려는 것임.\n\n<법제처 제공>",
+      "url": "https://gwanbo.go.kr/ezpdf/customLayout.jsp?contentId=I0000000000000001787272931764000&tocId=I0000000000000001787125688793000&isTocOrder=N&name=%EA%B5%AD%ED%86%A0%EA%B5%90%ED%86%B5%EB%B6%80%EB%A0%B9%EC%A0%9C1616%ED%98%B8%28%E3%80%8C%EA%B3%B5%EA%B3%B5%EC%A3%BC%ED%83%9D+%ED%8A%B9%EB%B3%84%EB%B2%95%E3%80%8D%EC%8B%9C%ED%96%89%EA%B7%9C%EC%B9%99+%EC%9D%BC%EB%B6%80%EA%B0%9C%EC%A0%95%EB%A0%B9%29",
+      "score": 105
+    },
+    {
+      "title": "국토교통부공고제2026-830호(「건축물의 분양에 관한 법률 시행령」 일부개정령안 재입법예고)",
+      "org": "국토교통부",
+      "date": "2026-06-22",
+      "kind": "공고",
+      "law": "행정절차법 제42조",
+      "summary": null,
+      "url": "https://gwanbo.go.kr/ezpdf/customLayout.jsp?contentId=I0000000000000001781771924844000&tocId=I0000000000000001781661756499000&isTocOrder=N&name=%EA%B5%AD%ED%86%A0%EA%B5%90%ED%86%B5%EB%B6%80%EA%B3%B5%EA%B3%A0%EC%A0%9C2026-830%ED%98%B8%28%E3%80%8C%EA%B1%B4%EC%B6%95%EB%AC%BC%EC%9D%98+%EB%B6%84%EC%96%91%EC%97%90+%EA%B4%80%ED%95%9C+%EB%B2%95%EB%A5%A0+%EC%8B%9C%ED%96%89%EB%A0%B9%E3%80%8D+%EC%9D%BC%EB%B6%80%EA%B0%9C%EC%A0%95%EB%A0%B9%EC%95%88+%EC%9E%AC%EC%9E%85%EB%B2%95%EC%98%88%EA%B3%A0%29",
+      "score": 60
+    },
+    {
+      "title": "국토교통부공고제2026-844호(「전세사기피해자 지원 및 주거안정에 관한 특별법 시행령」 일부개정령안 입법예고)",
+      "org": "국토교통부",
+      "date": "2026-06-22",
+      "kind": "공고",
+      "law": "행정절차법 제42조",
+      "summary": null,
+      "url": "https://gwanbo.go.kr/ezpdf/customLayout.jsp?contentId=I0000000000000001781771924844000&tocId=I0000000000000001781684821462000&isTocOrder=N&name=%EA%B5%AD%ED%86%A0%EA%B5%90%ED%86%B5%EB%B6%80%EA%B3%B5%EA%B3%A0%EC%A0%9C2026-844%ED%98%B8%28%E3%80%8C%EC%A0%84%EC%84%B8%EC%82%AC%EA%B8%B0%ED%94%BC%ED%95%B4%EC%9E%90+%EC%A7%80%EC%9B%90+%EB%B0%8F+%EC%A3%BC%EA%B1%B0%EC%95%88%EC%A0%95%EC%97%90+%EA%B4%80%ED%95%9C+%ED%8A%B9%EB%B3%84%EB%B2%95+%EC%8B%9C%ED%96%89%EB%A0%B9%E3%80%8D+%EC%9D%BC%EB%B6%80%EA%B0%9C%EC%A0%95%EB%A0%B9%EC%95%88+%EC%9E%85%EB%B2%95%EC%98%88%EA%B3%A0%29",
+      "score": 60
+    },
+    {
+      "title": "국토교통부공고제2026-845호(「전세사기피해자 지원 및 주거안정에 관한 특별법 시행규칙」 일부개정령안 입법예고)",
+      "org": "국토교통부",
+      "date": "2026-06-22",
+      "kind": "공고",
+      "law": "행정절차법 제42조",
+      "summary": null,
+      "url": "https://gwanbo.go.kr/ezpdf/customLayout.jsp?contentId=I0000000000000001781771924844000&tocId=I0000000000000001781683586127000&isTocOrder=N&name=%EA%B5%AD%ED%86%A0%EA%B5%90%ED%86%B5%EB%B6%80%EA%B3%B5%EA%B3%A0%EC%A0%9C2026-845%ED%98%B8%28%E3%80%8C%EC%A0%84%EC%84%B8%EC%82%AC%EA%B8%B0%ED%94%BC%ED%95%B4%EC%9E%90+%EC%A7%80%EC%9B%90+%EB%B0%8F+%EC%A3%BC%EA%B1%B0%EC%95%88%EC%A0%95%EC%97%90+%EA%B4%80%ED%95%9C+%ED%8A%B9%EB%B3%84%EB%B2%95+%EC%8B%9C%ED%96%89%EA%B7%9C%EC%B9%99%E3%80%8D+%EC%9D%BC%EB%B6%80%EA%B0%9C%EC%A0%95%EB%A0%B9%EC%95%88+%EC%9E%85%EB%B2%95%EC%98%88%EA%B3%A0%29",
+      "score": 60
+    },
+    {
+      "title": "국토교통부공고제2026-807호(민간임대주택에 관한 특별법 시행규칙 일부개정령안 입법예고)",
+      "org": "국토교통부",
+      "date": "2026-07-01",
+      "kind": "공고",
+      "law": "행정절차법 제42조",
+      "summary": null,
+      "url": "https://gwanbo.go.kr/ezpdf/customLayout.jsp?contentId=I0000000000000001782726707944000&tocId=I0000000000000001782459451480000&isTocOrder=N&name=%EA%B5%AD%ED%86%A0%EA%B5%90%ED%86%B5%EB%B6%80%EA%B3%B5%EA%B3%A0%EC%A0%9C2026-807%ED%98%B8%28%EB%AF%BC%EA%B0%84%EC%9E%84%EB%8C%80%EC%A3%BC%ED%83%9D%EC%97%90+%EA%B4%80%ED%95%9C+%ED%8A%B9%EB%B3%84%EB%B2%95+%EC%8B%9C%ED%96%89%EA%B7%9C%EC%B9%99+%EC%9D%BC%EB%B6%80%EA%B0%9C%EC%A0%95%EB%A0%B9%EC%95%88+%EC%9E%85%EB%B2%95%EC%98%88%EA%B3%A0%29",
+      "score": 60
+    },
+    {
+      "title": "국토교통부공고제2026-900호(「부동산투자회사법 시행령」 일부개정령안 입법예고)",
+      "org": "국토교통부",
+      "date": "2026-07-03",
+      "kind": "공고",
+      "law": "행정절차법 제42조",
+      "summary": null,
+      "url": "https://gwanbo.go.kr/ezpdf/customLayout.jsp?contentId=I0000000000000001782891115009000&tocId=I0000000000000001782806359789000&isTocOrder=N&name=%EA%B5%AD%ED%86%A0%EA%B5%90%ED%86%B5%EB%B6%80%EA%B3%B5%EA%B3%A0%EC%A0%9C2026-900%ED%98%B8%28%E3%80%8C%EB%B6%80%EB%8F%99%EC%82%B0%ED%88%AC%EC%9E%90%ED%9A%8C%EC%82%AC%EB%B2%95+%EC%8B%9C%ED%96%89%EB%A0%B9%E3%80%8D+%EC%9D%BC%EB%B6%80%EA%B0%9C%EC%A0%95%EB%A0%B9%EC%95%88+%EC%9E%85%EB%B2%95%EC%98%88%EA%B3%A0%29",
+      "score": 60
+    },
+    {
+      "title": "국토교통부공고제2026-899호(「부동산개발사업 관리 등에 관한 법률 시행령」일부개정령안 입법예고)",
+      "org": "국토교통부",
+      "date": "2026-07-03",
+      "kind": "공고",
+      "law": "행정절차법 제42조",
+      "summary": null,
+      "url": "https://gwanbo.go.kr/ezpdf/customLayout.jsp?contentId=I0000000000000001782891115009000&tocId=I0000000000000001782806561807000&isTocOrder=N&name=%EA%B5%AD%ED%86%A0%EA%B5%90%ED%86%B5%EB%B6%80%EA%B3%B5%EA%B3%A0%EC%A0%9C2026-899%ED%98%B8%28%E3%80%8C%EB%B6%80%EB%8F%99%EC%82%B0%EA%B0%9C%EB%B0%9C%EC%82%AC%EC%97%85+%EA%B4%80%EB%A6%AC+%EB%93%B1%EC%97%90+%EA%B4%80%ED%95%9C+%EB%B2%95%EB%A5%A0+%EC%8B%9C%ED%96%89%EB%A0%B9%E3%80%8D%EC%9D%BC%EB%B6%80%EA%B0%9C%EC%A0%95%EB%A0%B9%EC%95%88+%EC%9E%85%EB%B2%95%EC%98%88%EA%B3%A0%29",
+      "score": 60
+    },
+    {
+      "title": "국토교통부공고제2026-937호(민간임대주택에 관한 특별법 시행령 일부개정령안 입법예고)",
+      "org": "국토교통부",
+      "date": "2026-07-14",
+      "kind": "공고",
+      "law": "행정절차법 제42조",
+      "summary": null,
+      "url": "https://gwanbo.go.kr/ezpdf/customLayout.jsp?contentId=I0000000000000001783902735788000&tocId=I0000000000000001783571031351000&isTocOrder=N&name=%EA%B5%AD%ED%86%A0%EA%B5%90%ED%86%B5%EB%B6%80%EA%B3%B5%EA%B3%A0%EC%A0%9C2026-937%ED%98%B8%28%EB%AF%BC%EA%B0%84%EC%9E%84%EB%8C%80%EC%A3%BC%ED%83%9D%EC%97%90+%EA%B4%80%ED%95%9C+%ED%8A%B9%EB%B3%84%EB%B2%95+%EC%8B%9C%ED%96%89%EB%A0%B9+%EC%9D%BC%EB%B6%80%EA%B0%9C%EC%A0%95%EB%A0%B9%EC%95%88+%EC%9E%85%EB%B2%95%EC%98%88%EA%B3%A0%29",
+      "score": 60
+    },
+    {
+      "title": "국토교통부공고제2026-936호(민간임대주택에 관한 특별법 시행규칙 일부개정령안 입법예고)",
+      "org": "국토교통부",
+      "date": "2026-07-14",
+      "kind": "공고",
+      "law": "행정절차법 제42조",
+      "summary": null,
+      "url": "https://gwanbo.go.kr/ezpdf/customLayout.jsp?contentId=I0000000000000001783902735788000&tocId=I0000000000000001783570885452000&isTocOrder=N&name=%EA%B5%AD%ED%86%A0%EA%B5%90%ED%86%B5%EB%B6%80%EA%B3%B5%EA%B3%A0%EC%A0%9C2026-936%ED%98%B8%28%EB%AF%BC%EA%B0%84%EC%9E%84%EB%8C%80%EC%A3%BC%ED%83%9D%EC%97%90+%EA%B4%80%ED%95%9C+%ED%8A%B9%EB%B3%84%EB%B2%95+%EC%8B%9C%ED%96%89%EA%B7%9C%EC%B9%99+%EC%9D%BC%EB%B6%80%EA%B0%9C%EC%A0%95%EB%A0%B9%EC%95%88+%EC%9E%85%EB%B2%95%EC%98%88%EA%B3%A0%29",
+      "score": 60
+    },
+    {
+      "title": "대통령령제36385호(부동산서비스산업 진흥법 시행령 일부개정령)",
+      "org": "법제처",
+      "date": "2026-06-04",
+      "kind": "대통령령",
+      "law": "관보규정 제3조",
+      "summary": "[일부개정]\n\n\n\n◇ 개정이유 및 주요내용\n\n\n\n  개인정보 보호를 강화하기 위하여 관보 게재를 의뢰하는 기관 또는 단체의 장은 「개인정보 보호법」에 따른 개인정보 보호 원칙을 준수하도록 하고, 행정안전부장관은 관보 게재를 의뢰받은 사항에 개인의 사생활을 침해하는 내용이 있는지 소프트웨어를 사용하여 검사할 수 있도록 하며, 개인의 사생활 침해가 우려되는 내용이 포함되어 있는 경우 관보 게재를 의뢰한 기관 또는 단체의 장에게 보정을 요구할 수 있도록 하는 한편,\n\n\n\n  관보의 공익적 성격 및 연간 관보 게재료 징수 금액이 미미한 점 등을 고려하여 관보 게재료를 폐지하려는 것임.\n\n\n\n<법제처 제공>",
+      "url": "https://gwanbo.go.kr/ezpdf/customLayout.jsp?contentId=I0000000000000001780537709127000&tocId=I0000000000000001780526645412000&isTocOrder=N&name=%EB%8C%80%ED%86%B5%EB%A0%B9%EB%A0%B9%EC%A0%9C36385%ED%98%B8%28%EB%B6%80%EB%8F%99%EC%82%B0%EC%84%9C%EB%B9%84%EC%8A%A4%EC%82%B0%EC%97%85+%EC%A7%84%ED%9D%A5%EB%B2%95+%EC%8B%9C%ED%96%89%EB%A0%B9+%EC%9D%BC%EB%B6%80%EA%B0%9C%EC%A0%95%EB%A0%B9%29",
+      "score": 45
+    },
+    {
+      "title": "국토교통부령제1606호(공동주택관리법 시행규칙 일부개정령)",
+      "org": "국토교통부",
+      "date": "2026-07-30",
+      "kind": "부령",
+      "law": "법령 등 공포에 관한 법률 제11조",
+      "summary": "[일부개정]\n\n◇ 개정이유 및 주요내용\n\n  전자관보가 제공된 이후에 대다수의 국민들이 인터넷 또는 모바일 웹으로 제공되는 전자관보를 이용하고 있으나, 현행 규정에 따르면 관보는 종이관보를 기본으로 하고 전자관보는 보완적으로만 운영하고 있으며, 관보의 내용 해석 및 적용 시기 등에 대해서도 종이관보를 우선으로 하고 전자관보는 부차적인 효력만을 갖도록 하고 있는 바, 국민 대다수가 전자관보를 이용하는 현실을 반영하고 전자관보에 대한 국민의 신뢰를 보호하기 위하여 종이관보와 전자관보를 대등하게 운영하고, 관보의 내용 해석 및 적용시기 등에 대해서도 종이관보와 전자관보가 동일한 효력을 가지도록 하려는 것임.\n\n<법제처 제공>",
+      "url": "https://gwanbo.go.kr/ezpdf/customLayout.jsp?contentId=I0000000000000001785224913094000&tocId=I0000000000000001785117200884000&isTocOrder=N&name=%EA%B5%AD%ED%86%A0%EA%B5%90%ED%86%B5%EB%B6%80%EB%A0%B9%EC%A0%9C1606%ED%98%B8%28%EA%B3%B5%EB%8F%99%EC%A3%BC%ED%83%9D%EA%B4%80%EB%A6%AC%EB%B2%95+%EC%8B%9C%ED%96%89%EA%B7%9C%EC%B9%99+%EC%9D%BC%EB%B6%80%EA%B0%9C%EC%A0%95%EB%A0%B9%29",
+      "score": 45
+    },
+    {
+      "title": "국토교통부공고제2026-873호(주택건설기준 등에 관한 규정 일부개정령안 입법예고)",
+      "org": "국토교통부",
+      "date": "2026-06-29",
+      "kind": "공고",
+      "law": "행정절차법 제41조",
+      "summary": null,
+      "url": "https://gwanbo.go.kr/ezpdf/customLayout.jsp?contentId=I0000000000000001782374733940000&tocId=I0000000000000001782275588180000&isTocOrder=N&name=%EA%B5%AD%ED%86%A0%EA%B5%90%ED%86%B5%EB%B6%80%EA%B3%B5%EA%B3%A0%EC%A0%9C2026-873%ED%98%B8%28%EC%A3%BC%ED%83%9D%EA%B1%B4%EC%84%A4%EA%B8%B0%EC%A4%80+%EB%93%B1%EC%97%90+%EA%B4%80%ED%95%9C+%EA%B7%9C%EC%A0%95+%EC%9D%BC%EB%B6%80%EA%B0%9C%EC%A0%95%EB%A0%B9%EC%95%88+%EC%9E%85%EB%B2%95%EC%98%88%EA%B3%A0%29",
+      "score": 40
+    },
+    {
+      "title": "대통령령제36475호(주택건설기준 등에 관한 규정 일부개정령)",
+      "org": "법제처",
+      "date": "2026-06-30",
+      "kind": "대통령령",
+      "law": "관보규정 제3조",
+      "summary": "[일부개정]\n\n\n\n◇ 개정이유 및 주요내용\n\n\n\n  개인정보 보호를 강화하기 위하여 관보 게재를 의뢰하는 기관 또는 단체의 장은 「개인정보 보호법」에 따른 개인정보 보호 원칙을 준수하도록 하고, 행정안전부장관은 관보 게재를 의뢰받은 사항에 개인의 사생활을 침해하는 내용이 있는지 소프트웨어를 사용하여 검사할 수 있도록 하며, 개인의 사생활 침해가 우려되는 내용이 포함되어 있는 경우 관보 게재를 의뢰한 기관 또는 단체의 장에게 보정을 요구할 수 있도록 하는 한편,\n\n\n\n  관보의 공익적 성격 및 연간 관보 게재료 징수 금액이 미미한 점 등을 고려하여 관보 게재료를 폐지하려는 것임.\n\n\n\n<법제처 제공>",
+      "url": "https://gwanbo.go.kr/ezpdf/customLayout.jsp?contentId=I0000000000000001782727809653000&tocId=I0000000000000001782706496398000&isTocOrder=N&name=%EB%8C%80%ED%86%B5%EB%A0%B9%EB%A0%B9%EC%A0%9C36475%ED%98%B8%28%EC%A3%BC%ED%83%9D%EA%B1%B4%EC%84%A4%EA%B8%B0%EC%A4%80+%EB%93%B1%EC%97%90+%EA%B4%80%ED%95%9C+%EA%B7%9C%EC%A0%95+%EC%9D%BC%EB%B6%80%EA%B0%9C%EC%A0%95%EB%A0%B9%29",
+      "score": 25
+    },
+    {
+      "title": "국토교통부령제1605호(주택건설기준 등에 관한 규칙 일부개정령)",
+      "org": "국토교통부",
+      "date": "2026-07-29",
+      "kind": "부령",
+      "law": "법령 등 공포에 관한 법률 제11조",
+      "summary": "[일부개정]\n\n◇ 개정이유 및 주요내용\n\n  전자관보가 제공된 이후에 대다수의 국민들이 인터넷 또는 모바일 웹으로 제공되는 전자관보를 이용하고 있으나, 현행 규정에 따르면 관보는 종이관보를 기본으로 하고 전자관보는 보완적으로만 운영하고 있으며, 관보의 내용 해석 및 적용 시기 등에 대해서도 종이관보를 우선으로 하고 전자관보는 부차적인 효력만을 갖도록 하고 있는 바, 국민 대다수가 전자관보를 이용하는 현실을 반영하고 전자관보에 대한 국민의 신뢰를 보호하기 위하여 종이관보와 전자관보를 대등하게 운영하고, 관보의 내용 해석 및 적용시기 등에 대해서도 종이관보와 전자관보가 동일한 효력을 가지도록 하려는 것임.\n\n<법제처 제공>",
+      "url": "https://gwanbo.go.kr/ezpdf/customLayout.jsp?contentId=I0000000000000001785141336650000&tocId=I0000000000000001784857545046000&isTocOrder=N&name=%EA%B5%AD%ED%86%A0%EA%B5%90%ED%86%B5%EB%B6%80%EB%A0%B9%EC%A0%9C1605%ED%98%B8%28%EC%A3%BC%ED%83%9D%EA%B1%B4%EC%84%A4%EA%B8%B0%EC%A4%80+%EB%93%B1%EC%97%90+%EA%B4%80%ED%95%9C+%EA%B7%9C%EC%B9%99+%EC%9D%BC%EB%B6%80%EA%B0%9C%EC%A0%95%EB%A0%B9%29",
+      "score": 25
+    },
+    {
+      "title": "재정경제부공고제2026-216호(「종합부동산세법」 일부개정법률안 입법예고)",
+      "org": "재정경제부",
+      "date": "2026-08-04",
+      "kind": "공고",
+      "law": "행정절차법 제41조",
+      "summary": null,
+      "url": "https://gwanbo.go.kr/ezpdf/customLayout.jsp?contentId=I0000000000000001785474931830000&tocId=I0000000000000001785465187657000&isTocOrder=N&name=%EC%9E%AC%EC%A0%95%EA%B2%BD%EC%A0%9C%EB%B6%80%EA%B3%B5%EA%B3%A0%EC%A0%9C2026-216%ED%98%B8%28%E3%80%8C%EC%A2%85%ED%95%A9%EB%B6%80%EB%8F%99%EC%82%B0%EC%84%B8%EB%B2%95%E3%80%8D+%EC%9D%BC%EB%B6%80%EA%B0%9C%EC%A0%95%EB%B2%95%EB%A5%A0%EC%95%88+%EC%9E%85%EB%B2%95%EC%98%88%EA%B3%A0%29",
+      "score": 15
+    },
+    {
+      "title": "재정경제부공고제2026-224호(「종합부동산세법」 일부개정법률안 입법예고)",
+      "org": "재정경제부",
+      "date": "2026-08-07",
+      "kind": "공고",
+      "law": "행정절차법 제42조",
+      "summary": null,
+      "url": "https://gwanbo.go.kr/ezpdf/customLayout.jsp?contentId=I0000000000000001785916922892000&tocId=I0000000000000001785915752208000&isTocOrder=N&name=%EC%9E%AC%EC%A0%95%EA%B2%BD%EC%A0%9C%EB%B6%80%EA%B3%B5%EA%B3%A0%EC%A0%9C2026-224%ED%98%B8%28%E3%80%8C%EC%A2%85%ED%95%A9%EB%B6%80%EB%8F%99%EC%82%B0%EC%84%B8%EB%B2%95%E3%80%8D+%EC%9D%BC%EB%B6%80%EA%B0%9C%EC%A0%95%EB%B2%95%EB%A5%A0%EC%95%88+%EC%9E%85%EB%B2%95%EC%98%88%EA%B3%A0%29",
+      "score": 15
+    },
+    {
+      "title": "재정경제부공고제2026-227호(「종합부동산세법」 일부개정법률안 입법예고 중 정정)",
+      "org": "재정경제부",
+      "date": "2026-08-10",
+      "kind": "공고",
+      "law": "행정절차법 제42조",
+      "summary": null,
+      "url": "https://gwanbo.go.kr/ezpdf/customLayout.jsp?contentId=I0000000000000001785998399032000&tocId=I0000000000000001785993575525000&isTocOrder=N&name=%EC%9E%AC%EC%A0%95%EA%B2%BD%EC%A0%9C%EB%B6%80%EA%B3%B5%EA%B3%A0%EC%A0%9C2026-227%ED%98%B8%28%E3%80%8C%EC%A2%85%ED%95%A9%EB%B6%80%EB%8F%99%EC%82%B0%EC%84%B8%EB%B2%95%E3%80%8D+%EC%9D%BC%EB%B6%80%EA%B0%9C%EC%A0%95%EB%B2%95%EB%A5%A0%EC%95%88+%EC%9E%85%EB%B2%95%EC%98%88%EA%B3%A0+%EC%A4%91+%EC%A0%95%EC%A0%95%29",
+      "score": 15
+    },
+    {
+      "title": "국토교통부공고제2026-758호(부동산투자회사 등록 공고)",
+      "org": "국토교통부",
+      "date": "2026-06-04",
+      "kind": "공고",
+      "law": "부동산투자회사법 제9조",
+      "summary": null,
+      "url": "https://gwanbo.go.kr/ezpdf/customLayout.jsp?contentId=I0000000000000001780294963234000&tocId=I0000000000000001780017396008000&isTocOrder=N&name=%EA%B5%AD%ED%86%A0%EA%B5%90%ED%86%B5%EB%B6%80%EA%B3%B5%EA%B3%A0%EC%A0%9C2026-758%ED%98%B8%28%EB%B6%80%EB%8F%99%EC%82%B0%ED%88%AC%EC%9E%90%ED%9A%8C%EC%82%AC+%EB%93%B1%EB%A1%9D+%EA%B3%B5%EA%B3%A0%29",
+      "score": 0
+    },
+    {
+      "title": "국토교통부공고제2026-783호(「부동산종합공부시스템 운영 및 관리규정」일부개정훈령안 행정예고)",
+      "org": "국토교통부",
+      "date": "2026-06-09",
+      "kind": "공고",
+      "law": "행정절차법 제46조",
+      "summary": null,
+      "url": "https://gwanbo.go.kr/ezpdf/customLayout.jsp?contentId=I0000000000000001780639663142000&tocId=I0000000000000001780562790344000&isTocOrder=N&name=%EA%B5%AD%ED%86%A0%EA%B5%90%ED%86%B5%EB%B6%80%EA%B3%B5%EA%B3%A0%EC%A0%9C2026-783%ED%98%B8%28%E3%80%8C%EB%B6%80%EB%8F%99%EC%82%B0%EC%A2%85%ED%95%A9%EA%B3%B5%EB%B6%80%EC%8B%9C%EC%8A%A4%ED%85%9C+%EC%9A%B4%EC%98%81+%EB%B0%8F+%EA%B4%80%EB%A6%AC%EA%B7%9C%EC%A0%95%E3%80%8D%EC%9D%BC%EB%B6%80%EA%B0%9C%EC%A0%95%ED%9B%88%EB%A0%B9%EC%95%88+%ED%96%89%EC%A0%95%EC%98%88%EA%B3%A0%29",
+      "score": 0
+    },
+    {
+      "title": "법률제21815호(부동산 거래신고 등에 관한 법률 일부개정법률)",
+      "org": "법제처",
+      "date": "2026-06-16",
+      "kind": "법률",
+      "law": "관보규정 제3조",
+      "summary": "[일부개정]\n\n\n\n◇ 개정이유 및 주요내용\n\n\n\n  개인정보 보호를 강화하기 위하여 관보 게재를 의뢰하는 기관 또는 단체의 장은 「개인정보 보호법」에 따른 개인정보 보호 원칙을 준수하도록 하고, 행정안전부장관은 관보 게재를 의뢰받은 사항에 개인의 사생활을 침해하는 내용이 있는지 소프트웨어를 사용하여 검사할 수 있도록 하며, 개인의 사생활 침해가 우려되는 내용이 포함되어 있는 경우 관보 게재를 의뢰한 기관 또는 단체의 장에게 보정을 요구할 수 있도록 하는 한편,\n\n\n\n  관보의 공익적 성격 및 연간 관보 게재료 징수 금액이 미미한 점 등을 고려하여 관보 게재료를 폐지하려는 것임.\n\n\n\n<법제처 제공>",
+      "url": "https://gwanbo.go.kr/ezpdf/customLayout.jsp?contentId=I0000000000000001781251462623000&tocId=I0000000000000001781136542777000&isTocOrder=N&name=%EB%B2%95%EB%A5%A0%EC%A0%9C21815%ED%98%B8%28%EB%B6%80%EB%8F%99%EC%82%B0+%EA%B1%B0%EB%9E%98%EC%8B%A0%EA%B3%A0+%EB%93%B1%EC%97%90+%EA%B4%80%ED%95%9C+%EB%B2%95%EB%A5%A0+%EC%9D%BC%EB%B6%80%EA%B0%9C%EC%A0%95%EB%B2%95%EB%A5%A0%29",
+      "score": 0
+    },
+    {
+      "title": "국토교통부공고제2026-862호(도심 공공주택 복합지구 후보지 철회 공고)",
+      "org": "국토교통부",
+      "date": "2026-06-26",
+      "kind": "공고",
+      "law": "공공주택 특별법 제40조 7항",
+      "summary": null,
+      "url": "https://gwanbo.go.kr/ezpdf/customLayout.jsp?contentId=I0000000000000001782279727707000&tocId=I0000000000000001782117296707000&isTocOrder=N&name=%EA%B5%AD%ED%86%A0%EA%B5%90%ED%86%B5%EB%B6%80%EA%B3%B5%EA%B3%A0%EC%A0%9C2026-862%ED%98%B8%28%EB%8F%84%EC%8B%AC+%EA%B3%B5%EA%B3%B5%EC%A3%BC%ED%83%9D+%EB%B3%B5%ED%95%A9%EC%A7%80%EA%B5%AC+%ED%9B%84%EB%B3%B4%EC%A7%80+%EC%B2%A0%ED%9A%8C+%EA%B3%B5%EA%B3%A0%29",
+      "score": 0
+    }
+  ];
   var DATA_DATE = "2026-09-01";
   /* DATA:END */
 
@@ -3153,7 +3589,8 @@
       var per = t.area ? Math.round(t.amount / (t.area / 3.3058)) : null;
       return '<tr>' +
         '<td>' + esc(t.apt) + '<br><span class="dong">' + esc(t.dong) +
-          ' · ' + (t.year || '-') + '년</span></td>' +
+          ' · ' + (t.year || '-') + '년' +
+          (t.floor ? ' · ' + t.floor + '층' : '') + '</span></td>' +
         '<td class="num">' + t.area.toFixed(1) + '</td>' +
         '<td class="num">' + manwon(t.amount) + '</td>' +
         '<td class="num">' + (per ? comma(per) + '만' : '-') + '</td>' +
@@ -3167,7 +3604,7 @@
       '<th style="text-align:right">계약월</th></tr></thead>' +
       '<tbody>' + body + '</tbody></table></div>' +
       '<p class="pending-note">국토교통부 아파트 매매 실거래가 · 같은 시·군·구 최근 2개월, ' +
-      '거래가 많은 단지 순.</p>';
+      '거래가 많은 단지 순. 계약이 해제된 거래와 토지임대부 주택은 뺐습니다.</p>';
   }
 
   // ── 모집공고 요약 ──────────────────────────────────────
@@ -3206,18 +3643,24 @@
   //
   // 각 항목: [전용면적 상한(㎡), 가점제 최소%, 가점제 최대%]
   // 최소와 최대가 같으면 확정값, 다르면 범위로 보여 준다.
-  //   · 규제지역 85㎡ 초과 — 투기과열지구 80%, 조정대상지역 50% 로 갈리는데
-  //     청약홈이 두 지역을 같은 값으로 줘서 구분되지 않는다. 그래서 범위다.
   //   · 비규제지역 85㎡ 이하 — 지방자치단체가 0~40% 에서 정한다(통상 40%).
   var GAJEOM_RATIO = {
-    "규제지역": [[60, 40, 40], [85, 70, 70], [Infinity, 50, 80]],
-    "비규제":   [[85, 0, 40], [Infinity, 0, 0]]
+    "투기과열지구": [[60, 40, 40], [85, 70, 70], [Infinity, 80, 80]],
+    "조정대상지역": [[60, 40, 40], [85, 70, 70], [Infinity, 50, 50]],
+    "비규제":       [[85, 0, 40], [Infinity, 0, 0]]
   };
 
-  // 규제지역 판정은 청약홈이 준 값을 그대로 쓴다. 지역을 코드에 박아 두면
-  // 지정이 바뀔 때 따라가지 못한다. (현재 응답 기준 서울 전역 + 의왕·성남 등)
+  // 투기과열지구와 조정대상지역은 함께 지정되는 일이 많다(서울 전역이 그렇다).
+  // 겹치면 더 강한 투기과열지구 기준을 쓴다.
+  //
+  // 지역을 코드에 박아 두지 않고 청약홈이 준 값을 그대로 쓴다.
+  // 규제지역 지정은 바뀌는데, 코드에 박으면 따라가지 못한다.
   function regulationZone(n) {
-    return n.isSpeculationArea ? "규제지역" : "비규제";
+    if (n.speculation) return "투기과열지구";
+    if (n.adjustment) return "조정대상지역";
+    // 예전 데이터에는 두 값이 없다. 그때는 합쳐진 값으로 넘어간다.
+    if (n.speculation === undefined && n.isSpeculationArea) return "투기과열지구";
+    return "비규제";
   }
 
   function gajeomRange(zone, area) {
@@ -3284,12 +3727,13 @@
         '</tr>';
     }).join('');
 
-    var why = '';
-    if (hasRange && zone === "규제지역") {
-      why = ' 규제지역 85㎡ 초과는 투기과열지구 80%·조정대상지역 50%로 갈리는데, ' +
-            '청약홈이 두 지역을 같은 값으로 주어 구분되지 않아 범위로 적었습니다.';
-    } else if (hasRange) {
-      why = ' 비규제지역 85㎡ 이하의 가점제 비율은 지방자치단체가 0~40%에서 정합니다(통상 40%).';
+    var why = hasRange
+      ? ' 비규제지역 85㎡ 이하의 가점제 비율은 지방자치단체가 0~40%에서 정합니다(통상 40%).'
+      : '';
+    // 수도권 내 민영 공공주택지구는 가점제 비율이 따로 있다. 확인하지 못했으니 알린다.
+    if (n.metroPublicLand) {
+      why += ' 이 단지는 수도권 내 민영 공공주택지구라 가점제 비율이 위 기준과 다를 수 있습니다 ' +
+             '— 모집공고문을 확인하세요.';
     }
 
     return '<h4>일반공급 — 가점제 · 추첨제</h4>' +
@@ -3382,35 +3826,57 @@
   var showTrades = true;
   var lastResults = [];     // render() 가 채운다 — 판정 색을 마커에 쓰기 위해
 
-  function mapFail(title, detail) {
+  function mapFail(info, detail) {
+    // 예전 호출 방식(제목, 설명)도 그대로 받는다
+    if (typeof info === "string") info = { title: info, body: detail };
     var box = $("mapFallback");
-    box.innerHTML = '<h4>' + title + '</h4><p>' + detail + '</p>';
+    box.innerHTML =
+      '<h4>' + info.title + '</h4><p>' + info.body + '</p>' +
+      (info.retry ? '<p><button type="button" class="chip" id="mapRetry">다시 시도</button></p>' : '');
     box.hidden = false;
+    if (info.retry) {
+      $("mapRetry").onclick = function () {
+        box.hidden = true;
+        loadKakaoSdk();
+      };
+    }
   }
 
   function loadKakaoSdk() {
     var el = document.createElement("script");
     el.src = "https://dapi.kakao.com/v2/maps/sdk.js?autoload=false&appkey=" + KAKAO_JS_KEY;
+
     el.onload = function () {
-      if (!window.kakao || !kakao.maps) {
-        mapFail("지도를 불러오지 못했습니다",
-          "카카오 개발자 콘솔에서 이 페이지 주소를 등록해야 합니다. " +
-          "<b>앱 → 플랫폼 → Web → 사이트 도메인</b>에 " +
-          "<code>" + location.origin + "</code> 을 추가하세요.");
-        return;
-      }
+      if (!window.kakao || !kakao.maps) { mapFail(domainHelp()); return; }
       kakao.maps.load(function () {
         try { setupMap(); }
-        catch (e) { mapFail("지도를 그리지 못했습니다", esc(String(e && e.message || e))); }
+        catch (e) { mapFail(domainHelp(String(e && e.message || e))); }
       });
     };
-    el.onerror = function () {
-      mapFail("지도 SDK 를 불러오지 못했습니다",
-        "네트워크가 <code>dapi.kakao.com</code> 을 막고 있을 수 있습니다. " +
-        "회사망이라면 다른 망에서 다시 열어 보세요. " +
-        "공고의 <b>공급 위치</b>를 누르면 지도 없이도 카카오맵에서 위치를 볼 수 있습니다.");
-    };
+
+    // 카카오는 등록되지 않은 도메인의 요청을 거부한다.
+    // 그러면 브라우저에는 '스크립트 로드 실패' 로 잡히므로 여기로 온다.
+    // 네트워크 차단보다 도메인 미등록이 훨씬 흔하다 — 그 순서로 안내한다.
+    el.onerror = function () { mapFail(domainHelp()); };
+
     document.head.appendChild(el);
+  }
+
+  /// 지도가 안 뜨는 이유는 거의 도메인 미등록이다.
+  /// 등록할 주소를 화면에 그대로 띄워 준다 — 눈으로 옮겨 적을 수 있게.
+  function domainHelp(detail) {
+    return {
+      title: "지도를 불러오지 못했습니다",
+      body:
+        "<b>카카오 개발자 콘솔에 이 페이지 주소가 등록되어야 합니다.</b>" +
+        "<br>등록할 주소: <code>" + location.origin + "</code>" +
+        "<br><br>내 애플리케이션 → 앱 설정 → <b>플랫폼 키</b> → JavaScript 키 <b>수정</b> → " +
+        "<b>JavaScript SDK 도메인</b>에 위 주소를 한 줄 추가하세요. " +
+        "(앱 대표 도메인만으로는 지도가 열리지 않습니다.)" +
+        "<br><br>등록해도 안 되면 네트워크가 <code>dapi.kakao.com</code> 을 막고 있을 수 있습니다." +
+        (detail ? "<br><br>오류: " + esc(detail) : ""),
+      retry: true
+    };
   }
 
   function setupMap() {
@@ -3547,7 +4013,8 @@
       '</div>' +
       '<div class="pick-name">' + esc(t.apt) + '</div>' +
       '<div class="pick-sub">' +
-        '전용 ' + t.area + '㎡ · <b>' + manwon(t.amount) + '</b>' +
+        '전용 ' + t.area + '㎡' + (t.floor ? ' · ' + t.floor + '층' : '') +
+        ' · <b>' + manwon(t.amount) + '</b>' +
         ' · ' + esc(t.ym) + ' 거래' + (t.year ? ' · ' + t.year + '년 준공' : '') +
       '</div>';
     box.hidden = false;
@@ -3583,6 +4050,47 @@
     $("chipTrade").classList.toggle("on", showTrades);
     tradeMarkers.forEach(function (m) { m.overlay.setMap(showTrades && map ? map : null); });
   });
+
+  // ── 정책 · 법령 (관보) ──────────────────────────────────
+  //
+  // 법령은 공포되면 반드시 관보에 실린다. 「주택공급에 관한 규칙」은
+  // 국토교통부령이라 국회를 거치지 않으므로, 관보가 개정 시점을 잡는
+  // 가장 직접적인 창구다.
+  //
+  // 판정 규칙 상수가 이 규칙에서 나왔다. 여기에 개정이 뜨면 상수를 다시 본다.
+  function policiesHtml() {
+    var rows = (typeof POLICIES === 'undefined') ? [] : POLICIES;
+    if (!rows.length) {
+      return '<p class="policy-empty">최근 3개월 사이 주택·청약 관련 관보 게재 사항이 없습니다.</p>';
+    }
+
+    var items = rows.map(function (p) {
+      // 점수가 높으면 우리 판정 규칙에 직접 걸리는 개정이다
+      var key = p.score >= 45;
+      var title = esc(p.title);
+      return '<li' + (key ? ' class="key"' : '') + '>' +
+        '<span class="policy-when">' + esc(p.date || '') + '</span>' +
+        '<div>' +
+          '<p class="policy-title">' +
+            (p.url
+              ? '<a href="' + esc(p.url) + '" target="_blank" rel="noopener">' + title + '</a>'
+              : title) +
+          '</p>' +
+          '<p class="policy-meta">' +
+            (key ? '<span class="tag rule">규칙 확인</span>' : '') +
+            (p.org ? '<span>' + esc(p.org) + '</span>' : '') +
+            (p.kind ? '<span>· ' + esc(p.kind) + '</span>' : '') +
+            (p.law ? '<span>· 근거 ' + esc(p.law) + '</span>' : '') +
+          '</p>' +
+          (p.summary ? '<p class="policy-why">' + esc(p.summary) + '</p>' : '') +
+        '</div>' +
+      '</li>';
+    }).join('');
+
+    return '<ul class="policy-list">' + items + '</ul>' +
+      '<p class="policy-empty">「주택공급에 관한 규칙」 개정이 뜨면 판정 규칙 상수를 다시 확인해야 합니다. ' +
+      '제목을 누르면 관보 원문(PDF)이 열립니다.</p>';
+  }
 
   function render() {
     var p = readForm();
@@ -3622,6 +4130,7 @@
 
     lastResults = results;
     refreshMapMarkers();
+    $("policies").innerHTML = policiesHtml();
 
     save();
   }
