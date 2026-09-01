@@ -29,6 +29,8 @@ APPLYHOME_BASE = "https://api.odcloud.kr/api/ApplyhomeInfoDetailSvc/v1"
 RTMS_URL = (
     "https://apis.data.go.kr/1613000/RTMSDataSvcAptTrade/getRTMSDataSvcAptTrade"
 )
+KAKAO_ADDRESS_URL = "https://dapi.kakao.com/v2/local/search/address.json"
+KAKAO_KEYWORD_URL = "https://dapi.kakao.com/v2/local/search/keyword.json"
 
 OPERATIONS = {
     "APT": ("getAPTLttotPblancDetail", "getAPTLttotPblancMdl"),
@@ -101,7 +103,7 @@ _USE_CURL = False
 
 
 # ---------------------------------------------------------------------------
-def fetch(url: str, params: dict) -> bytes:
+def fetch(url: str, params: dict, headers: dict | None = None) -> bytes:
     """urllib 우선, 막히면 curl 로 폴백.
 
     사내망처럼 프록시를 강제하는 환경에서는 urllib 이 직접 나가지 못하는데
@@ -113,14 +115,19 @@ def fetch(url: str, params: dict) -> bytes:
 
     if not _USE_CURL:
         try:
-            with urllib.request.urlopen(full, timeout=TIMEOUT) as res:
+            request = urllib.request.Request(full, headers=headers or {})
+            with urllib.request.urlopen(request, timeout=TIMEOUT) as res:
                 return res.read()
         except Exception:
             _USE_CURL = True  # 이후 요청은 바로 curl 로 간다
 
-    result = subprocess.run(
-        ["curl", "-s", "--max-time", str(TIMEOUT), full], capture_output=True
-    )
+    command = ["curl", "-s", "--max-time", str(TIMEOUT)]
+    for name, value in (headers or {}).items():
+        command += ["-H", f"{name}: {value}"]
+    # 프록시를 타면 응답이 빈 채로 끊기는 일이 있다. 한 번은 다시 물어본다.
+    result = subprocess.run(command + [full], capture_output=True)
+    if not result.stdout.strip():
+        result = subprocess.run(command + [full], capture_output=True)
     if result.returncode != 0 or not result.stdout:
         raise RuntimeError(f"요청 실패: {url}")
     return result.stdout
@@ -150,7 +157,89 @@ def to_int(value) -> int | None:
 
 
 # ---------------------------------------------------------------------------
-def collect_notices(key: str, today: date) -> list[dict]:
+def geocode(address: str, name: str, kakao_key: str) -> dict | None:
+    """주소를 좌표와 행정구역으로 바꾼다.
+
+    청약 공고 주소는 형식이 제각각이라 한 가지 방법으로는 못 잡는다.
+    실제 응답에서 확인한 형태들:
+      · 정식      "서울특별시 성북구 장위동 68-37 일대"
+      · 괄호형    "김포 풍무역세권 B4블록 (경기도 김포시 사우동 458번지 일원)"
+      · 지구명    "인천검암역세권 공공주택지구 내 B-1BL"   ← 주소 DB 에 없다
+    그래서 주소검색 → 괄호 안 주소 → 단지명 장소검색 → 앞부분만 → 순으로
+    시도한다. 하나라도 걸리면 그 결과를 쓴다. 지도에 점을 찍고 시·군·구를
+    알아내는 게 목적이라 번지까지 정확할 필요는 없다.
+
+    반환: {"lat", "lng", "sido", "sigungu", "matched"} — 실패하면 None
+    """
+    if not kakao_key:
+        return None
+
+    headers = {"Authorization": f"KakaoAK {kakao_key}"}
+
+    def region_of(document: dict) -> tuple[str, str]:
+        """문서에서 시도·시군구를 뽑는다. LAWD_CODES 키 형식에 맞춘다."""
+        block = document.get("address") or document.get("road_address") or {}
+        sido_short = (block.get("region_1depth_name") or "").strip()
+        sigungu = (block.get("region_2depth_name") or "").strip()
+
+        # 장소검색(keyword) 응답에는 region_*depth 가 없다 — 주소 문자열을 쪼갠다
+        if not sido_short:
+            tokens = (document.get("address_name")
+                      or document.get("road_address_name") or "").split()
+            if len(tokens) >= 2:
+                sido_short, sigungu = tokens[0], tokens[1]
+
+        # "수원시 영통구" 처럼 자치구까지 오면 시 단위로 줄인다(LAWD_CODES 가 시 단위)
+        parts = sigungu.split()
+        if len(parts) > 1 and parts[0].endswith("시"):
+            sigungu = parts[0]
+
+        sido = AREA_NAMES.get(sido_short, sido_short)
+        return sido, sigungu
+
+    def query(url: str, text: str, how: str) -> dict | None:
+        text = (text or "").strip()
+        if len(text) < 2:
+            return None
+        try:
+            body = json.loads(
+                fetch(url, {"query": text, "size": 1}, headers=headers).decode("utf-8")
+            )
+        except Exception:
+            return None  # 빈 응답·네트워크 오류는 다음 방법으로 넘어간다
+        documents = body.get("documents") or []
+        if not documents:
+            return None
+        try:
+            lat, lng = float(documents[0]["y"]), float(documents[0]["x"])
+        except (KeyError, TypeError, ValueError):
+            return None
+        sido, sigungu = region_of(documents[0])
+        return {"lat": lat, "lng": lng, "sido": sido, "sigungu": sigungu,
+                "matched": how}
+
+    address = (address or "").strip()
+    tokens = address.split()
+    inner = re.search(r"\(([^)]+)\)", address)
+
+    attempts = [
+        (KAKAO_ADDRESS_URL, address, "주소"),
+        (KAKAO_ADDRESS_URL, inner.group(1) if inner else "", "괄호 안 주소"),
+        (KAKAO_KEYWORD_URL, name, "단지명"),
+        (KAKAO_ADDRESS_URL, " ".join(tokens[:3]), "주소(동까지)"),
+        (KAKAO_ADDRESS_URL, " ".join(tokens[:2]), "주소(시군구까지)"),
+        (KAKAO_KEYWORD_URL, " ".join(tokens[:3]), "지구명"),
+        (KAKAO_KEYWORD_URL, address, "주소 장소검색"),
+        # 앞의 행정구역을 떼면 지구명만 남는다 — 신도시·택지지구가 여기서 잡힌다
+        (KAKAO_KEYWORD_URL, " ".join(tokens[2:]), "지구명(행정구역 제외)"),
+    ]
+    for url, text, how in attempts:
+        if hit := query(url, text, how):
+            return hit
+    return None
+
+
+def collect_notices(key: str, today: date, kakao_key: str = "") -> list[dict]:
     """접수가 끝나지 않은 공고 + 주택형별 분양가."""
     since = (today - timedelta(days=90)).isoformat()
     notices: list[dict] = []
@@ -180,9 +269,16 @@ def collect_notices(key: str, today: date) -> list[dict]:
 
             address = row.get("HSSPLY_ADRES") or ""
             tokens = address.split()
-            sido = AREA_NAMES.get((row.get("SUBSCRPT_AREA_CODE_NM") or "").strip())
+            sido = AREA_NAMES.get((row.get("SUBSCRPT_AREA_CODE_NM") or "").strip()) or ""
             # 무순위 공고 주소는 시도로 시작하지 않는 경우가 있어 일치할 때만 쓴다
             sigungu = tokens[1] if len(tokens) > 1 and tokens[0] == sido else ""
+
+            # 주소를 좌표로. 주소 문자열로 시·군·구를 못 뽑은 공고도
+            # 카카오가 알려주는 행정구역으로 채워진다 → 시세 조회까지 이어진다.
+            place = geocode(address, row.get("HOUSE_NM") or "", kakao_key)
+            if place:
+                sido = sido or place["sido"]
+                sigungu = sigungu or place["sigungu"]
 
             units = []
             for unit in odcloud(model_op, key, {
@@ -223,6 +319,8 @@ def collect_notices(key: str, today: date) -> list[dict]:
                 "name": (row.get("HOUSE_NM") or "").strip(),
                 "type": kind,
                 "sido": sido, "sigungu": sigungu, "addr": address,
+                "lat": place["lat"] if place else None,
+                "lng": place["lng"] if place else None,
                 "builder": (row.get("CNSTRCT_ENTRPS_NM")
                             or row.get("BSNS_MBY_NM") or "")[:40],
                 # 국민/민영 구분은 HOUSE_DTL_SECD_NM 에 있다(HOUSE_SECD_NM 은 주택 종류)
@@ -318,11 +416,18 @@ def main() -> int:
         print("DATA_GO_KR_KEY 환경변수가 필요합니다.", file=sys.stderr)
         return 1
 
+    # 카카오 키는 없어도 된다 — 좌표만 비고 나머지는 그대로 동작한다.
+    kakao_key = os.environ.get("KAKAO_REST_API_KEY", "").strip()
+    if not kakao_key:
+        print("      (KAKAO_REST_API_KEY 없음 — 좌표 없이 진행합니다)")
+
     today = date.today()
     print(f"[1/3] 청약 공고 수집 (기준일 {today})")
-    notices = collect_notices(key, today)
+    notices = collect_notices(key, today, kakao_key)
     priced = sum(1 for n in notices if n["price"])
-    print(f"      접수 진행/예정 {len(notices)}건 · 분양가 확보 {priced}건")
+    located = sum(1 for n in notices if n["lat"])
+    print(f"      접수 진행/예정 {len(notices)}건 · 분양가 확보 {priced}건"
+          f" · 좌표 확보 {located}건")
 
     regions = {(n["sido"], n["sigungu"]) for n in notices if n["sido"] and n["sigungu"]}
     print(f"[2/3] 주변 시세 수집 ({len(regions)}개 시·군·구)")

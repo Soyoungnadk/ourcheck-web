@@ -411,6 +411,16 @@
   }
   .kv > span { color: var(--ink-3); }
   .kv > b { font-weight: 600; }
+  a.maplink {
+    color: inherit; text-decoration: none;
+    border-bottom: 1px solid var(--line); padding-bottom: 1px;
+  }
+  a.maplink:hover { border-bottom-color: var(--accent); }
+  a.maplink .pin {
+    font-family: var(--mono); font-size: 10.5px; font-weight: 700;
+    color: var(--accent); margin-left: 7px; white-space: nowrap;
+    border-bottom: 0; letter-spacing: .04em;
+  }
   .flags { display: flex; flex-wrap: wrap; gap: 5px; }
   .flag {
     font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 2px;
@@ -609,6 +619,8 @@
             <label class="chk"><input type="checkbox" id="ownsHouse"> 현재 보유 주택 있음</label>
             <label class="chk"><input type="checkbox" id="isHouseholder" checked> 세대주</label>
             <label class="chk"><input type="checkbox" id="isFirstTimeBuyer" checked> 생애최초</label>
+            <!-- 무순위(줍줍) 무주택 요건은 개정이 잦아 직접 켜고 끌 수 있게 둔다 -->
+            <label class="chk"><input type="checkbox" id="remnantRequiresHomeless" checked> 무순위는 무주택자만</label>
           </div>
         </fieldset>
 
@@ -1005,6 +1017,8 @@
       "sido": "인천광역시",
       "sigungu": "서해구",
       "addr": "인천광역시 서해구 인천검암역세권 공공주택지구 내 B-1BL",
+      "lat": null,
+      "lng": null,
       "builder": "㈜대우건설, 동부건설㈜, ㈜비에스한양, 경화건설㈜, 브니엘네이처㈜",
       "isNationalHousing": true,
       "isSpeculationArea": false,
@@ -1127,6 +1141,8 @@
       "sido": "인천광역시",
       "sigungu": "미추홀구",
       "addr": "인천광역시 미추홀구 학익동 인천 용현·학익 1블록 도시개발구역 공동3BL",
+      "lat": 37.438504780121,
+      "lng": 126.638619214824,
       "builder": "아이파크현대산업개발(주),현대건설(주),(주)포스코이앤씨",
       "isNationalHousing": false,
       "isSpeculationArea": false,
@@ -1272,6 +1288,8 @@
       "sido": "경기도",
       "sigungu": "성남시",
       "addr": "경기도 성남시 수정구 신흥동 81-8",
+      "lat": 37.4521371368257,
+      "lng": 127.143821200261,
       "builder": "(주)케이알산업, 동성건설(주)",
       "isNationalHousing": true,
       "isSpeculationArea": true,
@@ -1334,6 +1352,8 @@
       "sido": "서울특별시",
       "sigungu": "성북구",
       "addr": "서울특별시 성북구 장위동 68-37 일대",
+      "lat": 37.616169205568,
+      "lng": 127.052038619859,
       "builder": "장위10구역주택재개발정비사업조합",
       "isNationalHousing": false,
       "isSpeculationArea": false,
@@ -1367,6 +1387,8 @@
       "sido": "경상남도",
       "sigungu": "창원시",
       "addr": "경상남도 창원시 마산회원구 회원동 480-31번지 일대",
+      "lat": 35.2177949935082,
+      "lng": 128.567805284733,
       "builder": "회원2구역주택재개발정비사업조합",
       "isNationalHousing": false,
       "isSpeculationArea": false,
@@ -1472,6 +1494,8 @@
       "sido": "서울특별시",
       "sigungu": "영등포구",
       "addr": "서울특별시 영등포구 신길동 449-11",
+      "lat": 37.5129205591515,
+      "lng": 126.922932998353,
       "builder": "(주)무궁화신탁",
       "isNationalHousing": false,
       "isSpeculationArea": false,
@@ -1513,6 +1537,8 @@
       "sido": "인천광역시",
       "sigungu": "검단구",
       "addr": "인천광역시 검단구 불로동 검단신도시 AA22블록",
+      "lat": 37.6105020712841,
+      "lng": 126.691810695044,
       "builder": "인천검단3차피에프브이 주식회사",
       "isNationalHousing": false,
       "isSpeculationArea": false,
@@ -1546,6 +1572,8 @@
       "sido": "세종특별자치시",
       "sigungu": "다솜1로",
       "addr": "세종특별자치시 다솜1로 9",
+      "lat": 36.5008637596778,
+      "lng": 127.255532879292,
       "builder": "한신공영(주)",
       "isNationalHousing": false,
       "isSpeculationArea": false,
@@ -1579,6 +1607,8 @@
       "sido": "경기도",
       "sigungu": "의왕시",
       "addr": "경기도 의왕시 삼동 192-244번지 일원",
+      "lat": null,
+      "lng": null,
       "builder": "부곡가구역주택재개발정비사업조합",
       "isNationalHousing": false,
       "isSpeculationArea": false,
@@ -1620,6 +1650,8 @@
       "sido": "서울특별시",
       "sigungu": "강동구",
       "addr": "서울특별시 강동구 길동 386-4 (길동,에스아이팰리스 강동 센텀II)",
+      "lat": 37.5344859624469,
+      "lng": 127.142712345548,
       "builder": "길동 386-4외 2필지",
       "isNationalHousing": false,
       "isSpeculationArea": false,
@@ -1685,6 +1717,8 @@
       "sido": "울산광역시",
       "sigungu": "울주군",
       "addr": "울산광역시 울주군 청량읍 율리영해2길 7 (문수데시앙 2단지 아파트) ",
+      "lat": 35.5257896170475,
+      "lng": 129.242806259384,
       "builder": "(주)태영건설",
       "isNationalHousing": true,
       "isSpeculationArea": false,
@@ -1736,6 +1770,8 @@
       "sido": "서울특별시",
       "sigungu": "성북구",
       "addr": "서울특별시 성북구 하월곡동 70-4번지 일원",
+      "lat": 37.6058986239341,
+      "lng": 127.03620594499,
       "builder": "이수건설 주식회사",
       "isNationalHousing": false,
       "isSpeculationArea": true,
@@ -1814,6 +1850,8 @@
       "sido": "경기도",
       "sigungu": "의정부시",
       "addr": "경기도 의정부시 녹양동 일원 의정부우정 공공주택지구 내 A-2블록",
+      "lat": null,
+      "lng": null,
       "builder": "남광토건 주식회사, 금광기업(주), 경안종합건설 주식회사, 중앙건설 주식",
       "isNationalHousing": true,
       "isSpeculationArea": false,
@@ -1874,6 +1912,8 @@
       "sido": "인천광역시",
       "sigungu": "남동구",
       "addr": "인천광역시 남동구 간석1동 311-1번지 일원",
+      "lat": 37.4639103256713,
+      "lng": 126.707088270144,
       "builder": "상인천초교주변주택재개발정비사업조합",
       "isNationalHousing": false,
       "isSpeculationArea": false,
@@ -1923,6 +1963,8 @@
       "sido": "경기도",
       "sigungu": "남양주시",
       "addr": "경기도 남양주시 진접읍 내각리, 연평리 일원 남양주진접2 공공주택지구 A-4블록",
+      "lat": 37.6360236390492,
+      "lng": 127.216475764948,
       "builder": "한국토지주택공사 경기북부지역본부",
       "isNationalHousing": true,
       "isSpeculationArea": false,
@@ -1960,6 +2002,8 @@
       "sido": "경기도",
       "sigungu": "양주시",
       "addr": "경기도 양주시 덕정동 일원 양주신도시 택지개발지구 내 A-26블록",
+      "lat": null,
+      "lng": null,
       "builder": "양우종합건설 주식회사, (주)우호건설, 주식회사 대명건설",
       "isNationalHousing": true,
       "isSpeculationArea": false,
@@ -2069,6 +2113,8 @@
       "sido": "인천광역시",
       "sigungu": "계양구",
       "addr": "인천광역시 계양구 귤현동, 동양동, 박촌동, 병방동, 상야동 및 경기도 부천시 대장동, 서울특별시 강서구 오곡동 일원 인천계양 테크노밸리 공공주택지구 내 A6블록",
+      "lat": 37.5678793766949,
+      "lng": 126.741944726922,
       "builder": "(주)케이알산업, 우암건설(주)",
       "isNationalHousing": true,
       "isSpeculationArea": false,
@@ -2678,6 +2724,14 @@
   var DATA_DATE = "2026-09-01";
   /* DATA:END */
 
+  // 구워 넣은 데이터의 날짜는 문자열("2026-09-02")이다.
+  // 판정 엔진과 카드는 Date 로 비교하므로 여기서 한 번 바꿔 둔다.
+  // (이 변환을 빼면 일정 판정이 통째로 어긋난다)
+  NOTICES.forEach(function (n) {
+    n.receiptBegin = parseDate(n.begin);
+    n.receiptEnd = parseDate(n.end) || n.receiptBegin;
+  });
+
   // ── 폼 ↔ 프로필 ────────────────────────────────────────
   var $ = function (id) { return document.getElementById(id); };
   var STORAGE_KEY = "ourcheck.simulator.profile";
@@ -2789,7 +2843,8 @@
   }
 
   function scheduleLabel(n, now) {
-    if (n.receiptBegin > now) {
+    if (!n.receiptEnd) return "일정 미정";
+    if (n.receiptBegin && n.receiptBegin > now) {
       var d = Math.round((n.receiptBegin - now) / 86400000);
       return d === 0 ? "오늘 접수 시작" : "접수 D-" + d;
     }
@@ -2869,19 +2924,19 @@
     var key = (n.sido || '') + ' ' + (n.sigungu || '');
     var rows = TRADES[key];
     if (!rows || !rows.length) {
-      return '<p class="pending-note">이 지역(' + escapeHtml(key.trim() || '미상') +
+      return '<p class="pending-note">이 지역(' + esc(key.trim() || '미상') +
         ')의 실거래 자료를 아직 받지 못했습니다.</p>';
     }
 
     var body = rows.map(function (t) {
       var per = t.area ? Math.round(t.amount / (t.area / 3.3058)) : null;
       return '<tr>' +
-        '<td>' + escapeHtml(t.apt) + '<br><span class="dong">' + escapeHtml(t.dong) +
+        '<td>' + esc(t.apt) + '<br><span class="dong">' + esc(t.dong) +
           ' · ' + (t.year || '-') + '년</span></td>' +
         '<td class="num">' + t.area.toFixed(1) + '</td>' +
         '<td class="num">' + manwon(t.amount) + '</td>' +
         '<td class="num">' + (per ? comma(per) + '만' : '-') + '</td>' +
-        '<td class="num">' + escapeHtml(t.ym) + '</td>' +
+        '<td class="num">' + esc(t.ym) + '</td>' +
         '</tr>';
     }).join('');
 
@@ -2895,19 +2950,40 @@
   }
 
   // ── 모집공고 요약 ──────────────────────────────────────
+  // 어느 기기에서든 주소를 지도로 확인할 수 있게 한다.
+  // 좌표가 있으면 그 지점을 바로 찍고, 없으면 주소로 검색을 연다.
+  // 카카오맵 링크는 키가 필요 없어서 폰·PC 어디서나 그대로 열린다.
+  function mapUrl(n) {
+    if (n.lat && n.lng) {
+      // 이름만 인코딩한다 — 구분자 콤마까지 인코딩하면 링크가 안 열린다
+      return 'https://map.kakao.com/link/map/' +
+        encodeURIComponent(n.name || '공급 위치') + ',' + n.lat + ',' + n.lng;
+    }
+    var q = n.addr || [n.sido, n.sigungu, n.name].filter(Boolean).join(' ');
+    return q ? 'https://map.kakao.com/?q=' + encodeURIComponent(q) : '';
+  }
+
+  function addressHtml(n) {
+    var text = esc(n.addr || [n.sido, n.sigungu].filter(Boolean).join(' ') || '-');
+    var url = mapUrl(n);
+    if (!url) return '<b>' + text + '</b>';
+    return '<b><a class="maplink" href="' + url + '" target="_blank" rel="noopener">' +
+      text + '<span class="pin">지도 ↗</span></a></b>';
+  }
+
   function noticeSummaryHtml(n) {
     var rows = (n.units || []).map(function (u) {
       var sp = Object.keys(u.sp || {}).map(function (k) {
         return k + ' ' + u.sp[k];
       }).join(', ');
       return '<tr>' +
-        '<td>' + escapeHtml(u.ty || '-') + '</td>' +
+        '<td>' + esc(u.ty || '-') + '</td>' +
         '<td class="num">' + (u.area != null ? u.area.toFixed(2) : '-') + '</td>' +
         '<td class="num">' + (u.gen || 0) + '</td>' +
         '<td class="num">' + (u.spc || 0) + '</td>' +
         '<td class="num">' + (u.price ? comma(u.price) : '-') + '</td>' +
         '</tr>' +
-        (sp ? '<tr class="sp-row"><td colspan="5">특별공급 — ' + escapeHtml(sp) + '</td></tr>' : '');
+        (sp ? '<tr class="sp-row"><td colspan="5">특별공급 — ' + esc(sp) + '</td></tr>' : '');
     }).join('');
 
     var schedule = [
@@ -2918,21 +2994,21 @@
       ['입주 예정', n.moveIn ? n.moveIn.slice(0, 4) + '년 ' + n.moveIn.slice(4) + '월' : null]
     ].filter(function (r) { return r[1]; })
      .map(function (r) {
-       return '<div class="kv"><span>' + r[0] + '</span><b>' + escapeHtml(r[1]) + '</b></div>';
+       return '<div class="kv"><span>' + r[0] + '</span><b>' + esc(r[1]) + '</b></div>';
      }).join('');
 
     var flags = (n.flags || []).length
       ? (n.flags || []).map(function (f) {
-          return '<span class="flag">' + escapeHtml(f) + '</span>';
+          return '<span class="flag">' + esc(f) + '</span>';
         }).join('')
       : '<span class="flag none">해당 없음</span>';
 
     return '<div class="notice-sum">' +
       '<h4>모집공고 요약</h4>' +
-      '<div class="kv"><span>공급 위치</span><b>' + escapeHtml(n.addr || '-') + '</b></div>' +
+      '<div class="kv"><span>공급 위치</span>' + addressHtml(n) + '</div>' +
       '<div class="kv"><span>공급 규모</span><b>' + (n.supply ? n.supply + '세대' : '-') +
         ' · 주택형 ' + (n.units || []).length + '개</b></div>' +
-      (n.builder ? '<div class="kv"><span>시공/사업주체</span><b>' + escapeHtml(n.builder) + '</b></div>' : '') +
+      (n.builder ? '<div class="kv"><span>시공/사업주체</span><b>' + esc(n.builder) + '</b></div>' : '') +
       schedule +
       '<div class="kv"><span>특이 사항</span><b class="flags">' + flags + '</b></div>' +
 
@@ -2946,7 +3022,7 @@
 
       '<h4>근처 시세 · 아파트 매매 실거래</h4>' + tradesHtml(n) +
 
-      (n.url ? '<a class="pblanc" href="' + escapeHtml(n.url) + '" target="_blank" rel="noopener">' +
+      (n.url ? '<a class="pblanc" href="' + esc(n.url) + '" target="_blank" rel="noopener">' +
         '청약홈에서 모집공고문 보기 →</a>' : '') +
       '<p class="pending-note">계약금·중도금·잔금 비율과 전매제한·재당첨 제한 기간은 ' +
       'API 로 제공되지 않습니다. 위 공고문에서 확인하세요.</p>' +
@@ -3054,7 +3130,7 @@
       var need = nearBudget.n.price - p.totalBudget;
       var cash = Math.round(nearBudget.n.price * 0.10);
       var cashShort = cash - p.totalCash;
-      var msg = '<b>' + escapeHtml(nearBudget.n.name) + '</b> 은 자금만 맞으면 신청 가능합니다. ';
+      var msg = '<b>' + esc(nearBudget.n.name) + '</b> 은 자금만 맞으면 신청 가능합니다. ';
       if (need > 0) {
         msg += '분양가 ' + manwon(nearBudget.n.price) + ' 기준 <b>' + manwon(need) + '</b> 이 더 필요합니다.';
       } else if (cashShort > 0) {
@@ -3076,7 +3152,7 @@
 
     if ((counts.REGION || 0) === results.length) {
       return '<div class="hint">모든 공고가 <b>지역 요건</b>에서 걸렸습니다. ' +
-        '거주 시·도가 <b>' + escapeHtml(p.residenceSido) + '</b> 로 되어 있는데, ' +
+        '거주 시·도가 <b>' + esc(p.residenceSido) + '</b> 로 되어 있는데, ' +
         '샘플 공고는 서울·경기·인천·부산·대구에만 있습니다. ' +
         '거주지를 바꿔 보시거나, 실제 공고를 넣어 확인하시면 됩니다.</div>';
     }

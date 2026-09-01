@@ -8,6 +8,9 @@
 #     이름: DATA_GO_KR_KEY
 #     값  : 공공데이터포털 일반 인증키
 #
+# 지도 링크용 좌표를 붙이려면 KAKAO_REST_API_KEY 도 같은 방식으로 넣는다.
+# 없어도 동작한다 — 좌표 대신 주소 검색 링크가 걸린다.
+#
 # 이 저장소 자신에게 push 하므로 GitHub 이 자동으로 주는 토큰으로 충분하다.
 # (별도 PAT 을 만들 필요가 없다)
 
@@ -39,6 +42,7 @@ jobs:
       - name: 공고·시세 수집 후 페이지 갱신
         env:
           DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
+          KAKAO_REST_API_KEY: ${{ secrets.KAKAO_REST_API_KEY }}
         run: python scripts/build_data.py --out index.html
 
       - name: 변경분 커밋
