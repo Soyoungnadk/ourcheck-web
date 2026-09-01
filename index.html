@@ -3850,7 +3850,14 @@
       if (!window.kakao || !kakao.maps) { mapFail(domainHelp()); return; }
       kakao.maps.load(function () {
         try { setupMap(); }
-        catch (e) { mapFail(domainHelp(String(e && e.message || e))); }
+        catch (e) { mapFail(domainHelp(String(e && e.message || e))); return; }
+        // SDK 가 로드돼도 도메인이 등록돼 있지 않으면 타일 요청이 거부되어
+        // 지도가 빈 채로 남는다. 오류도 던지지 않아 여기서 직접 확인한다.
+        setTimeout(function () {
+          if (!$("mapFallback").hidden) return;
+          var drawn = $("map").querySelectorAll("img, canvas").length;
+          if (!drawn) mapFail(domainHelp("지도 타일이 그려지지 않았습니다"));
+        }, 4000);
       });
     };
 
