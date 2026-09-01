@@ -320,7 +320,7 @@
     </div>
     <div class="meta">
       v1.0 · 2026-08-31<br>
-      데이터 연결 <b>2/5</b> · 화면 <b>10</b>
+      데이터 연결 <b>2/4</b> · 화면 <b>10</b>
     </div>
   </div>
 </header>
@@ -487,7 +487,7 @@
               <span style="font-size:10.5px;color:var(--primary)">전체보기</span>
             </div>
             <div class="card"><div class="title-s" style="font-size:11.5px">주택공급에 관한 규칙 일부개정</div>
-              <div class="sub-s">법제처 · 일부개정 · 시행 예정</div></div>
+              <div class="sub-s">관보 · 국토교통부령 공포 · 시행 예정</div></div>
           </div>
           <div class="tabbar"><span class="on">홈</span><span>캘린더</span><span>지도</span><span>정책</span><span>MY</span></div>
         </div>
@@ -821,14 +821,14 @@
             </div>
             <div class="card" style="background:color-mix(in srgb,var(--accent) 12%, var(--surface));border-color:color-mix(in srgb,var(--accent) 35%, var(--line))">
               <div style="font-size:10.5px;font-weight:700">수집하지 못한 소스 2곳</div>
-              <div class="sub-s" style="margin-top:2px">· 법제처 — 호출 IP 미등록<br>· NKIS — 인증키 미설정</div>
+              <div class="sub-s" style="margin-top:2px">· 관보 — 요청 파라미터 확인 중<br>· 부처 보도자료 — RSS 주소 재확인</div>
             </div>
             <div class="chips">
               <span class="chip on">전체</span><span class="chip">개정 법령</span>
               <span class="chip">정책 발표</span><span class="chip">#청약</span>
             </div>
             <div class="card">
-              <div class="row between"><span class="sub-s">법제처</span>
+              <div class="row between"><span class="sub-s">관보</span>
                 <span class="badge" style="background:color-mix(in srgb,var(--accent) 18%,transparent);color:#8a5a00">시행 예정</span></div>
               <div class="title-s" style="margin-top:3px">주택공급에 관한 규칙</div>
               <div class="sub-s">일부개정 · 국토교통부 · 시행일 2026-10-01</div>
@@ -862,9 +862,10 @@
           </div></div>
           <div class="note"><span class="cn">5</span><div>
             <h4>연결 상태</h4>
-            <p>법제처는 호출 IP 등록이 필요하고, 관보는 요청 파라미터를 확인 중이다.
-               부처 RSS는 주소 개편으로 재확인이 필요하다.</p>
-            <span class="src warn">3개 소스 모두 미연결</span>
+            <p>법령 공포는 <b>관보</b>로 추적한다. 법제처 OPEN API 는 호출 IP 를 사전 등록해야 해서
+               IP 가 바뀌는 환경에서는 쓸 수 없어 제외했다.
+               관보는 요청 파라미터를, 부처 RSS 는 주소를 확인 중이다.</p>
+            <span class="src warn">2개 소스 미연결</span>
           </div></div>
         </div>
       </div>
@@ -1044,8 +1045,6 @@
                   <td class="wait">승인됨</td><td>요청 파라미터 확인 (미리보기 URL)</td></tr>
               <tr><td>카카오 로컬</td><td>온보딩 주소검색 · 지도</td>
                   <td class="no">미발급</td><td>REST 키 + JavaScript 키</td></tr>
-              <tr><td>법제처</td><td>정책 · 법령</td>
-                  <td class="no">차단됨</td><td>호출 IP 등록 (open.law.go.kr)</td></tr>
             </tbody>
           </table>
         </div>
