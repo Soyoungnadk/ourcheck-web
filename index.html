@@ -411,6 +411,96 @@
   }
   .kv > span { color: var(--ink-3); }
   .kv > b { font-weight: 600; }
+  /* ── 지도 (화면설계서 06) ───────────────────────── */
+  .map-panel { margin-top: 18px; padding: 0; overflow: hidden; }
+  .map-bar {
+    display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+    padding: 12px 16px; border-bottom: 1px solid var(--line-soft);
+  }
+  .chip {
+    font-family: var(--mono); font-size: 11px; font-weight: 600;
+    padding: 4px 10px; border-radius: 999px; cursor: pointer;
+    border: 1px solid var(--line); background: var(--surface); color: var(--ink-2);
+    letter-spacing: .02em;
+  }
+  .chip:hover { border-color: var(--accent); }
+  .chip.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .chip.trade.on { background: var(--note); border-color: var(--note); }
+  .map-stage { position: relative; }
+  #map { width: 100%; height: 420px; background: var(--surface-2); }
+  @media (max-width: 720px) { #map { height: 320px; } }
+
+  /* 마커 — 색이 곧 판정이다. 적격이면 초록, 아니면 공고 유형 색. */
+  .mk {
+    display: inline-block; transform: translate(-50%, -100%);
+    font-size: 11px; font-weight: 700; line-height: 1;
+    padding: 5px 8px; border-radius: 3px; white-space: nowrap;
+    color: #fff; cursor: pointer; border: 1px solid rgba(0,0,0,.15);
+    box-shadow: 0 1px 3px rgba(20,25,34,.35);
+  }
+  .mk.pass { background: var(--pass); }
+  .mk.apt  { background: var(--apt); }
+  .mk.oft  { background: var(--oft); }
+  .mk.rem  { background: var(--rem); }
+  .mk.on { outline: 2px solid var(--ink); outline-offset: 1px; }
+  .mk-trade {
+    display: inline-block; transform: translate(-50%, -50%);
+    font-family: var(--mono); font-size: 10px; font-weight: 700;
+    padding: 3px 6px; border-radius: 999px; white-space: nowrap; cursor: pointer;
+    background: var(--note); color: #fff; opacity: .82;
+    border: 1px solid rgba(255,255,255,.5);
+  }
+  .mk-trade:hover, .mk-trade.on { opacity: 1; }
+
+  /* 마커를 누르면 뜨는 요약 카드 */
+  .map-pick {
+    position: absolute; left: 12px; right: 12px; bottom: 12px; z-index: 5;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 4px;
+    box-shadow: var(--shadow); padding: 11px 13px;
+  }
+  .map-pick.tappable { cursor: pointer; }
+  .map-pick.tappable:hover { border-color: var(--accent); }
+  .map-pick .pick-top {
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  }
+  .map-pick .pick-tags { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; }
+  .map-pick .pick-name {
+    font-family: var(--serif); font-size: 15px; font-weight: 700;
+    margin: 6px 0 3px; color: var(--ink);
+  }
+  .map-pick .pick-sub { font-size: 12px; color: var(--ink-2); }
+  .map-pick .pick-go {
+    font-family: var(--mono); font-size: 10.5px; font-weight: 700;
+    color: var(--accent); white-space: nowrap;
+  }
+  .map-pick .pick-close {
+    border: 0; background: none; cursor: pointer; padding: 2px 4px;
+    color: var(--ink-3); font-size: 15px; line-height: 1;
+  }
+  .map-legend {
+    display: flex; flex-wrap: wrap; gap: 12px;
+    padding: 10px 16px; border-top: 1px solid var(--line-soft);
+    font-size: 11.5px; color: var(--ink-3);
+  }
+  .map-legend i {
+    display: inline-block; width: 9px; height: 9px; border-radius: 2px;
+    margin-right: 5px; vertical-align: baseline;
+  }
+  .map-fallback {
+    position: absolute; inset: 0; z-index: 6; display: flex;
+    flex-direction: column; justify-content: center; gap: 8px;
+    padding: 22px; background: var(--surface-2); text-align: left;
+  }
+  .map-fallback h4 { margin: 0; font-size: 14px; color: var(--ink); }
+  .map-fallback p { margin: 0; font-size: 12.5px; color: var(--ink-2); line-height: 1.6; }
+  .map-fallback code {
+    font-family: var(--mono); font-size: 11.5px;
+    background: var(--surface); padding: 1px 5px; border-radius: 2px;
+    border: 1px solid var(--line);
+  }
+  /* 지도에서 고른 공고를 목록에서 찾기 쉽게 */
+  .card.hit { box-shadow: 0 0 0 2px var(--accent); }
+
   a.maplink {
     color: inherit; text-decoration: none;
     border-bottom: 1px solid var(--line); padding-bottom: 1px;
@@ -437,6 +527,12 @@
     white-space: normal;
   }
   table.units .dong { font-size: 11px; color: var(--ink-3); font-weight: 400; }
+  .mix-note {
+    margin: 7px 0 0; font-size: 11.5px; color: var(--ink-3); line-height: 1.65;
+  }
+  table.units td.est b { font-weight: 700; }
+  table.units td.est .pct { font-size: 11px; color: var(--ink-3); font-weight: 400; }
+  table.units tr.loose td.est b { color: var(--ink-2); }
   .pending-note {
     margin: 6px 0 0; font-size: 12px; line-height: 1.6; color: var(--ink-3);
   }
@@ -705,6 +801,30 @@
       <p id="dataDate" style="margin:14px 0 0;font-size:12px;color:var(--ink-3)"></p>
 
       <div id="diag"></div>
+
+      <!-- ── 지도 (화면설계서 06) ─────────────────── -->
+      <section class="panel map-panel">
+        <div class="map-bar">
+          <button type="button" class="chip on" data-mtype="">전체</button>
+          <button type="button" class="chip" data-mtype="APT">아파트</button>
+          <button type="button" class="chip" data-mtype="OFFICETEL">오피스텔</button>
+          <button type="button" class="chip" data-mtype="REMNANT">무순위</button>
+          <span style="flex:1"></span>
+          <button type="button" class="chip trade on" id="chipTrade">근처 시세</button>
+        </div>
+        <div class="map-stage">
+          <div id="map"></div>
+          <div class="map-fallback" id="mapFallback" hidden></div>
+          <div class="map-pick" id="mapPick" hidden></div>
+        </div>
+        <div class="map-legend">
+          <span><i style="background:var(--pass)"></i>신청 가능</span>
+          <span><i style="background:var(--apt)"></i>아파트</span>
+          <span><i style="background:var(--oft)"></i>오피스텔</span>
+          <span><i style="background:var(--rem)"></i>무순위</span>
+          <span><i style="background:var(--note);border-radius:999px"></i>근처 시세 (실거래)</span>
+        </div>
+      </section>
 
       <div class="cards" id="cards"></div>
 
@@ -1017,8 +1137,8 @@
       "sido": "인천광역시",
       "sigungu": "서해구",
       "addr": "인천광역시 서해구 인천검암역세권 공공주택지구 내 B-1BL",
-      "lat": 37.5454335160343,
-      "lng": 126.676028468221,
+      "lat": 37.5651131704531,
+      "lng": 126.66861437054,
       "builder": "㈜대우건설, 동부건설㈜, ㈜비에스한양, 경화건설㈜, 브니엘네이처㈜",
       "isNationalHousing": true,
       "isSpeculationArea": false,
@@ -1141,8 +1261,8 @@
       "sido": "인천광역시",
       "sigungu": "미추홀구",
       "addr": "인천광역시 미추홀구 학익동 인천 용현·학익 1블록 도시개발구역 공동3BL",
-      "lat": 37.438504780121,
-      "lng": 126.638619214824,
+      "lat": 37.4410179859397,
+      "lng": 126.654380831267,
       "builder": "아이파크현대산업개발(주),현대건설(주),(주)포스코이앤씨",
       "isNationalHousing": false,
       "isSpeculationArea": false,
@@ -1288,8 +1408,8 @@
       "sido": "경기도",
       "sigungu": "성남시",
       "addr": "경기도 성남시 수정구 신흥동 81-8",
-      "lat": 37.4503896755506,
-      "lng": 127.145617389273,
+      "lat": 37.4521371368257,
+      "lng": 127.143821200261,
       "builder": "(주)케이알산업, 동성건설(주)",
       "isNationalHousing": true,
       "isSpeculationArea": true,
@@ -1387,8 +1507,8 @@
       "sido": "경상남도",
       "sigungu": "창원시",
       "addr": "경상남도 창원시 마산회원구 회원동 480-31번지 일대",
-      "lat": 35.2177949935082,
-      "lng": 128.567805284733,
+      "lat": 35.2178031496874,
+      "lng": 128.567822683539,
       "builder": "회원2구역주택재개발정비사업조합",
       "isNationalHousing": false,
       "isSpeculationArea": false,
@@ -1607,8 +1727,8 @@
       "sido": "경기도",
       "sigungu": "의왕시",
       "addr": "경기도 의왕시 삼동 192-244번지 일원",
-      "lat": 37.3237511642837,
-      "lng": 126.955704917536,
+      "lat": 37.321755439176,
+      "lng": 126.951500198356,
       "builder": "부곡가구역주택재개발정비사업조합",
       "isNationalHousing": false,
       "isSpeculationArea": false,
@@ -1770,8 +1890,8 @@
       "sido": "서울특별시",
       "sigungu": "성북구",
       "addr": "서울특별시 성북구 하월곡동 70-4번지 일원",
-      "lat": 37.6075035036308,
-      "lng": 127.037812638789,
+      "lat": 37.6060363146047,
+      "lng": 127.036142591753,
       "builder": "이수건설 주식회사",
       "isNationalHousing": false,
       "isSpeculationArea": true,
@@ -1912,8 +2032,8 @@
       "sido": "인천광역시",
       "sigungu": "남동구",
       "addr": "인천광역시 남동구 간석1동 311-1번지 일원",
-      "lat": 37.4585994942339,
-      "lng": 126.705306659465,
+      "lat": 37.4639103256713,
+      "lng": 126.707088270144,
       "builder": "상인천초교주변주택재개발정비사업조합",
       "isNationalHousing": false,
       "isSpeculationArea": false,
@@ -2113,8 +2233,8 @@
       "sido": "인천광역시",
       "sigungu": "계양구",
       "addr": "인천광역시 계양구 귤현동, 동양동, 박촌동, 병방동, 상야동 및 경기도 부천시 대장동, 서울특별시 강서구 오곡동 일원 인천계양 테크노밸리 공공주택지구 내 A6블록",
-      "lat": 37.5374956682829,
-      "lng": 126.73770466472,
+      "lat": 37.5678793766949,
+      "lng": 126.741944726922,
       "builder": "(주)케이알산업, 우암건설(주)",
       "isNationalHousing": true,
       "isSpeculationArea": false,
@@ -2307,7 +2427,9 @@
         "area": 59.99,
         "amount": 48000,
         "year": 2022,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": 37.6480523514684,
+        "lng": 127.240808485365
       },
       {
         "apt": "평내호평역대명루첸포레스티움",
@@ -2315,7 +2437,9 @@
         "area": 59.81,
         "amount": 51500,
         "year": 2020,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": 37.65153436138998,
+        "lng": 127.23649435129964
       },
       {
         "apt": "두산알프하임",
@@ -2323,7 +2447,9 @@
         "area": 72.96,
         "amount": 47000,
         "year": 2021,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": 37.65083984803558,
+        "lng": 127.25418784027003
       },
       {
         "apt": "예당마을신안인스빌",
@@ -2331,7 +2457,9 @@
         "area": 84.98,
         "amount": 48000,
         "year": 2010,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": 37.723449823229444,
+        "lng": 127.20803340563795
       },
       {
         "apt": "다산자연앤e편한세상3차",
@@ -2339,7 +2467,9 @@
         "area": 59.99,
         "amount": 89500,
         "year": 2019,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": 37.6193447952159,
+        "lng": 127.15649284815515
       }
     ],
     "경기도 양주시": [
@@ -2349,7 +2479,9 @@
         "area": 84.95,
         "amount": 48700,
         "year": 2022,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": 37.8292732998063,
+        "lng": 127.08964544765061
       },
       {
         "apt": "덕계역금강펜테리움센트럴파크",
@@ -2357,7 +2489,9 @@
         "area": 59.24,
         "amount": 33900,
         "year": 2023,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": 37.8145976282922,
+        "lng": 127.047989208407
       },
       {
         "apt": "e편한세상옥정메트로포레",
@@ -2365,7 +2499,9 @@
         "area": 84.94,
         "amount": 43000,
         "year": 2020,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": 37.81170877145763,
+        "lng": 127.08895304747745
       },
       {
         "apt": "양주옥정신도시제일풍경채레이크시티2단지",
@@ -2373,7 +2509,9 @@
         "area": 84.9,
         "amount": 45700,
         "year": 2023,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": 37.823663826425,
+        "lng": 127.1019793085844
       },
       {
         "apt": "옥정센트럴파크푸르지오",
@@ -2381,7 +2519,9 @@
         "area": 58.98,
         "amount": 34200,
         "year": 2016,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": null,
+        "lng": null
       }
     ],
     "경기도 의왕시": [
@@ -2391,7 +2531,9 @@
         "area": 84.94,
         "amount": 83800,
         "year": 2019,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": 37.36949109632329,
+        "lng": 127.00519535568631
       },
       {
         "apt": "한진해모로",
@@ -2399,7 +2541,9 @@
         "area": 84.93,
         "amount": 65000,
         "year": 2004,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": 37.3650487383928,
+        "lng": 126.965894648044
       },
       {
         "apt": "백운밸리레이크포레2단지",
@@ -2407,7 +2551,9 @@
         "area": 59.78,
         "amount": 62500,
         "year": 2020,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": 37.3725491355138,
+        "lng": 127.01581701162682
       },
       {
         "apt": "의왕내손e편한세상",
@@ -2415,7 +2561,9 @@
         "area": 84.92,
         "amount": 110000,
         "year": 2012,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": 37.38759550568254,
+        "lng": 126.97939086671155
       },
       {
         "apt": "모락산현대",
@@ -2423,7 +2571,9 @@
         "area": 79.05,
         "amount": 60000,
         "year": 2002,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": 37.36193747496342,
+        "lng": 126.96911093858208
       }
     ],
     "경기도 의정부시": [
@@ -2433,7 +2583,9 @@
         "area": 51.91,
         "amount": 28800,
         "year": 2017,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": 37.75015084659523,
+        "lng": 127.11554002825345
       },
       {
         "apt": "e편한세상신곡포레스타뷰",
@@ -2441,7 +2593,9 @@
         "area": 74.6,
         "amount": 47800,
         "year": 2020,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": 37.74425958792637,
+        "lng": 127.06783220050566
       },
       {
         "apt": "의정부민락푸르지오",
@@ -2449,7 +2603,9 @@
         "area": 84.94,
         "amount": 41900,
         "year": 2015,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": 37.75149948923454,
+        "lng": 127.11000018996985
       },
       {
         "apt": "호반베르디움1차",
@@ -2457,7 +2613,9 @@
         "area": 84.98,
         "amount": 56000,
         "year": 2017,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": 37.74499674110175,
+        "lng": 127.10147869713288
       },
       {
         "apt": "고산리슈빌포레",
@@ -2465,7 +2623,9 @@
         "area": 59.91,
         "amount": 34900,
         "year": 2021,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": 37.74037025725791,
+        "lng": 127.1161306703368
       }
     ],
     "서울특별시 강동구": [
@@ -2475,7 +2635,9 @@
         "area": 113.67,
         "amount": 182000,
         "year": 2010,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": 37.534146130429356,
+        "lng": 127.14651776352255
       },
       {
         "apt": "다성이즈빌(349-1)",
@@ -2483,7 +2645,9 @@
         "area": 16.88,
         "amount": 12500,
         "year": 2012,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": null,
+        "lng": null
       },
       {
         "apt": "래미안강동팰리스",
@@ -2491,7 +2655,9 @@
         "area": 84.97,
         "amount": 188000,
         "year": 2017,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": null,
+        "lng": null
       },
       {
         "apt": "고덕리엔파크3단지",
@@ -2499,7 +2665,9 @@
         "area": 84.87,
         "amount": 139000,
         "year": 2011,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": 37.55268516575942,
+        "lng": 127.17552532997468
       },
       {
         "apt": "강동리버스트4단지",
@@ -2507,7 +2675,9 @@
         "area": 49.82,
         "amount": 101000,
         "year": 2020,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": 37.57291648482197,
+        "lng": 127.1728333697609
       }
     ],
     "서울특별시 성북구": [
@@ -2517,7 +2687,9 @@
         "area": 59.88,
         "amount": 64000,
         "year": 2005,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": null,
+        "lng": null
       },
       {
         "apt": "종암에스케이",
@@ -2525,7 +2697,9 @@
         "area": 59.04,
         "amount": 98000,
         "year": 1999,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": 37.6011822462255,
+        "lng": 127.037533127344
       },
       {
         "apt": "한진(609-1)",
@@ -2533,7 +2707,9 @@
         "area": 84.87,
         "amount": 104500,
         "year": 1998,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": null,
+        "lng": null
       },
       {
         "apt": "길음뉴타운4단지(e편한세상)",
@@ -2541,7 +2717,9 @@
         "area": 84.64,
         "amount": 136500,
         "year": 2005,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": 37.6126941142614,
+        "lng": 127.019072993331
       },
       {
         "apt": "우남푸르미아",
@@ -2549,7 +2727,9 @@
         "area": 59.64,
         "amount": 59500,
         "year": 1994,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": 37.61584785839301,
+        "lng": 127.06745147307085
       }
     ],
     "서울특별시 영등포구": [
@@ -2559,7 +2739,9 @@
         "area": 77.69,
         "amount": 328000,
         "year": 1975,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": 37.52493718404563,
+        "lng": 126.93209650151725
       },
       {
         "apt": "아크로타워스퀘어",
@@ -2567,7 +2749,9 @@
         "area": 84.69,
         "amount": 180000,
         "year": 2017,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": 37.52375784194018,
+        "lng": 126.90705838475566
       },
       {
         "apt": "영등포푸르지오",
@@ -2575,7 +2759,9 @@
         "area": 59.91,
         "amount": 154000,
         "year": 2002,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": 37.51185180912726,
+        "lng": 126.90237014189154
       },
       {
         "apt": "쌍용플래티넘S",
@@ -2583,7 +2769,9 @@
         "area": 18.24,
         "amount": 9000,
         "year": 2013,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": 37.4952967185272,
+        "lng": 126.898078730671
       },
       {
         "apt": "영등포자이르네",
@@ -2591,7 +2779,9 @@
         "area": 49.01,
         "amount": 66900,
         "year": 2022,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": null,
+        "lng": null
       }
     ],
     "인천광역시 계양구": [
@@ -2601,7 +2791,9 @@
         "area": 59.98,
         "amount": 51500,
         "year": 2021,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": 37.52871795930461,
+        "lng": 126.71358045698528
       },
       {
         "apt": "까치마을한진",
@@ -2609,7 +2801,9 @@
         "area": 37.38,
         "amount": 14500,
         "year": 1997,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": 37.5294853428131,
+        "lng": 126.741588317449
       },
       {
         "apt": "힐스테이트자이계양",
@@ -2617,7 +2811,9 @@
         "area": 53.94,
         "amount": 52500,
         "year": 2024,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": 37.531947772142594,
+        "lng": 126.71909600361796
       },
       {
         "apt": "학마을서해",
@@ -2625,7 +2821,9 @@
         "area": 59.79,
         "amount": 30000,
         "year": 1997,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": 37.543963205703186,
+        "lng": 126.73900479723291
       },
       {
         "apt": "학마을한진",
@@ -2633,7 +2831,9 @@
         "area": 39.84,
         "amount": 16100,
         "year": 1998,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": 37.54511281420207,
+        "lng": 126.74349879740795
       }
     ],
     "인천광역시 남동구": [
@@ -2643,7 +2843,9 @@
         "area": 83.78,
         "amount": 51200,
         "year": 2007,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": 37.454553791230836,
+        "lng": 126.71181444697235
       },
       {
         "apt": "포레시안",
@@ -2651,7 +2853,9 @@
         "area": 59.71,
         "amount": 32500,
         "year": 2011,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": 37.463161767930096,
+        "lng": 126.73119948231965
       },
       {
         "apt": "만수뉴서울아파트",
@@ -2659,7 +2863,9 @@
         "area": 34.65,
         "amount": 10600,
         "year": 1992,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": 37.4407078299066,
+        "lng": 126.73525968110592
       },
       {
         "apt": "서창센트럴푸르지오",
@@ -2667,7 +2873,9 @@
         "area": 74.99,
         "amount": 47500,
         "year": 2018,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": 37.42882764975252,
+        "lng": 126.74916217501088
       },
       {
         "apt": "에코메트로12",
@@ -2675,7 +2883,9 @@
         "area": 115.07,
         "amount": 62000,
         "year": 2009,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": 37.3957926665557,
+        "lng": 126.73307213088
       }
     ],
     "인천광역시 미추홀구": [
@@ -2685,7 +2895,9 @@
         "area": 59.98,
         "amount": 47500,
         "year": 2023,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": 37.452683953100866,
+        "lng": 126.67754215474855
       },
       {
         "apt": "더샵인천스카이타워1단지",
@@ -2693,7 +2905,9 @@
         "area": 74.96,
         "amount": 47800,
         "year": 2020,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": 37.47009307099287,
+        "lng": 126.6651727144239
       },
       {
         "apt": "주안파크자이더플래티넘",
@@ -2701,7 +2915,9 @@
         "area": 59.96,
         "amount": 45300,
         "year": 2023,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": 37.447261354703954,
+        "lng": 126.67153636243744
       },
       {
         "apt": "주안역센트레빌",
@@ -2709,7 +2925,9 @@
         "area": 59.98,
         "amount": 40500,
         "year": 2021,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": 37.46772154176838,
+        "lng": 126.68547519250382
       },
       {
         "apt": "인천 SK Sky VIEW",
@@ -2717,7 +2935,9 @@
         "area": 84.98,
         "amount": 55800,
         "year": 2016,
-        "ym": "2026.08"
+        "ym": "2026.08",
+        "lat": 37.44960054011882,
+        "lng": 126.6460032385599
       }
     ]
   };
@@ -2727,9 +2947,10 @@
   // 구워 넣은 데이터의 날짜는 문자열("2026-09-02")이다.
   // 판정 엔진과 카드는 Date 로 비교하므로 여기서 한 번 바꿔 둔다.
   // (이 변환을 빼면 일정 판정이 통째로 어긋난다)
-  NOTICES.forEach(function (n) {
+  NOTICES.forEach(function (n, i) {
     n.receiptBegin = parseDate(n.begin);
     n.receiptEnd = parseDate(n.end) || n.receiptBegin;
+    n._id = i;   // 지도 마커 → 목록 카드를 잇는 열쇠
   });
 
   // ── 폼 ↔ 프로필 ────────────────────────────────────────
@@ -2891,7 +3112,7 @@
         '</div>';
     }
 
-    return '<details class="card" data-verdict="' + verdict + '">' +
+    return '<details class="card" id="notice-' + n._id + '" data-verdict="' + verdict + '">' +
       '<summary>' +
         '<div>' +
           '<div class="meta-row">' +
@@ -2971,6 +3192,121 @@
       text + '<span class="pin">지도 ↗</span></a></b>';
   }
 
+  // ── 일반공급의 가점제 · 추첨제 ──────────────────────────
+  //
+  // 청약홈은 이 값을 주지 않는다. 주택형 API 필드에도, 공고 상세 페이지에도 없다.
+  // (상세 페이지는 "자세한 내용은 사업주체 홈페이지를 참고"라고만 적혀 있고,
+  //  공고문 PDF 는 LH·SH·건설사 사이트로 흩어져 있어 한 곳에서 긁을 수 없다.)
+  // 그래서 「주택공급에 관한 규칙」 제28조의 법정 비율로 계산한다.
+  //
+  // ⚠️ 이 표는 법령 원문과 대조하지 못했다. law.go.kr 본문은 JS 로 열리고,
+  //    법제처 OPEN API 는 호출 IP 를 사전 등록해야 한다(둘 다 확인함).
+  //    개정이 잦은 조문이니 확인되면 이 표만 고치면 된다.
+  //    바꿀 때 matching_engine.dart 와 docs 도 함께 본다.
+  //
+  // 각 항목: [전용면적 상한(㎡), 가점제 최소%, 가점제 최대%]
+  // 최소와 최대가 같으면 확정값, 다르면 범위로 보여 준다.
+  //   · 규제지역 85㎡ 초과 — 투기과열지구 80%, 조정대상지역 50% 로 갈리는데
+  //     청약홈이 두 지역을 같은 값으로 줘서 구분되지 않는다. 그래서 범위다.
+  //   · 비규제지역 85㎡ 이하 — 지방자치단체가 0~40% 에서 정한다(통상 40%).
+  var GAJEOM_RATIO = {
+    "규제지역": [[60, 40, 40], [85, 70, 70], [Infinity, 50, 80]],
+    "비규제":   [[85, 0, 40], [Infinity, 0, 0]]
+  };
+
+  // 규제지역 판정은 청약홈이 준 값을 그대로 쓴다. 지역을 코드에 박아 두면
+  // 지정이 바뀔 때 따라가지 못한다. (현재 응답 기준 서울 전역 + 의왕·성남 등)
+  function regulationZone(n) {
+    return n.isSpeculationArea ? "규제지역" : "비규제";
+  }
+
+  function gajeomRange(zone, area) {
+    var rows = GAJEOM_RATIO[zone];
+    for (var i = 0; i < rows.length; i++) {
+      if (area <= rows[i][0]) return { min: rows[i][1], max: rows[i][2] };
+    }
+    return { min: 0, max: 0 };
+  }
+
+  /// 세대수 칸. 확정이면 "12 (70%)", 범위면 "9~14 (50~80%)".
+  function mixCell(gen, lowPct, highPct) {
+    var low = Math.round(gen * lowPct / 100);
+    var high = Math.round(gen * highPct / 100);
+    // 한쪽 끝이 0이면 '0~35' 보다 '≤35' 가 읽기 쉽다
+    var count, pct;
+    if (low === high) {
+      count = String(low); pct = lowPct + '%';
+    } else if (lowPct === 0) {
+      count = '≤ ' + high; pct = '≤' + highPct + '%';
+    } else if (highPct === 100) {
+      count = '≥ ' + low; pct = '≥' + lowPct + '%';
+    } else {
+      count = low + '~' + high; pct = lowPct + '~' + highPct + '%';
+    }
+    return '<td class="num est"><b>' + count + '</b> <span class="pct">' + pct + '</span></td>';
+  }
+
+  function supplyMixHtml(n) {
+    // 무순위는 순위도 가점도 없다. 전원 추첨이다.
+    if (n.type === "REMNANT") {
+      return '<h4>일반공급 — 가점제 · 추첨제</h4>' +
+        '<div class="kv"><span>공급 방식</span>' +
+        '<b>추첨 100% — 무순위(줍줍)는 가점제가 없습니다</b></div>';
+    }
+    // 국민주택(공공분양)은 가점제·추첨제가 아니라 순차제로 공급한다.
+    if (n.isNationalHousing) {
+      return '<h4>일반공급 — 가점제 · 추첨제</h4>' +
+        '<div class="kv"><span>공급 방식</span>' +
+        '<b>순차제 — 국민주택은 저축총액·납입횟수 순으로 뽑습니다</b></div>' +
+        '<p class="mix-note">가점제·추첨제는 민영주택에만 적용됩니다. ' +
+        '공공분양의 순위·배점은 모집공고문을 확인하세요.</p>';
+    }
+
+    var zone = regulationZone(n);
+    var units = (n.units || []).filter(function (u) { return u.area; });
+    if (!units.length) {
+      return '<h4>일반공급 — 가점제 · 추첨제</h4>' +
+        '<div class="kv"><span>적용 기준</span><b>' + zone + '</b></div>' +
+        '<p class="mix-note">주택형 정보가 없어 세대수를 나눌 수 없습니다.</p>';
+    }
+
+    var hasRange = false;
+    var rows = units.map(function (u) {
+      var r = gajeomRange(zone, u.area);
+      if (r.min !== r.max) hasRange = true;
+      var gen = u.gen || 0;
+      return '<tr' + (r.min !== r.max ? ' class="loose"' : '') + '>' +
+        '<td>' + esc(u.ty || '-') + '</td>' +
+        '<td class="num">' + u.area.toFixed(2) + '</td>' +
+        '<td class="num">' + gen + '</td>' +
+        mixCell(gen, r.min, r.max) +
+        mixCell(gen, 100 - r.max, 100 - r.min) +
+        '</tr>';
+    }).join('');
+
+    var why = '';
+    if (hasRange && zone === "규제지역") {
+      why = ' 규제지역 85㎡ 초과는 투기과열지구 80%·조정대상지역 50%로 갈리는데, ' +
+            '청약홈이 두 지역을 같은 값으로 주어 구분되지 않아 범위로 적었습니다.';
+    } else if (hasRange) {
+      why = ' 비규제지역 85㎡ 이하의 가점제 비율은 지방자치단체가 0~40%에서 정합니다(통상 40%).';
+    }
+
+    return '<h4>일반공급 — 가점제 · 추첨제</h4>' +
+      '<div class="kv"><span>적용 기준</span><b>' + zone +
+        ' · 「주택공급에 관한 규칙」 제28조</b></div>' +
+      '<div class="tbl-scroll"><table class="units">' +
+        '<thead><tr><th>주택형</th><th style="text-align:right">전용㎡</th>' +
+        '<th style="text-align:right">일반공급</th>' +
+        '<th style="text-align:right">가점제</th>' +
+        '<th style="text-align:right">추첨제</th></tr></thead>' +
+        '<tbody>' + rows + '</tbody>' +
+      '</table></div>' +
+      '<p class="mix-note">법정 비율로 계산한 값입니다. 실제 세대수는 모집공고문 기준입니다.' +
+      why +
+      ' 특별공급이 미달하면 잔여분이 일반공급으로 넘어와 세대수가 늘어날 수 있습니다.</p>';
+  }
+
   function noticeSummaryHtml(n) {
     var rows = (n.units || []).map(function (u) {
       var sp = Object.keys(u.sp || {}).map(function (k) {
@@ -3020,6 +3356,8 @@
         '<tbody>' + (rows || '<tr><td colspan="5">공개된 주택형 정보가 없습니다.</td></tr>') + '</tbody>' +
       '</table></div>' +
 
+      supplyMixHtml(n) +
+
       '<h4>근처 시세 · 아파트 매매 실거래</h4>' + tradesHtml(n) +
 
       (n.url ? '<a class="pblanc" href="' + esc(n.url) + '" target="_blank" rel="noopener">' +
@@ -3028,6 +3366,223 @@
       'API 로 제공되지 않습니다. 위 공고문에서 확인하세요.</p>' +
     '</div>';
   }
+
+  // ── 지도 (화면설계서 06) ────────────────────────────────
+  //
+  // 카카오맵 JavaScript SDK 를 쓴다. JS 키는 도메인으로 제한되는 공개용 키라
+  // 페이지에 그대로 둔다 — 등록된 도메인 밖에서는 어차피 동작하지 않는다.
+  // 다만 도메인이 등록돼 있지 않으면 지도가 조용히 비어 버리므로,
+  // 실패를 감지해서 무엇을 등록해야 하는지 화면에 적어 준다.
+  var KAKAO_JS_KEY = "8f5adbaf8384edb299b5e1a6abbc39f4";
+
+  var map = null;
+  var mapMarkers = [];      // 공고 마커
+  var tradeMarkers = [];    // 근처 시세 마커
+  var mapType = "";         // "" = 전체
+  var showTrades = true;
+  var lastResults = [];     // render() 가 채운다 — 판정 색을 마커에 쓰기 위해
+
+  function mapFail(title, detail) {
+    var box = $("mapFallback");
+    box.innerHTML = '<h4>' + title + '</h4><p>' + detail + '</p>';
+    box.hidden = false;
+  }
+
+  function loadKakaoSdk() {
+    var el = document.createElement("script");
+    el.src = "https://dapi.kakao.com/v2/maps/sdk.js?autoload=false&appkey=" + KAKAO_JS_KEY;
+    el.onload = function () {
+      if (!window.kakao || !kakao.maps) {
+        mapFail("지도를 불러오지 못했습니다",
+          "카카오 개발자 콘솔에서 이 페이지 주소를 등록해야 합니다. " +
+          "<b>앱 → 플랫폼 → Web → 사이트 도메인</b>에 " +
+          "<code>" + location.origin + "</code> 을 추가하세요.");
+        return;
+      }
+      kakao.maps.load(function () {
+        try { setupMap(); }
+        catch (e) { mapFail("지도를 그리지 못했습니다", esc(String(e && e.message || e))); }
+      });
+    };
+    el.onerror = function () {
+      mapFail("지도 SDK 를 불러오지 못했습니다",
+        "네트워크가 <code>dapi.kakao.com</code> 을 막고 있을 수 있습니다. " +
+        "회사망이라면 다른 망에서 다시 열어 보세요. " +
+        "공고의 <b>공급 위치</b>를 누르면 지도 없이도 카카오맵에서 위치를 볼 수 있습니다.");
+    };
+    document.head.appendChild(el);
+  }
+
+  function setupMap() {
+    var located = NOTICES.filter(function (n) { return n.lat && n.lng; });
+    if (!located.length) {
+      mapFail("지도에 표시할 좌표가 없습니다",
+        "수집 단계에서 공고 주소를 좌표로 바꾸지 못했습니다.");
+      return;
+    }
+
+    map = new kakao.maps.Map($("map"), {
+      center: new kakao.maps.LatLng(located[0].lat, located[0].lng),
+      level: 9
+    });
+    map.addControl(new kakao.maps.ZoomControl(), kakao.maps.ControlPosition.RIGHT);
+
+    // 빈 곳을 누르면 요약 카드를 닫는다
+    kakao.maps.event.addListener(map, "click", function () { clearPick(); });
+
+    buildTradeMarkers();
+    refreshMapMarkers();
+  }
+
+  /// 근처 시세 — 회색 점. 공고와 구분되게 모양도 다르게 둔다.
+  function buildTradeMarkers() {
+    Object.keys(TRADES).forEach(function (region) {
+      TRADES[region].forEach(function (t) {
+        if (!t.lat || !t.lng) return;
+        var el = document.createElement("div");
+        el.className = "mk-trade";
+        el.textContent = manwon(t.amount);
+        el.addEventListener("click", function (e) {
+          e.stopPropagation();
+          pickTrade(t, region, el);
+        });
+        var overlay = new kakao.maps.CustomOverlay({
+          position: new kakao.maps.LatLng(t.lat, t.lng),
+          content: el,
+          zIndex: 1
+        });
+        tradeMarkers.push({ overlay: overlay, el: el });
+      });
+    });
+  }
+
+  /// 공고 마커는 판정 결과에 따라 색이 바뀌므로 조건이 바뀔 때마다 다시 그린다.
+  function refreshMapMarkers() {
+    if (!map) return;
+
+    mapMarkers.forEach(function (m) { m.overlay.setMap(null); });
+    mapMarkers = [];
+
+    var bounds = new kakao.maps.LatLngBounds();
+    var shown = 0;
+
+    lastResults.forEach(function (r) {
+      var n = r.n;
+      if (!n.lat || !n.lng) return;
+      if (mapType && n.type !== mapType) return;
+
+      var el = document.createElement("div");
+      el.className = "mk " + (r.ev.eligible ? "pass" : typeClass(n.type));
+      el.textContent = n.name.length > 12 ? n.name.slice(0, 12) + "…" : n.name;
+      el.addEventListener("click", function (e) {
+        e.stopPropagation();
+        pickNotice(r, el);
+      });
+
+      var overlay = new kakao.maps.CustomOverlay({
+        position: new kakao.maps.LatLng(n.lat, n.lng),
+        content: el,
+        zIndex: r.ev.eligible ? 3 : 2
+      });
+      overlay.setMap(map);
+      mapMarkers.push({ overlay: overlay, el: el, id: n._id });
+      bounds.extend(new kakao.maps.LatLng(n.lat, n.lng));
+      shown++;
+    });
+
+    tradeMarkers.forEach(function (m) { m.overlay.setMap(showTrades ? map : null); });
+
+    if (shown) map.setBounds(bounds, 40, 40, 40, 40);
+    clearPick();
+  }
+
+  function clearPick() {
+    $("mapPick").hidden = true;
+    mapMarkers.forEach(function (m) { m.el.classList.remove("on"); });
+    tradeMarkers.forEach(function (m) { m.el.classList.remove("on"); });
+  }
+
+  /// 마커를 누르면 하단에 요약 카드. 카드를 누르면 그 공고의 상세로 간다.
+  function pickNotice(r, el) {
+    clearPick();
+    el.classList.add("on");
+
+    var n = r.n, ev = r.ev;
+    var box = $("mapPick");
+    box.className = "map-pick tappable";
+    box.innerHTML =
+      '<div class="pick-top">' +
+        '<span class="pick-tags">' +
+          '<span class="tag ' + typeClass(n.type) + '">' + TYPE_LABEL[n.type] + '</span>' +
+          '<span class="badge ' + (ev.eligible ? "pass" : "fail") + '">' +
+            (ev.eligible ? "신청 가능" : "요건 미달") + '</span>' +
+        '</span>' +
+        '<span class="pick-go">' + esc(scheduleLabel(n, today())) + '</span>' +
+      '</div>' +
+      '<div class="pick-name">' + esc(n.name) + '</div>' +
+      '<div class="pick-sub">' +
+        esc(n.sido.replace("특별시", "").replace("광역시", "")) + ' ' + esc(n.sigungu) +
+        ' · 분양가 ' + priceRange(n) +
+        '<span class="pick-go" style="float:right">자세히 보기 →</span>' +
+      '</div>';
+    box.hidden = false;
+    box.onclick = function () { goToNotice(n._id); };
+  }
+
+  /// 근처 시세 마커는 상세가 없다. 실거래 내용만 보여 준다.
+  function pickTrade(t, region, el) {
+    clearPick();
+    el.classList.add("on");
+
+    var box = $("mapPick");
+    box.className = "map-pick";
+    box.onclick = null;
+    box.innerHTML =
+      '<div class="pick-top">' +
+        '<span class="pick-tags">' +
+          '<span class="tag" style="color:var(--note)">근처 시세</span>' +
+          '<span class="pick-sub">' + esc(region) + ' · ' + esc(t.dong) + '</span>' +
+        '</span>' +
+        '<button type="button" class="pick-close" aria-label="닫기">×</button>' +
+      '</div>' +
+      '<div class="pick-name">' + esc(t.apt) + '</div>' +
+      '<div class="pick-sub">' +
+        '전용 ' + t.area + '㎡ · <b>' + manwon(t.amount) + '</b>' +
+        ' · ' + esc(t.ym) + ' 거래' + (t.year ? ' · ' + t.year + '년 준공' : '') +
+      '</div>';
+    box.hidden = false;
+    box.querySelector(".pick-close").onclick = function (e) {
+      e.stopPropagation();
+      clearPick();
+    };
+  }
+
+  /// 지도에서 고른 공고를 목록에서 펼치고 그리로 스크롤한다.
+  function goToNotice(id) {
+    var card = document.getElementById("notice-" + id);
+    if (!card) return;
+    card.open = true;
+    card.classList.add("hit");
+    if (card.scrollIntoView) card.scrollIntoView({ behavior: "smooth", block: "start" });
+    setTimeout(function () { card.classList.remove("hit"); }, 2400);
+  }
+
+  document.querySelectorAll("[data-mtype]").forEach(function (chip) {
+    chip.addEventListener("click", function () {
+      document.querySelectorAll("[data-mtype]").forEach(function (c) {
+        c.classList.remove("on");
+      });
+      chip.classList.add("on");
+      mapType = chip.getAttribute("data-mtype");
+      refreshMapMarkers();
+    });
+  });
+
+  $("chipTrade").addEventListener("click", function () {
+    showTrades = !showTrades;
+    $("chipTrade").classList.toggle("on", showTrades);
+    tradeMarkers.forEach(function (m) { m.overlay.setMap(showTrades && map ? map : null); });
+  });
 
   function render() {
     var p = readForm();
@@ -3064,6 +3619,9 @@
     $("cards").innerHTML = results.length
       ? results.map(function (r) { return cardHtml(r.n, r.ev, now); }).join("")
       : '<div class="panel empty">표시할 공고가 없습니다.</div>';
+
+    lastResults = results;
+    refreshMapMarkers();
 
     save();
   }
@@ -3164,6 +3722,7 @@
   // ── 초기화 ─────────────────────────────────────────────
   applyToForm(load() || DEFAULTS);
   render();
+  loadKakaoSdk();
 
   document.querySelector(".col-form").addEventListener("input", render);
   document.querySelector(".col-form").addEventListener("change", render);

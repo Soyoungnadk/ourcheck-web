@@ -239,6 +239,35 @@ def geocode(address: str, name: str, kakao_key: str) -> dict | None:
     return None
 
 
+def geocode_apt(sido: str, sigungu: str, dong: str, apt: str,
+                kakao_key: str) -> tuple[float, float] | None:
+    """실거래 아파트 단지의 좌표. 장소 검색만 쓴다.
+
+    주소 검색을 쓰면 동(洞) 중심 좌표가 돌아와 단지들이 한 점에 겹친다.
+    지도에서 시세를 비교하려면 단지가 각자 제자리에 있어야 한다.
+    """
+    if not kakao_key or not apt:
+        return None
+
+    headers = {"Authorization": f"KakaoAK {kakao_key}"}
+    for query in (f"{sigungu} {dong} {apt}", f"{sido} {sigungu} {apt}", f"{dong} {apt}"):
+        try:
+            body = json.loads(
+                fetch(KAKAO_KEYWORD_URL, {"query": query.strip(), "size": 1},
+                      headers=headers).decode("utf-8")
+            )
+        except Exception:
+            continue
+        documents = body.get("documents") or []
+        if not documents:
+            continue
+        try:
+            return float(documents[0]["y"]), float(documents[0]["x"])
+        except (KeyError, TypeError, ValueError):
+            continue
+    return None
+
+
 def collect_notices(key: str, today: date, kakao_key: str = "") -> list[dict]:
     """접수가 끝나지 않은 공고 + 주택형별 분양가."""
     since = (today - timedelta(days=90)).isoformat()
@@ -348,7 +377,8 @@ def collect_notices(key: str, today: date, kakao_key: str = "") -> list[dict]:
 
 
 # ---------------------------------------------------------------------------
-def collect_trades(key: str, regions: set[tuple[str, str]], today: date) -> dict:
+def collect_trades(key: str, regions: set[tuple[str, str]], today: date,
+                   kakao_key: str = "") -> dict:
     """공고가 있는 시·군·구의 최근 아파트 매매 실거래 (주변 시세)."""
     trades: dict[str, list[dict]] = {}
 
@@ -392,6 +422,10 @@ def collect_trades(key: str, regions: set[tuple[str, str]], today: date) -> dict
             counts[row["apt"]] = counts.get(row["apt"], 0) + 1
             by_apt[row["apt"]] = row
         picked = sorted(by_apt.values(), key=lambda r: -counts[r["apt"]])[:5]
+        # 지도에 시세를 함께 찍으려면 단지 좌표가 있어야 한다
+        for row in picked:
+            spot = geocode_apt(sido, sigungu, row["dong"], row["apt"], kakao_key)
+            row["lat"], row["lng"] = spot if spot else (None, None)
         if picked:
             trades[f"{sido} {sigungu}"] = picked
 
@@ -431,8 +465,10 @@ def main() -> int:
 
     regions = {(n["sido"], n["sigungu"]) for n in notices if n["sido"] and n["sigungu"]}
     print(f"[2/3] 주변 시세 수집 ({len(regions)}개 시·군·구)")
-    trades = collect_trades(key, regions, today)
-    print(f"      시세 확보 {len(trades)}개 지역")
+    trades = collect_trades(key, regions, today, kakao_key)
+    rows = [row for group in trades.values() for row in group]
+    print(f"      시세 확보 {len(trades)}개 지역 · 단지 {len(rows)}곳"
+          f" (좌표 {sum(1 for r in rows if r['lat'])}곳)")
 
     print(f"[3/3] {args.out} 갱신")
     path = __import__("pathlib").Path(args.out)
