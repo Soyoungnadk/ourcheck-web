@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="내 자산·거주지·무주택 여부·청약통장 조건으로 청약 공고의 신청 가능 여부와 근거를 확인하는 규칙 시뮬레이터.">
+<meta name="description" content="내 조건으로 접수 중인 청약 공고를 걸러 신청 가능 여부와 근거를 보여 줍니다. 매일 아침 6시 갱신.">
 <meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="#eef0f5" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#101319" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#eef0f4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f141b" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8F%A0%3C/text%3E%3C/svg%3E">
 
-<meta property="og:title" content="ourcheck 판정 시뮬레이터">
-<meta property="og:description" content="내 자산·거주지·무주택 여부·청약통장 조건으로 청약 공고의 신청 가능 여부와 근거를 확인하는 규칙 시뮬레이터.">
+<meta property="og:title" content="오늘의 청약">
+<meta property="og:description" content="내 조건으로 접수 중인 청약 공고를 걸러 신청 가능 여부와 근거를 보여 줍니다. 매일 아침 6시 갱신.">
 <meta property="og:type" content="website">
 
 <title>오늘의 청약</title>
@@ -19,468 +19,393 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hahmlet:wght@500;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
 
 <style>
-  /* ── 토큰: 라이트가 기본 ───────────────────────────────── */
+  /* ── 토큰: 화면설계서(docs/screens.html)와 같은 값 ─────────── */
   :root {
-    --paper:      #eef0f5;
+    --paper:      #eef0f4;
     --surface:    #ffffff;
     --surface-2:  #f6f7fa;
-    --line:       #d9dde6;
-    --line-soft:  #e7eaf1;
-    --ink:        #141922;
-    --ink-2:      #4b5364;
-    --ink-3:      #7b8496;
+    --line:       #e2e5ec;
+    --line-soft:  #eef0f4;
+    --ink:        #16202e;
+    --ink-2:      #5c6675;
+    --ink-3:      #8a93a2;
 
-    --accent:     #2f3e8c;
-    --accent-2:   #4a5cb8;
-    --accent-wash:#e7eaf7;
+    --primary:    #1b3a6b;
+    --primary-2:  #2e5a9e;
+    --primary-wash:#e7ecf5;
+    --accent:     #f2a93b;
 
-    --pass:       #1f6f4a;
-    --pass-wash:  #e2f0e8;
-    --fail:       #b23a2e;
-    --fail-wash:  #f8e6e3;
-    --note:       #6b7385;
-    --note-wash:  #eceef3;
+    --pass:       #1e8e5a;
+    --pass-wash:  #e4f2ea;
+    --fail:       #b3261e;
+    --fail-wash:  #f8e7e5;
+    --pending:    #6b7280;
+    --note:       #6b7280;
+    --note-wash:  #eceef2;
 
-    --apt:        #2f3e8c;
-    --oft:        #6b4a9e;
-    --rem:        #a8631a;
+    --apt:        #2e5a9e;
+    --oft:        #7c5bc7;
+    --rem:        #d97706;
 
-    --shadow: 0 1px 2px rgba(20, 25, 34, .05), 0 8px 24px -16px rgba(20, 25, 34, .3);
+    --shadow: 0 1px 2px rgba(22,32,46,.06), 0 10px 28px -20px rgba(22,32,46,.5);
 
     --sans: "IBM Plex Sans KR", system-ui, -apple-system, "Malgun Gothic", sans-serif;
     --serif: "Hahmlet", "IBM Plex Sans KR", Georgia, serif;
-    --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+    --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+
+    --bar: 56px;    /* 탭바 높이 */
   }
 
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --paper:      #101319;
-      --surface:    #191d26;
-      --surface-2:  #1f242f;
-      --line:       #2e3440;
-      --line-soft:  #262b36;
-      --ink:        #e6e9f0;
-      --ink-2:      #a8b0c0;
-      --ink-3:      #78808f;
-
-      --accent:     #93a4ef;
-      --accent-2:   #b0bcf5;
-      --accent-wash:#232941;
-
-      --pass:       #5ec18c;
-      --pass-wash:  #17301f;
-      --fail:       #f08472;
-      --fail-wash:  #351d1a;
-      --note:       #8a93a5;
-      --note-wash:  #242833;
-
-      --apt:        #93a4ef;
-      --oft:        #b795e8;
-      --rem:        #e0a355;
-
-      --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 10px 30px -18px rgba(0, 0, 0, .9);
+      --paper:      #0f141b;
+      --surface:    #171d26;
+      --surface-2:  #1d242f;
+      --line:       #2a323d;
+      --line-soft:  #222933;
+      --ink:        #e6eaf0;
+      --ink-2:      #a3adbb;
+      --ink-3:      #78828f;
+      --primary:    #7ba3dd;
+      --primary-2:  #9dbcea;
+      --primary-wash:#1a2740;
+      --pass:       #4cbb87;
+      --pass-wash:  #14301f;
+      --fail:       #e2796f;
+      --fail-wash:  #33191a;
+      --note-wash:  #232a34;
+      --apt:        #6f9ede;
+      --oft:        #a98ae0;
+      --rem:        #e0a054;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 28px -20px rgba(0,0,0,.8);
     }
   }
-
   :root[data-theme="dark"] {
-    --paper:      #101319;
-    --surface:    #191d26;
-    --surface-2:  #1f242f;
-    --line:       #2e3440;
-    --line-soft:  #262b36;
-    --ink:        #e6e9f0;
-    --ink-2:      #a8b0c0;
-    --ink-3:      #78808f;
-
-    --accent:     #93a4ef;
-    --accent-2:   #b0bcf5;
-    --accent-wash:#232941;
-
-    --pass:       #5ec18c;
-    --pass-wash:  #17301f;
-    --fail:       #f08472;
-    --fail-wash:  #351d1a;
-    --note:       #8a93a5;
-    --note-wash:  #242833;
-
-    --apt:        #93a4ef;
-    --oft:        #b795e8;
-    --rem:        #e0a355;
-
-    --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 10px 30px -18px rgba(0, 0, 0, .9);
+    --paper:      #0f141b;
+    --surface:    #171d26;
+    --surface-2:  #1d242f;
+    --line:       #2a323d;
+    --line-soft:  #222933;
+    --ink:        #e6eaf0;
+    --ink-2:      #a3adbb;
+    --ink-3:      #78828f;
+    --primary:    #7ba3dd;
+    --primary-2:  #9dbcea;
+    --primary-wash:#1a2740;
+    --pass:       #4cbb87;
+    --pass-wash:  #14301f;
+    --fail:       #e2796f;
+    --fail-wash:  #33191a;
+    --note-wash:  #232a34;
+    --apt:        #6f9ede;
+    --oft:        #a98ae0;
+    --rem:        #e0a054;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 28px -20px rgba(0,0,0,.8);
   }
 
   * { box-sizing: border-box; }
-
+  html, body { margin: 0; padding: 0; }
   body {
-    margin: 0;
+    background: var(--paper); color: var(--ink);
+    font-family: var(--sans); font-size: 14px; line-height: 1.55;
+    -webkit-text-size-adjust: 100%;
+  }
+  button { font: inherit; color: inherit; }
+
+  /* ── 앱 껍데기 ─────────────────────────────────────────── */
+  .app {
+    max-width: 560px; margin: 0 auto; min-height: 100dvh;
     background: var(--paper);
-    color: var(--ink);
-    font-family: var(--sans);
-    font-size: 15px;
-    line-height: 1.6;
-    -webkit-font-smoothing: antialiased;
+    display: flex; flex-direction: column;
+    box-shadow: 0 0 0 1px var(--line);
+  }
+  @media (min-width: 600px) { .app { min-height: 100dvh; } }
+
+  .appbar {
+    position: sticky; top: 0; z-index: 20;
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 16px; min-height: 52px;
+    background: var(--surface); border-bottom: 1px solid var(--line);
+  }
+  .appbar h1 {
+    margin: 0; font-family: var(--serif); font-size: 17px; font-weight: 700;
+    letter-spacing: -.01em; flex: 1;
+  }
+  .appbar .back, .appbar .act {
+    border: 0; background: none; cursor: pointer; padding: 4px 6px;
+    color: var(--ink-2); font-size: 17px; line-height: 1; border-radius: 4px;
+  }
+  .appbar .back:hover, .appbar .act:hover { background: var(--surface-2); color: var(--ink); }
+  .appbar .act.small {
+    font-family: var(--mono); font-size: 11px; font-weight: 700;
+    color: var(--primary); letter-spacing: .02em;
   }
 
-  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 20px 72px; }
+  main { flex: 1; padding: 14px 14px calc(var(--bar) + 22px); }
+  .screen[hidden] { display: none !important; }
 
-  /* ── 머리말 ─────────────────────────────────────────── */
-  header {
-    border-bottom: 1px solid var(--line);
-    background: var(--surface);
+  /* ── 탭바 ──────────────────────────────────────────────── */
+  .tabbar {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 30;
+    max-width: 560px; margin: 0 auto; height: var(--bar);
+    display: grid; grid-template-columns: repeat(5, 1fr);
+    background: var(--surface); border-top: 1px solid var(--line);
+    padding-bottom: env(safe-area-inset-bottom);
   }
-  .head-in {
-    max-width: 1180px; margin: 0 auto; padding: 26px 20px 22px;
-    display: flex; align-items: flex-end; justify-content: space-between;
-    gap: 20px; flex-wrap: wrap;
+  .tabbar button {
+    border: 0; background: none; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 3px; font-size: 10.5px; color: var(--ink-3); font-weight: 600;
   }
-  h1 {
-    font-family: var(--serif);
-    font-weight: 700;
-    font-size: clamp(24px, 3.4vw, 32px);
-    letter-spacing: -.02em;
-    margin: 0 0 6px;
-    text-wrap: balance;
-  }
-  .sub { color: var(--ink-2); font-size: 14px; margin: 0; max-width: 62ch; }
-  .stamp {
-    font-family: var(--mono); font-size: 11px; font-weight: 600;
-    letter-spacing: .1em; text-transform: uppercase;
-    color: var(--accent);
-    border: 1px solid var(--accent); border-radius: 2px;
-    padding: 5px 9px; white-space: nowrap;
-  }
+  .tabbar button .ico { font-size: 16px; line-height: 1; }
+  .tabbar button.on { color: var(--primary); }
 
-  /* ── 레이아웃 ───────────────────────────────────────── */
-  .grid {
-    display: grid; grid-template-columns: 372px minmax(0, 1fr);
-    gap: 28px; align-items: start; padding-top: 28px;
-  }
-  @media (max-width: 940px) { .grid { grid-template-columns: 1fr; } }
-
-  .panel {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: 4px;
-    box-shadow: var(--shadow);
-  }
-  .col-form { position: sticky; top: 20px; }
-  @media (max-width: 940px) { .col-form { position: static; } }
-
-  .panel-head {
-    padding: 14px 18px; border-bottom: 1px solid var(--line-soft);
-    display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  }
-  .panel-title {
-    font-size: 12px; font-weight: 700; letter-spacing: .12em;
-    text-transform: uppercase; color: var(--ink-3); margin: 0;
-    font-family: var(--mono);
-  }
-  .panel-body { padding: 18px; }
-
-  /* ── 폼 ─────────────────────────────────────────────── */
-  fieldset { border: 0; margin: 0 0 22px; padding: 0; }
-  fieldset:last-of-type { margin-bottom: 0; }
-  legend {
-    font-size: 13px; font-weight: 700; color: var(--ink);
-    padding: 0 0 10px; margin: 0; width: 100%;
-    border-bottom: 1px solid var(--line-soft);
-  }
-  .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
-  .field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
-  .field.wide { grid-column: 1 / -1; }
-  label.lbl {
-    font-size: 12px; color: var(--ink-2); font-weight: 500;
-  }
-  input[type="number"], input[type="date"], select {
-    width: 100%; padding: 8px 10px;
-    background: var(--surface-2); color: var(--ink);
-    border: 1px solid var(--line); border-radius: 3px;
-    font-family: var(--sans); font-size: 14px;
-  }
-  /* iOS 는 16px 미만 입력에 초점이 가면 화면을 확대해 버린다 */
-  @media (max-width: 940px) {
-    input[type="number"], input[type="date"], select { font-size: 16px; }
-  }
-  input[type="number"] { font-family: var(--mono); font-variant-numeric: tabular-nums; }
-  input:focus-visible, select:focus-visible, button:focus-visible, summary:focus-visible {
-    outline: 2px solid var(--accent); outline-offset: 2px;
-  }
-  .unit { font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
-
-  .checks { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-  .chk {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 6px 10px; border: 1px solid var(--line); border-radius: 3px;
-    background: var(--surface-2); font-size: 13px; cursor: pointer;
-    user-select: none;
-  }
-  .chk input { accent-color: var(--accent); margin: 0; }
-  .chk:has(input:checked) {
-    border-color: var(--accent); background: var(--accent-wash); color: var(--accent);
-    font-weight: 600;
-  }
-
-  .budget-strip {
-    margin-top: 12px; padding: 12px 14px;
-    background: var(--accent-wash); border-radius: 3px;
-    display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
-  }
-  .budget-strip .k { font-size: 12px; color: var(--accent); font-weight: 600; }
-  .budget-strip .v {
-    font-family: var(--serif); font-weight: 700; font-size: 20px;
-    color: var(--accent); font-variant-numeric: tabular-nums;
-  }
-
-  /* ── 요약 ───────────────────────────────────────────── */
-  .summary {
-    display: grid; grid-template-columns: repeat(3, 1fr);
-    border: 1px solid var(--line); border-radius: 4px;
-    background: var(--surface); box-shadow: var(--shadow); overflow: hidden;
-  }
-  .sum-cell { padding: 16px 18px; border-right: 1px solid var(--line-soft); }
-  .sum-cell:last-child { border-right: 0; }
-  .sum-k {
-    font-family: var(--mono); font-size: 11px; letter-spacing: .08em;
-    text-transform: uppercase; color: var(--ink-3); margin: 0 0 4px;
-  }
-  .sum-v {
-    font-family: var(--serif); font-weight: 700; font-size: 26px;
-    line-height: 1.1; font-variant-numeric: tabular-nums;
-  }
-  .sum-v.pass { color: var(--pass); }
-  .sum-v.fail { color: var(--fail); }
-  @media (max-width: 560px) {
-    .summary { grid-template-columns: 1fr; }
-    .sum-cell { border-right: 0; border-bottom: 1px solid var(--line-soft); }
-  }
-
-  /* ── 진단 카드 (왜 안 되는지) ─────────────────────────── */
-  .diag {
-    margin-top: 20px; padding: 18px;
+  /* ── 공통 조각 ─────────────────────────────────────────── */
+  .card {
     background: var(--surface); border: 1px solid var(--line);
-    border-left: 3px solid var(--fail); border-radius: 4px;
-    box-shadow: var(--shadow);
+    border-radius: 10px; padding: 13px 14px; margin-bottom: 10px;
   }
-  .diag.ok { border-left-color: var(--pass); }
-  .diag h3 {
-    margin: 0 0 10px; font-family: var(--serif); font-size: 16px; font-weight: 700;
-  }
-  .diag .why { display: flex; flex-direction: column; gap: 8px; }
-  .why-row {
-    display: grid; grid-template-columns: 92px 1fr auto; gap: 10px;
-    align-items: center; font-size: 13px;
-  }
-  .why-row .rname { font-weight: 700; }
-  .bar { height: 6px; background: var(--surface-2); border-radius: 3px; overflow: hidden; }
-  .bar > i { display: block; height: 100%; background: var(--fail); }
-  .why-row .n {
-    font-family: var(--mono); font-size: 12px; color: var(--ink-3);
-    font-variant-numeric: tabular-nums;
-  }
-  .hint {
-    margin-top: 14px; padding: 12px 14px; background: var(--accent-wash);
-    border-radius: 3px; font-size: 13px; line-height: 1.6; color: var(--ink);
-  }
-  .hint b { color: var(--accent); }
+  .card.tap { cursor: pointer; }
+  .card.tap:hover { border-color: var(--primary-2); }
+  .card.lead { border-left: 3px solid var(--primary-2); }
+  .card.lead.no { border-left-color: var(--fail); }
+  .card.flat { background: var(--surface-2); border-color: transparent; }
 
-  /* ── 찾기 버튼 · 저장 표시 ────────────────────────────── */
-  .find-btn {
-    width: 100%; margin-top: 4px; padding: 13px 16px;
-    font-family: var(--sans); font-size: 15px; font-weight: 700;
-    color: #fff; background: var(--accent); border: 0; border-radius: 3px;
-    cursor: pointer;
+  .row { display: flex; align-items: center; gap: 6px; }
+  .row.between { justify-content: space-between; }
+  .sec-title {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin: 16px 2px 8px; gap: 8px;
   }
-  .find-btn:hover { background: var(--accent-2); }
-  .find-btn:active { transform: translateY(1px); }
-  .saved-note {
-    margin-top: 10px; font-size: 11.5px; color: var(--ink-3);
-    display: flex; align-items: center; gap: 5px; justify-content: center;
-  }
-  .saved-note .dot {
-    width: 6px; height: 6px; border-radius: 50%; background: var(--pass);
+  .sec-title b { font-size: 13.5px; }
+  .sec-title .more {
+    border: 0; background: none; cursor: pointer;
+    font-size: 11.5px; color: var(--primary); font-weight: 700;
   }
 
-  /* ── 공고 카드 ──────────────────────────────────────── */
-  .cards { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
-
-  details.card {
-    background: var(--surface); border: 1px solid var(--line);
-    border-radius: 4px; box-shadow: var(--shadow);
-    border-left: 3px solid var(--edge, var(--note));
+  .title-s { font-weight: 700; font-size: 14px; line-height: 1.4; }
+  .sub-s { font-size: 12px; color: var(--ink-3); line-height: 1.5; }
+  .amount {
+    font-family: var(--serif); font-weight: 700; font-size: 22px;
+    letter-spacing: -.02em; font-variant-numeric: tabular-nums;
   }
-  details.card[data-verdict="pass"] { --edge: var(--pass); }
-  details.card[data-verdict="fail"] { --edge: var(--fail); }
 
-  summary {
-    list-style: none; cursor: pointer; padding: 15px 18px;
-    display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: start;
+  .pill {
+    font-size: 10.5px; font-weight: 700; padding: 2px 7px; border-radius: 999px;
+    color: #fff; white-space: nowrap;
   }
-  summary::-webkit-details-marker { display: none; }
-  summary:hover .name { color: var(--accent); }
+  .pill.apt { background: var(--apt); }
+  .pill.oft { background: var(--oft); }
+  .pill.rem { background: var(--rem); }
 
-  .meta-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 7px; }
-  .tag {
-    font-family: var(--mono); font-size: 10.5px; font-weight: 600;
-    letter-spacing: .06em; padding: 3px 7px; border-radius: 2px;
-    border: 1px solid currentColor;
-  }
-  .tag.apt { color: var(--apt); }
-  .tag.officetel { color: var(--oft); }
-  .tag.remnant { color: var(--rem); }
-  .tag.reg { color: var(--fail); }
-  .region { font-size: 12.5px; color: var(--ink-3); }
-
-  .name {
-    font-family: var(--serif); font-weight: 700; font-size: 18px;
-    letter-spacing: -.01em; margin: 0 0 6px; transition: color .12s;
-  }
-  .facts {
-    display: flex; gap: 16px; flex-wrap: wrap;
-    font-size: 13px; color: var(--ink-2);
-    font-variant-numeric: tabular-nums;
-  }
-  .facts b { color: var(--ink); font-weight: 600; }
-
-  .verdict { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
   .badge {
-    font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 2px;
+    font-size: 10.5px; font-weight: 700; padding: 2px 7px; border-radius: 3px;
     white-space: nowrap;
   }
-  .badge.pass { background: var(--pass-wash); color: var(--pass); }
-  .badge.fail { background: var(--fail-wash); color: var(--fail); }
-  .score {
-    font-family: var(--mono); font-size: 11px; color: var(--ink-3);
-    font-variant-numeric: tabular-nums;
-  }
-  .blockers { font-size: 12px; color: var(--fail); font-weight: 600; max-width: 190px; }
+  .badge.ok { background: var(--pass-wash); color: var(--pass); }
+  .badge.no { background: var(--fail-wash); color: var(--fail); }
+  .dday { font-size: 10.5px; font-weight: 700; color: var(--accent); white-space: nowrap; }
 
-  /* 좁은 화면에서는 판정 뱃지를 아래로 내려 이름이 눌리지 않게 한다 */
-  @media (max-width: 560px) {
-    summary { grid-template-columns: 1fr; }
-    .verdict {
-      flex-direction: row; align-items: center; flex-wrap: wrap;
-      justify-content: flex-start; gap: 8px;
-      padding-top: 10px; border-top: 1px dotted var(--line);
-    }
-    .blockers { max-width: none; }
-    .name { font-size: 17px; }
-    .facts { gap: 12px; font-size: 12.5px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 5px; }
+  .chip {
+    font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 999px;
+    border: 1px solid var(--line); background: var(--surface); color: var(--ink-2);
+    cursor: pointer; white-space: nowrap;
+  }
+  .chip.static { cursor: default; background: var(--surface-2); }
+  .chip.on { background: var(--primary); border-color: var(--primary); color: #fff; }
+  .chip.trade.on { background: var(--pending); border-color: var(--pending); }
+
+  .btn-p {
+    display: block; width: 100%; padding: 12px; border: 0; border-radius: 8px;
+    background: var(--primary); color: #fff; font-weight: 700; font-size: 14px;
+    cursor: pointer;
+  }
+  .btn-p:disabled { opacity: .45; cursor: not-allowed; }
+  .btn-s {
+    display: block; width: 100%; padding: 11px; border-radius: 8px;
+    border: 1px solid var(--line); background: var(--surface);
+    font-weight: 600; font-size: 13.5px; cursor: pointer;
+  }
+  .btn-row { display: flex; gap: 8px; margin-top: 14px; }
+  .btn-row > * { flex: 1; }
+
+  .empty {
+    padding: 26px 16px; text-align: center; color: var(--ink-3); font-size: 13px;
+    line-height: 1.7;
+  }
+  .foot-note {
+    margin: 14px 2px 0; font-size: 11.5px; color: var(--ink-3); line-height: 1.65;
   }
 
-  /* 근거 표 */
-  .reasons { border-top: 1px solid var(--line-soft); padding: 4px 18px 16px; }
+  /* ── 폼 ────────────────────────────────────────────────── */
+  .field { margin-bottom: 11px; }
+  .field label {
+    display: block; font-size: 12px; color: var(--ink-2); font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .field input, .field select {
+    width: 100%; padding: 10px 11px; font-size: 14px;
+    border: 1px solid var(--line); border-radius: 7px;
+    background: var(--surface); color: var(--ink);
+  }
+  .field input:focus, .field select:focus {
+    outline: 2px solid var(--primary-2); outline-offset: -1px; border-color: transparent;
+  }
+  .field .unit { float: right; font-weight: 400; color: var(--ink-3); }
+  .field-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .checks { display: flex; flex-wrap: wrap; gap: 8px 14px; margin: 4px 0 12px; }
+  .chk { display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; }
+  .chk input { width: 16px; height: 16px; accent-color: var(--primary); }
+  .group-label {
+    font-size: 12px; font-weight: 700; color: var(--ink-2);
+    margin: 14px 0 6px;
+  }
+  .steps { display: flex; gap: 4px; margin-bottom: 14px; }
+  .steps i {
+    flex: 1; height: 3px; border-radius: 2px; background: var(--line);
+  }
+  .steps i.on { background: var(--primary); }
+  .q {
+    font-family: var(--serif); font-weight: 700; font-size: 17px;
+    margin: 0 0 4px; letter-spacing: -.01em;
+  }
+  .q-sub { font-size: 12.5px; color: var(--ink-3); margin: 0 0 14px; line-height: 1.6; }
+
+  /* ── 판정 근거 ─────────────────────────────────────────── */
   .reason {
-    display: grid; grid-template-columns: 76px 1fr;
-    gap: 12px; padding: 11px 0; border-bottom: 1px dotted var(--line);
-    align-items: start;
+    display: grid; grid-template-columns: 42px 1fr; gap: 9px;
+    padding: 8px 0; border-top: 1px solid var(--line-soft);
   }
-  .reason:last-child { border-bottom: 0; }
+  .reason:first-child { border-top: 0; }
   .rcode {
-    font-family: var(--mono); font-size: 10.5px; font-weight: 600;
-    letter-spacing: .05em; padding-top: 3px;
+    font-family: var(--mono); font-size: 9.5px; font-weight: 700;
+    text-align: center; padding: 3px 0; border-radius: 3px; height: fit-content;
   }
-  .rcode.pass { color: var(--pass); }
-  .rcode.fail { color: var(--fail); }
-  .rcode.note { color: var(--note); }
-  .rlabel { font-size: 13.5px; font-weight: 600; margin: 0 0 2px; }
-  .rdetail { font-size: 13px; color: var(--ink-2); margin: 0; }
+  .rcode.pass { background: var(--pass-wash); color: var(--pass); }
+  .rcode.fail { background: var(--fail-wash); color: var(--fail); }
+  .rcode.note { background: var(--note-wash); color: var(--note); }
+  .rlabel { margin: 0; font-size: 13px; font-weight: 700; }
   .roptional {
-    font-family: var(--mono); font-size: 10px; color: var(--ink-3);
-    margin-left: 6px; font-weight: 500;
+    font-family: var(--mono); font-size: 9.5px; color: var(--ink-3);
+    margin-left: 5px; font-weight: 500;
   }
+  .rdetail { margin: 1px 0 0; font-size: 12px; color: var(--ink-2); line-height: 1.5; }
   .money-line {
-    margin-top: 12px; padding: 10px 12px; background: var(--surface-2);
-    border-radius: 3px; font-size: 13px; color: var(--ink-2);
-    font-variant-numeric: tabular-nums;
+    margin-top: 9px; padding-top: 9px; border-top: 1px solid var(--line-soft);
+    font-size: 12.5px; color: var(--ink-2);
   }
-  .money-line b { color: var(--ink); }
 
-  /* ── 모집공고 요약 ──────────────────────────────────── */
-  .notice-sum {
-    border-top: 1px solid var(--line); margin: 0 18px; padding: 14px 0 18px;
+  /* ── 진단 ──────────────────────────────────────────────── */
+  .diag { border-left: 3px solid var(--accent); }
+  .diag h4 { margin: 0 0 6px; font-size: 13px; }
+  .diag p { margin: 0 0 4px; font-size: 12.5px; color: var(--ink-2); line-height: 1.6; }
+  .bar-row {
+    display: grid; grid-template-columns: 62px 1fr 34px; gap: 8px;
+    align-items: center; font-size: 12px; margin-top: 5px;
   }
-  .notice-sum h4 {
+  .bar { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+  .bar i { display: block; height: 100%; background: var(--fail); }
+  .bar-row .n { font-family: var(--mono); text-align: right; color: var(--ink-3); }
+
+  /* ── 표 ────────────────────────────────────────────────── */
+  .tbl-scroll { overflow-x: auto; }
+  table.units { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  table.units th, table.units td {
+    padding: 6px 8px; border-bottom: 1px solid var(--line-soft); white-space: nowrap;
+  }
+  table.units th { color: var(--ink-3); font-weight: 600; font-size: 11.5px; }
+  table.units .num {
+    font-family: var(--mono); text-align: right; font-variant-numeric: tabular-nums;
+  }
+  table.units tr.sp-row td {
+    font-size: 11.5px; color: var(--ink-3); padding-top: 0; border-bottom: 0;
+    white-space: normal;
+  }
+  table.units .dong { font-size: 11px; color: var(--ink-3); font-weight: 400; }
+  table.units td.est b { font-weight: 700; }
+  table.units td.est .pct { font-size: 11px; color: var(--ink-3); font-weight: 400; }
+
+  h4.sec {
     font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em;
-    text-transform: uppercase; color: var(--ink-3); margin: 16px 0 8px; font-weight: 600;
+    text-transform: uppercase; color: var(--ink-3);
+    margin: 18px 0 8px; font-weight: 600;
   }
-  .notice-sum h4:first-child { margin-top: 0; }
   .kv {
-    display: grid; grid-template-columns: 92px 1fr; gap: 10px;
-    padding: 5px 0; font-size: 13px; align-items: start;
+    display: grid; grid-template-columns: 88px 1fr; gap: 10px;
+    padding: 4px 0; font-size: 13px; align-items: start;
   }
   .kv > span { color: var(--ink-3); }
   .kv > b { font-weight: 600; }
-  /* ── 정책 · 법령 (관보) ─────────────────────────── */
-  .policy-panel { margin-top: 18px; padding: 0; }
-  .policy-head {
-    display: flex; justify-content: space-between; align-items: baseline;
-    gap: 10px; padding: 14px 16px 10px;
+  .flags { display: flex; flex-wrap: wrap; gap: 5px; }
+  .flag {
+    font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 3px;
+    background: var(--fail-wash); color: var(--fail);
   }
-  .policy-head h2 {
-    margin: 0; font-family: var(--serif); font-size: 16px; font-weight: 700;
+  .flag.none { background: var(--note-wash); color: var(--note); font-weight: 500; }
+  a.maplink {
+    color: inherit; text-decoration: none;
+    border-bottom: 1px solid var(--line); padding-bottom: 1px;
   }
-  .policy-head .src {
-    font-family: var(--mono); font-size: 10.5px; color: var(--ink-3);
-    letter-spacing: .03em;
+  a.maplink:hover { border-bottom-color: var(--primary); }
+  a.maplink .pin {
+    font-family: var(--mono); font-size: 10.5px; font-weight: 700;
+    color: var(--primary); margin-left: 7px; white-space: nowrap; border-bottom: 0;
   }
-  .policy-list { list-style: none; margin: 0; padding: 0 16px 14px; }
-  .policy-list li {
-    display: grid; grid-template-columns: 74px 1fr; gap: 10px;
-    padding: 9px 0; border-top: 1px solid var(--line-soft);
+  a.pblanc {
+    display: inline-block; margin-top: 12px; font-size: 12.5px;
+    color: var(--primary); font-weight: 700; text-decoration: none;
   }
-  .policy-list li:first-child { border-top: 0; }
-  .policy-when {
-    font-family: var(--mono); font-size: 11px; color: var(--ink-3);
-    font-variant-numeric: tabular-nums; padding-top: 2px;
-  }
-  .policy-title {
-    margin: 0; font-size: 13.5px; font-weight: 600; color: var(--ink);
-    line-height: 1.5;
-  }
-  .policy-title a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--line); }
-  .policy-title a:hover { border-bottom-color: var(--accent); }
-  .policy-meta {
-    margin: 3px 0 0; font-size: 11.5px; color: var(--ink-3);
-    display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center;
-  }
-  .policy-why {
-    margin: 4px 0 0; font-size: 12px; color: var(--ink-2); line-height: 1.55;
-  }
-  .policy-list li.key .policy-title { color: var(--accent); }
-  .tag.rule {
-    background: var(--accent-wash); color: var(--accent);
-  }
-  .policy-empty {
-    padding: 0 16px 16px; font-size: 12.5px; color: var(--ink-3); line-height: 1.6;
+  .mix-note, .pending-note {
+    margin: 7px 0 0; font-size: 11.5px; color: var(--ink-3); line-height: 1.65;
   }
 
-  /* ── 지도 (화면설계서 06) ───────────────────────── */
-  .map-panel { margin-top: 18px; padding: 0; overflow: hidden; }
-  .map-bar {
-    display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
-    padding: 12px 16px; border-bottom: 1px solid var(--line-soft);
+  /* ── 캘린더 ────────────────────────────────────────────── */
+  .cal-head {
+    display: flex; justify-content: space-between; align-items: center;
+    font-weight: 700; font-size: 14px; margin-bottom: 10px;
   }
-  .chip {
-    font-family: var(--mono); font-size: 11px; font-weight: 600;
-    padding: 4px 10px; border-radius: 999px; cursor: pointer;
-    border: 1px solid var(--line); background: var(--surface); color: var(--ink-2);
-    letter-spacing: .02em;
+  .cal-head button {
+    border: 1px solid var(--line); background: var(--surface); cursor: pointer;
+    width: 30px; height: 30px; border-radius: 7px; color: var(--ink-2);
   }
-  .chip:hover { border-color: var(--accent); }
-  .chip.on { background: var(--accent); border-color: var(--accent); color: #fff; }
-  .chip.trade.on { background: var(--note); border-color: var(--note); }
-  .map-stage { position: relative; }
-  #map { width: 100%; height: 420px; background: var(--surface-2); }
-  @media (max-width: 720px) { #map { height: 320px; } }
+  .grid7 { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+  .grid7 .wd {
+    text-align: center; font-size: 10.5px; color: var(--ink-3); padding-bottom: 4px;
+  }
+  .grid7 .d {
+    aspect-ratio: 1; border: 0; background: none; cursor: pointer;
+    border-radius: 8px; font-size: 12.5px; color: var(--ink);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 2px; padding: 0; font-variant-numeric: tabular-nums;
+  }
+  .grid7 .d.out { color: var(--ink-3); opacity: .45; }
+  .grid7 .d.today { box-shadow: inset 0 0 0 1px var(--primary-2); }
+  .grid7 .d.sel { background: var(--primary); color: #fff; }
+  .grid7 .d .dots { display: flex; gap: 2px; height: 4px; }
+  .grid7 .d .dot { width: 4px; height: 4px; border-radius: 50%; }
+  .grid7 .d.sel .dot { outline: 1px solid rgba(255,255,255,.6); }
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px;
+    font-size: 11px; color: var(--ink-3);
+  }
+  .legend i {
+    display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px;
+  }
 
-  /* 마커 — 색이 곧 판정이다. 적격이면 초록, 아니면 공고 유형 색. */
+  /* ── 지도 ──────────────────────────────────────────────── */
+  .map-bar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 10px; }
+  .map-stage {
+    position: relative; border-radius: 10px; overflow: hidden;
+    border: 1px solid var(--line); background: var(--surface-2);
+  }
+  #map { width: 100%; height: 62vh; min-height: 300px; }
   .mk {
     display: inline-block; transform: translate(-50%, -100%);
     font-size: 11px; font-weight: 700; line-height: 1;
-    padding: 5px 8px; border-radius: 3px; white-space: nowrap;
+    padding: 5px 8px; border-radius: 4px; white-space: nowrap;
     color: #fff; cursor: pointer; border: 1px solid rgba(0,0,0,.15);
-    box-shadow: 0 1px 3px rgba(20,25,34,.35);
+    box-shadow: 0 1px 3px rgba(22,32,46,.35);
   }
   .mk.pass { background: var(--pass); }
   .mk.apt  { background: var(--apt); }
@@ -491,382 +416,415 @@
     display: inline-block; transform: translate(-50%, -50%);
     font-family: var(--mono); font-size: 10px; font-weight: 700;
     padding: 3px 6px; border-radius: 999px; white-space: nowrap; cursor: pointer;
-    background: var(--note); color: #fff; opacity: .82;
+    background: var(--pending); color: #fff; opacity: .82;
     border: 1px solid rgba(255,255,255,.5);
   }
   .mk-trade:hover, .mk-trade.on { opacity: 1; }
-
-  /* 마커를 누르면 뜨는 요약 카드 */
   .map-pick {
-    position: absolute; left: 12px; right: 12px; bottom: 12px; z-index: 5;
-    background: var(--surface); border: 1px solid var(--line); border-radius: 4px;
+    position: absolute; left: 10px; right: 10px; bottom: 10px; z-index: 5;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
     box-shadow: var(--shadow); padding: 11px 13px;
   }
   .map-pick.tappable { cursor: pointer; }
-  .map-pick.tappable:hover { border-color: var(--accent); }
-  .map-pick .pick-top {
-    display: flex; justify-content: space-between; align-items: center; gap: 8px;
-  }
-  .map-pick .pick-tags { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; }
-  .map-pick .pick-name {
-    font-family: var(--serif); font-size: 15px; font-weight: 700;
-    margin: 6px 0 3px; color: var(--ink);
-  }
-  .map-pick .pick-sub { font-size: 12px; color: var(--ink-2); }
-  .map-pick .pick-go {
-    font-family: var(--mono); font-size: 10.5px; font-weight: 700;
-    color: var(--accent); white-space: nowrap;
-  }
+  .map-pick.tappable:hover { border-color: var(--primary-2); }
   .map-pick .pick-close {
     border: 0; background: none; cursor: pointer; padding: 2px 4px;
     color: var(--ink-3); font-size: 15px; line-height: 1;
   }
-  .map-legend {
-    display: flex; flex-wrap: wrap; gap: 12px;
-    padding: 10px 16px; border-top: 1px solid var(--line-soft);
-    font-size: 11.5px; color: var(--ink-3);
-  }
-  .map-legend i {
-    display: inline-block; width: 9px; height: 9px; border-radius: 2px;
-    margin-right: 5px; vertical-align: baseline;
-  }
   .map-fallback {
     position: absolute; inset: 0; z-index: 6; display: flex;
     flex-direction: column; justify-content: center; gap: 8px;
-    padding: 22px; background: var(--surface-2); text-align: left;
+    padding: 20px; background: var(--surface-2); text-align: left; overflow: auto;
   }
-  .map-fallback h4 { margin: 0; font-size: 14px; color: var(--ink); }
-  .map-fallback p { margin: 0; font-size: 12.5px; color: var(--ink-2); line-height: 1.6; }
+  .map-fallback h4 { margin: 0; font-size: 14px; }
+  .map-fallback p { margin: 0; font-size: 12.5px; color: var(--ink-2); line-height: 1.65; }
   .map-fallback code {
     font-family: var(--mono); font-size: 11.5px;
-    background: var(--surface); padding: 1px 5px; border-radius: 2px;
+    background: var(--surface); padding: 1px 5px; border-radius: 3px;
     border: 1px solid var(--line);
   }
-  /* 지도에서 고른 공고를 목록에서 찾기 쉽게 */
-  .card.hit { box-shadow: 0 0 0 2px var(--accent); }
 
-  a.maplink {
-    color: inherit; text-decoration: none;
-    border-bottom: 1px solid var(--line); padding-bottom: 1px;
+  /* ── 정책 ──────────────────────────────────────────────── */
+  .policy-list { list-style: none; margin: 0; padding: 0; }
+  .policy-list li {
+    display: grid; grid-template-columns: 70px 1fr; gap: 10px;
+    padding: 11px 0; border-top: 1px solid var(--line-soft);
   }
-  a.maplink:hover { border-bottom-color: var(--accent); }
-  a.maplink .pin {
-    font-family: var(--mono); font-size: 10.5px; font-weight: 700;
-    color: var(--accent); margin-left: 7px; white-space: nowrap;
-    border-bottom: 0; letter-spacing: .04em;
+  .policy-list li:first-child { border-top: 0; }
+  .policy-when {
+    font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+    font-variant-numeric: tabular-nums; padding-top: 2px;
   }
-  .flags { display: flex; flex-wrap: wrap; gap: 5px; }
-  .flag {
-    font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 2px;
-    background: var(--fail-wash); color: var(--fail);
+  .policy-title { margin: 0; font-size: 13.5px; font-weight: 600; line-height: 1.5; }
+  .policy-title a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--line); }
+  .policy-title a:hover { border-bottom-color: var(--primary); }
+  .policy-meta {
+    margin: 3px 0 0; font-size: 11.5px; color: var(--ink-3);
+    display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center;
   }
-  .flag.none { background: var(--note-wash); color: var(--note); font-weight: 500; }
-  table.units { width: 100%; border-collapse: collapse; font-size: 12.5px; }
-  table.units th, table.units td {
-    padding: 6px 8px; border-bottom: 1px solid var(--line-soft); white-space: nowrap;
-  }
-  table.units .num { font-family: var(--mono); text-align: right; font-variant-numeric: tabular-nums; }
-  table.units tr.sp-row td {
-    font-size: 11.5px; color: var(--ink-3); padding-top: 0; border-bottom: 0;
-    white-space: normal;
-  }
-  table.units .dong { font-size: 11px; color: var(--ink-3); font-weight: 400; }
-  .mix-note {
-    margin: 7px 0 0; font-size: 11.5px; color: var(--ink-3); line-height: 1.65;
-  }
-  table.units td.est b { font-weight: 700; }
-  table.units td.est .pct { font-size: 11px; color: var(--ink-3); font-weight: 400; }
-  table.units tr.loose td.est b { color: var(--ink-2); }
-  .pending-note {
-    margin: 6px 0 0; font-size: 12px; line-height: 1.6; color: var(--ink-3);
-  }
-  .pblanc {
-    display: inline-block; margin-top: 12px; font-size: 13px; font-weight: 700;
-    color: var(--accent); text-decoration: none;
-  }
-  .pblanc:hover { text-decoration: underline; }
-
-  /* ── 규칙 참고 ──────────────────────────────────────── */
-  .ref summary::after { content: " ▸"; color: var(--ink-3); }
-  .ref[open] summary::after { content: " ▾"; }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  .tbl-scroll { overflow-x: auto; }
-  th, td {
-    text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line-soft);
-    white-space: nowrap;
-  }
-  th {
-    font-family: var(--mono); font-size: 10.5px; letter-spacing: .06em;
-    text-transform: uppercase; color: var(--ink-3); font-weight: 600;
-  }
-  td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; text-align: right; }
-  .ref h4 {
-    font-size: 12px; font-family: var(--mono); letter-spacing: .1em;
-    text-transform: uppercase; color: var(--ink-3); margin: 20px 0 8px;
-  }
-  .ref h4:first-child { margin-top: 4px; }
-
-  /* ── 기타 ───────────────────────────────────────────── */
-  .btn {
-    font-family: var(--sans); font-size: 13px; font-weight: 600;
-    padding: 7px 12px; border-radius: 3px; cursor: pointer;
-    background: var(--surface-2); color: var(--ink-2);
-    border: 1px solid var(--line);
-  }
-  .btn:hover { border-color: var(--accent); color: var(--accent); }
-
-
-  .empty {
-    padding: 40px 20px; text-align: center; color: var(--ink-3); font-size: 14px;
+  .policy-why { margin: 4px 0 0; font-size: 12px; color: var(--ink-2); line-height: 1.55; }
+  .policy-list li.key .policy-title { color: var(--primary); }
+  .tag.rule {
+    font-size: 10.5px; font-weight: 700; padding: 2px 6px; border-radius: 3px;
+    background: var(--primary-wash); color: var(--primary);
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    * { transition: none !important; animation: none !important; }
+  /* ── 알림 · MY ─────────────────────────────────────────── */
+  .switch {
+    width: 40px; height: 22px; border-radius: 999px; border: 0; cursor: pointer;
+    background: var(--line); position: relative; transition: background .15s;
   }
+  .switch i {
+    position: absolute; top: 2px; left: 2px; width: 18px; height: 18px;
+    border-radius: 50%; background: #fff; transition: left .15s;
+    box-shadow: 0 1px 2px rgba(0,0,0,.25);
+  }
+  .switch.on { background: var(--pass); }
+  .switch.on i { left: 20px; }
+  .avatar {
+    width: 34px; height: 34px; border-radius: 50%; background: var(--primary);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 15px; flex: none;
+  }
+  .kv-lines { margin-top: 10px; display: flex; flex-direction: column; gap: 4px; }
+  .kv-lines > span {
+    display: flex; justify-content: space-between; font-size: 12.5px;
+  }
+  .kv-lines .k { color: var(--ink-3); }
+  .danger { color: var(--fail); }
+
+  .saved {
+    font-family: var(--mono); font-size: 11px; color: var(--pass);
+    opacity: 0; transition: opacity .2s;
+  }
+  .saved.show { opacity: 1; }
 </style>
 </head>
+
 <body>
 
-<header>
-  <div class="head-in">
-    <div>
-      <h1>오늘의 청약</h1>
-      <p class="sub">
-        내 자산·거주지·무주택 여부·청약통장 조건으로 접수 중인 공고를 걸러
-        <strong>신청 가능한지와 그 근거</strong>를 보여 줍니다.
-        청약홈·국토교통부 실거래가·관보를 매일 아침 6시에 다시 받습니다.
+<div class="app">
+
+  <header class="appbar">
+    <button type="button" class="back" id="navBack" hidden aria-label="뒤로">‹</button>
+    <h1 id="scTitle">오늘의 청약</h1>
+    <span class="saved" id="savedAt"></span>
+    <button type="button" class="act" id="navAlert" aria-label="알림">🔔</button>
+  </header>
+
+  <main>
+
+    <!-- ── 02 홈 ─────────────────────────────────────────── -->
+    <section class="screen" id="sc-home">
+      <div class="card">
+        <div class="sub-s" style="font-weight:700">내 청약 가용 자금</div>
+        <div class="amount" id="homeBudget">—</div>
+        <div class="chips" style="margin-top:7px" id="homeChips"></div>
+        <div class="btn-row" style="margin-top:12px">
+          <button type="button" class="btn-s" data-go="onboarding">조건 수정</button>
+        </div>
+      </div>
+
+      <div class="sec-title">
+        <b>신청 가능한 단지</b>
+        <span class="row" style="gap:8px">
+          <span class="badge ok" id="homePassCount">0건</span>
+          <button type="button" class="more" data-go="all">전체 공고 →</button>
+        </span>
+      </div>
+      <div id="homePass"></div>
+
+      <div class="sec-title">
+        <b>청약 관련 정책 · 법령</b>
+        <button type="button" class="more" data-go="policy">전체보기 →</button>
+      </div>
+      <div id="homePolicy"></div>
+
+      <p class="foot-note" id="homeStamp"></p>
+    </section>
+
+    <!-- ── 03 전체 공고 ──────────────────────────────────── -->
+    <section class="screen" id="sc-all" hidden>
+      <div id="allDiag"></div>
+      <div class="chips" style="margin:12px 2px">
+        <button type="button" class="chip on" data-filter="ALL">전체</button>
+        <button type="button" class="chip" data-filter="PASS">신청 가능</button>
+        <button type="button" class="chip" data-filter="FAIL">요건 미달</button>
+      </div>
+      <div id="allList"></div>
+    </section>
+
+    <!-- ── 04 공고 상세 ──────────────────────────────────── -->
+    <section class="screen" id="sc-detail" hidden>
+      <div id="detailBody"></div>
+    </section>
+
+    <!-- ── 05 캘린더 ─────────────────────────────────────── -->
+    <section class="screen" id="sc-calendar" hidden>
+      <div class="card">
+        <div class="cal-head">
+          <button type="button" id="calPrev" aria-label="이전 달">‹</button>
+          <span id="calLabel">—</span>
+          <button type="button" id="calNext" aria-label="다음 달">›</button>
+        </div>
+        <div class="grid7" id="calWeekdays"></div>
+        <div class="grid7" id="calGrid"></div>
+        <div class="legend">
+          <span><i style="background:var(--rem)"></i>특별공급</span>
+          <span><i style="background:var(--apt)"></i>1순위</span>
+          <span><i style="background:var(--oft)"></i>접수 시작</span>
+          <span><i style="background:var(--pass)"></i>당첨자 발표</span>
+        </div>
+      </div>
+      <div id="calDay"></div>
+    </section>
+
+    <!-- ── 06 지도 ───────────────────────────────────────── -->
+    <section class="screen" id="sc-map" hidden>
+      <div class="map-bar">
+        <button type="button" class="chip on" data-mtype="">전체</button>
+        <button type="button" class="chip" data-mtype="APT">아파트</button>
+        <button type="button" class="chip" data-mtype="OFFICETEL">오피스텔</button>
+        <button type="button" class="chip" data-mtype="REMNANT">무순위</button>
+        <span style="flex:1"></span>
+        <button type="button" class="chip trade on" id="chipTrade">근처 시세</button>
+      </div>
+      <div class="map-stage">
+        <div id="map"></div>
+        <div class="map-fallback" id="mapFallback" hidden></div>
+        <div class="map-pick" id="mapPick" hidden></div>
+      </div>
+      <div class="legend">
+        <span><i style="background:var(--pass);border-radius:2px"></i>신청 가능</span>
+        <span><i style="background:var(--apt);border-radius:2px"></i>아파트</span>
+        <span><i style="background:var(--oft);border-radius:2px"></i>오피스텔</span>
+        <span><i style="background:var(--rem);border-radius:2px"></i>무순위</span>
+        <span><i style="background:var(--pending)"></i>근처 시세 (실거래)</span>
+      </div>
+    </section>
+
+    <!-- ── 07 정책 · 법령 ────────────────────────────────── -->
+    <section class="screen" id="sc-policy" hidden>
+      <div class="card"><div id="policies"></div></div>
+    </section>
+
+    <!-- ── 08 알림 ───────────────────────────────────────── -->
+    <section class="screen" id="sc-alert" hidden>
+      <div class="card">
+        <div class="row between">
+          <span class="title-s">맞춤 청약 알림</span>
+          <button type="button" class="switch" id="alertSwitch" aria-label="알림 켜기"><i></i></button>
+        </div>
+        <div class="sub-s">조건에 맞는 새 공고가 있을 때 하루 한 번</div>
+      </div>
+
+      <div class="card">
+        <div class="title-s">알림 받을 시각</div>
+        <div class="sub-s">이 시각이 지난 뒤 처음 확인될 때 하루 한 번만 보냅니다.</div>
+        <div class="chips" style="margin-top:8px" id="alertHours"></div>
+      </div>
+
+      <div class="card">
+        <div class="title-s">지금 조건에 맞는 새 공고</div>
+        <div class="sub-s" id="alertPreviewSub">—</div>
+        <div id="alertPreview" style="margin-top:8px"></div>
+      </div>
+
+      <div class="card flat">
+        <div class="title-s" style="font-size:12.5px">웹에서는 알림을 보낼 수 없습니다</div>
+        <div class="sub-s" style="margin-top:3px">
+          이 페이지는 하루 한 번 구워지는 정적 페이지라 알림을 밀어 줄 수단이 없습니다.
+          설정한 값은 이 기기에 저장해 두고, 실제 발송은 앱에서 합니다.<br>
+          · Android: 백그라운드에서 주기적으로 확인<br>
+          · iOS: 앱을 열 때 놓친 알림을 채웁니다
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 09 MY ─────────────────────────────────────────── -->
+    <section class="screen" id="sc-my" hidden>
+      <div class="card">
+        <div class="row">
+          <span class="avatar" id="myAvatar">👤</span>
+          <div>
+            <div class="title-s" id="myWho">—</div>
+            <div class="sub-s" id="myWhere">—</div>
+          </div>
+        </div>
+        <div class="kv-lines" id="myLines"></div>
+      </div>
+
+      <button type="button" class="card tap" style="width:100%;text-align:left" data-go="onboarding">
+        <div class="title-s">내 청약 조건 수정</div>
+        <div class="sub-s">자산 · 거주지 · 무주택 · 청약통장</div>
+      </button>
+
+      <button type="button" class="card tap" style="width:100%;text-align:left" data-go="alert">
+        <div class="title-s">알림 설정</div>
+        <div class="sub-s">1일 1회 맞춤 알림 수신 시각</div>
+      </button>
+
+      <div class="card flat">
+        <div class="title-s" style="font-size:12.5px">데이터는 이 기기에만</div>
+        <div class="sub-s" style="margin-top:3px">
+          서버를 쓰지 않습니다. 입력한 자산·소유 이력은 이 브라우저에만 저장되고
+          기기 밖으로 나가지 않습니다. 공고·시세·법령은 매일 아침 6시에 미리 받아
+          페이지에 넣어 둡니다.
+        </div>
+      </div>
+
+      <button type="button" class="card tap" style="width:100%;text-align:left" id="myReset">
+        <div class="title-s danger">데이터 초기화</div>
+        <div class="sub-s">입력한 조건을 모두 삭제합니다</div>
+      </button>
+
+      <p class="foot-note" id="myStamp"></p>
+    </section>
+
+    <!-- ── 01 온보딩 ─────────────────────────────────────── -->
+    <section class="screen" id="sc-onboarding" hidden>
+      <div class="steps" id="obSteps"><i></i><i></i><i></i><i></i></div>
+
+      <div class="ob-step" data-step="1">
+        <p class="q">누구와 함께 넣나요?</p>
+        <p class="q-sub">배우자·파트너가 있으면 자금을 합산하고 신혼부부 특별공급도 함께 봅니다.</p>
+        <div class="field">
+          <label for="householdType">가구 구성</label>
+          <select id="householdType">
+            <option value="single">1인 가구</option>
+            <option value="couple">배우자 · 파트너와 함께</option>
+            <option value="family">자녀가 있는 가구</option>
+          </select>
+        </div>
+        <div class="field" id="wrap-marriage">
+          <label for="marriageDate">혼인 신고일</label>
+          <input type="date" id="marriageDate">
+        </div>
+        <div class="field" id="wrap-child">
+          <label for="childCount">자녀 수 <span class="unit">명</span></label>
+          <input type="number" id="childCount" min="0" step="1">
+        </div>
+        <div class="checks">
+          <label class="chk"><input type="checkbox" id="isProspectiveCouple"> 예비 신혼부부</label>
+        </div>
+      </div>
+
+      <div class="ob-step" data-step="2" hidden>
+        <p class="q">지금 동원할 수 있는 자금은?</p>
+        <p class="q-sub">현금과 대출 가능액을 합쳐 감당 가능한 분양가를 계산합니다. 단위는 만원입니다.</p>
+        <div class="group-label">본인</div>
+        <div class="field-2">
+          <div class="field">
+            <label for="selfCash">현금성 자산 <span class="unit">만원</span></label>
+            <input type="number" id="selfCash" min="0" step="100">
+          </div>
+          <div class="field">
+            <label for="selfLoanLimit">대출 가능액 <span class="unit">만원</span></label>
+            <input type="number" id="selfLoanLimit" min="0" step="100">
+          </div>
+        </div>
+        <div class="group-label">배우자 / 파트너</div>
+        <div class="field-2">
+          <div class="field">
+            <label for="partnerCash">현금성 자산 <span class="unit">만원</span></label>
+            <input type="number" id="partnerCash" min="0" step="100">
+          </div>
+          <div class="field">
+            <label for="partnerLoanLimit">대출 가능액 <span class="unit">만원</span></label>
+            <input type="number" id="partnerLoanLimit" min="0" step="100">
+          </div>
+        </div>
+        <div class="card" style="background:var(--primary-wash);border:0">
+          <div class="row between">
+            <span class="sub-s" style="color:var(--primary);font-weight:700">합산 가용 자금</span>
+            <span class="amount" style="font-size:19px" id="budgetOut">—</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="ob-step" data-step="3" hidden>
+        <p class="q">어디에 살고, 집은 있나요?</p>
+        <p class="q-sub">거주지는 해당 지역 우선공급을, 무주택 기간은 순위와 가점을 가릅니다.</p>
+        <div class="field">
+          <label for="residenceSido">거주 시 · 도</label>
+          <select id="residenceSido"></select>
+        </div>
+        <div class="field-2">
+          <div class="field">
+            <label for="residenceSince">현 거주지 전입일</label>
+            <input type="date" id="residenceSince">
+          </div>
+          <div class="field">
+            <label for="homelessSince">무주택 기간 기산일</label>
+            <input type="date" id="homelessSince">
+          </div>
+        </div>
+        <div class="checks">
+          <label class="chk"><input type="checkbox" id="isHomeless"> 무주택</label>
+          <label class="chk"><input type="checkbox" id="ownsHouse"> 보유 주택 있음</label>
+          <label class="chk"><input type="checkbox" id="isHouseholder"> 세대주</label>
+          <label class="chk"><input type="checkbox" id="isFirstTimeBuyer"> 생애최초</label>
+        </div>
+      </div>
+
+      <div class="ob-step" data-step="4" hidden>
+        <p class="q">청약통장은 어떤가요?</p>
+        <p class="q-sub">가입 기간과 납입 횟수·예치금으로 1순위 여부를 판단합니다.</p>
+        <div class="field">
+          <label for="accountType">통장 종류</label>
+          <select id="accountType">
+            <option>주택청약종합저축</option>
+            <option>청약저축</option>
+            <option>청약예금</option>
+            <option>청약부금</option>
+            <option>없음</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="accountOpenedAt">가입일</label>
+          <input type="date" id="accountOpenedAt">
+        </div>
+        <div class="field-2">
+          <div class="field">
+            <label for="accountPaymentCount">납입 횟수 <span class="unit">회</span></label>
+            <input type="number" id="accountPaymentCount" min="0" step="1">
+          </div>
+          <div class="field">
+            <label for="accountTotalAmount">총 납입액 <span class="unit">만원</span></label>
+            <input type="number" id="accountTotalAmount" min="0" step="10">
+          </div>
+        </div>
+        <div class="group-label">관심 있는 공고 유형</div>
+        <div class="checks">
+          <label class="chk"><input type="checkbox" class="itype" value="APT"> 아파트</label>
+          <label class="chk"><input type="checkbox" class="itype" value="OFFICETEL"> 오피스텔</label>
+          <label class="chk"><input type="checkbox" class="itype" value="REMNANT"> 무순위 · 줍줍</label>
+        </div>
+        <div class="checks">
+          <label class="chk"><input type="checkbox" id="remnantRequiresHomeless"> 무순위는 무주택자만</label>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button type="button" class="btn-s" id="obPrev">이전</button>
+        <button type="button" class="btn-p" id="obNext">다음</button>
+      </div>
+      <p class="foot-note">
+        입력한 값은 이 브라우저에만 저장됩니다. 판정은 참고용이며 최종 자격은
+        청약홈 모집공고문이 기준입니다.
       </p>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end"><span class="stamp">참고용 판정</span><a href="./screens.html" style="font-family:var(--mono);font-size:11px;color:var(--accent);text-decoration:none;letter-spacing:.04em">화면설계서 →</a></div>
-  </div>
-</header>
-
-<div class="wrap">
-  <div class="grid">
-
-    <!-- ── 조건 입력 ───────────────────────────────── -->
-    <section class="panel col-form">
-      <div class="panel-head">
-        <h2 class="panel-title">내 조건</h2>
-        <button class="btn" id="reset" type="button">기본값으로</button>
-      </div>
-      <div class="panel-body">
-
-        <fieldset>
-          <legend>가구 구성</legend>
-          <div class="field-grid">
-            <div class="field wide">
-              <label class="lbl" for="householdType">가구 유형</label>
-              <select id="householdType">
-                <option value="single">1인 가구</option>
-                <option value="couple">배우자·예비배우자와 함께</option>
-                <option value="family">자녀 포함 가구</option>
-              </select>
-            </div>
-            <div class="field" id="wrap-marriage">
-              <label class="lbl" for="marriageDate">혼인신고일</label>
-              <input type="date" id="marriageDate">
-            </div>
-            <div class="field" id="wrap-child">
-              <label class="lbl" for="childCount">자녀 수</label>
-              <input type="number" id="childCount" min="0" max="8" step="1">
-            </div>
-          </div>
-          <div class="checks" id="wrap-prospective">
-            <label class="chk"><input type="checkbox" id="isProspectiveCouple"> 아직 혼인신고 전</label>
-          </div>
-        </fieldset>
-
-        <fieldset>
-          <legend>합산 자산 <span class="unit">단위: 만원</span></legend>
-          <div class="field-grid">
-            <div class="field">
-              <label class="lbl" for="selfCash">본인 현금</label>
-              <input type="number" id="selfCash" min="0" step="100">
-            </div>
-            <div class="field">
-              <label class="lbl" for="selfLoanLimit">본인 대출 가능</label>
-              <input type="number" id="selfLoanLimit" min="0" step="100">
-            </div>
-            <div class="field" id="wrap-pcash">
-              <label class="lbl" for="partnerCash">파트너 현금</label>
-              <input type="number" id="partnerCash" min="0" step="100">
-            </div>
-            <div class="field" id="wrap-ploan">
-              <label class="lbl" for="partnerLoanLimit">파트너 대출 가능</label>
-              <input type="number" id="partnerLoanLimit" min="0" step="100">
-            </div>
-          </div>
-          <div class="budget-strip">
-            <span class="k">합산 가용 자금</span>
-            <span class="v" id="budgetOut">—</span>
-          </div>
-        </fieldset>
-
-        <fieldset>
-          <legend>거주지 · 무주택</legend>
-          <div class="field-grid">
-            <div class="field">
-              <label class="lbl" for="residenceSido">거주 시·도</label>
-              <select id="residenceSido">
-                <option>서울특별시</option>
-                <option>경기도</option>
-                <option>인천광역시</option>
-                <option>부산광역시</option>
-                <option>대구광역시</option>
-                <option>대전광역시</option>
-                <option>광주광역시</option>
-                <option>울산광역시</option>
-                <option>세종특별자치시</option>
-                <option>강원특별자치도</option>
-                <option>충청북도</option>
-                <option>충청남도</option>
-                <option>전북특별자치도</option>
-                <option>전라남도</option>
-                <option>경상북도</option>
-                <option>경상남도</option>
-                <option>제주특별자치도</option>
-              </select>
-            </div>
-            <div class="field">
-              <label class="lbl" for="residenceSince">전입일</label>
-              <input type="date" id="residenceSince">
-            </div>
-            <div class="field wide">
-              <label class="lbl" for="homelessSince">무주택 기간 기산일</label>
-              <input type="date" id="homelessSince">
-            </div>
-          </div>
-          <div class="checks">
-            <label class="chk"><input type="checkbox" id="isHomeless" checked> 무주택</label>
-            <label class="chk"><input type="checkbox" id="ownsHouse"> 현재 보유 주택 있음</label>
-            <label class="chk"><input type="checkbox" id="isHouseholder" checked> 세대주</label>
-            <label class="chk"><input type="checkbox" id="isFirstTimeBuyer" checked> 생애최초</label>
-            <!-- 무순위(줍줍) 무주택 요건은 개정이 잦아 직접 켜고 끌 수 있게 둔다 -->
-            <label class="chk"><input type="checkbox" id="remnantRequiresHomeless" checked> 무순위는 무주택자만</label>
-          </div>
-        </fieldset>
-
-        <fieldset>
-          <legend>청약통장</legend>
-          <div class="field-grid">
-            <div class="field wide">
-              <label class="lbl" for="accountType">통장 종류</label>
-              <select id="accountType">
-                <option>주택청약종합저축</option>
-                <option>청약저축</option>
-                <option>청약예금</option>
-                <option>청약부금</option>
-                <option value="none">없음</option>
-              </select>
-            </div>
-            <div class="field wide">
-              <label class="lbl" for="accountOpenedAt">가입일</label>
-              <input type="date" id="accountOpenedAt">
-            </div>
-            <div class="field">
-              <label class="lbl" for="accountPaymentCount">납입 횟수 <span class="unit">회</span></label>
-              <input type="number" id="accountPaymentCount" min="0" step="1">
-            </div>
-            <div class="field">
-              <label class="lbl" for="accountTotalAmount">예치금 <span class="unit">만원</span></label>
-              <input type="number" id="accountTotalAmount" min="0" step="50">
-            </div>
-          </div>
-        </fieldset>
-
-        <fieldset>
-          <legend>관심 공고 유형</legend>
-          <div class="checks">
-            <label class="chk"><input type="checkbox" class="itype" value="APT" checked> 아파트</label>
-            <label class="chk"><input type="checkbox" class="itype" value="OFFICETEL" checked> 오피스텔</label>
-            <label class="chk"><input type="checkbox" class="itype" value="REMNANT" checked> 무순위/줍줍</label>
-          </div>
-        </fieldset>
-
-        <fieldset>
-          <legend>판정</legend>
-          <button type="button" class="find-btn" id="findBtn">내 조건으로 찾기</button>
-          <p class="saved-note">
-            <span class="dot"></span>
-            <span id="savedAt">입력값은 이 브라우저에 자동 저장됩니다</span>
-          </p>
-        </fieldset>
-
-        <fieldset>
-          <legend>규칙 실험</legend>
-          <div class="checks">
-            <label class="chk"><input type="checkbox" id="remnantHomeless" checked> 무순위에 무주택 요건 적용</label>
-          </div>
-          <p style="font-size:12px;color:var(--ink-3);margin:10px 0 0;line-height:1.6">
-            무순위 자격 요건은 개정 이력이 있어 앱에서도
-            <code style="font-family:var(--mono);font-size:11px">remnantRequiresHomeless</code>
-            플래그로 분리해 뒀습니다. 껐다 켜며 결과 차이를 확인해 보세요.
-          </p>
-        </fieldset>
-
-      </div>
     </section>
 
-    <!-- ── 판정 결과 ───────────────────────────────── -->
-    <section>
-      <div class="summary">
-        <div class="sum-cell">
-          <p class="sum-k">신청 가능</p>
-          <div class="sum-v pass" id="cntPass">0</div>
-        </div>
-        <div class="sum-cell">
-          <p class="sum-k">요건 미달</p>
-          <div class="sum-v fail" id="cntFail">0</div>
-        </div>
-        <div class="sum-cell">
-          <p class="sum-k">감당 가능 분양가</p>
-          <div class="sum-v" id="sumBudget">—</div>
-        </div>
-      </div>
+  </main>
 
-      <p id="dataDate" style="margin:14px 0 0;font-size:12px;color:var(--ink-3)"></p>
+  <nav class="tabbar">
+    <button type="button" data-tab="home"><span class="ico">🏠</span>홈</button>
+    <button type="button" data-tab="calendar"><span class="ico">🗓</span>캘린더</button>
+    <button type="button" data-tab="map"><span class="ico">🗺</span>지도</button>
+    <button type="button" data-tab="policy"><span class="ico">📜</span>정책</button>
+    <button type="button" data-tab="my"><span class="ico">👤</span>MY</button>
+  </nav>
 
-      <div id="diag"></div>
-
-      <!-- ── 지도 (화면설계서 06) ─────────────────── -->
-      <section class="panel map-panel">
-        <div class="map-bar">
-          <button type="button" class="chip on" data-mtype="">전체</button>
-          <button type="button" class="chip" data-mtype="APT">아파트</button>
-          <button type="button" class="chip" data-mtype="OFFICETEL">오피스텔</button>
-          <button type="button" class="chip" data-mtype="REMNANT">무순위</button>
-          <span style="flex:1"></span>
-          <button type="button" class="chip trade on" id="chipTrade">근처 시세</button>
-        </div>
-        <div class="map-stage">
-          <div id="map"></div>
-          <div class="map-fallback" id="mapFallback" hidden></div>
-          <div class="map-pick" id="mapPick" hidden></div>
-        </div>
-        <div class="map-legend">
-          <span><i style="background:var(--pass)"></i>신청 가능</span>
-          <span><i style="background:var(--apt)"></i>아파트</span>
-          <span><i style="background:var(--oft)"></i>오피스텔</span>
-          <span><i style="background:var(--rem)"></i>무순위</span>
-          <span><i style="background:var(--note);border-radius:999px"></i>근처 시세 (실거래)</span>
-        </div>
-      </section>
-
-      <div class="cards" id="cards"></div>
-
-      <!-- ── 정책 · 법령 (관보) ───────────────────── -->
-      <section class="panel policy-panel">
-        <div class="policy-head">
-          <h2>정책 · 법령</h2>
-          <span class="src">행정안전부 전자관보 · 최근 3개월</span>
-        </div>
-        <div id="policies"></div>
-      </section>
-
-    </section>
-
-  </div>
 </div>
 
 <script>
@@ -3393,9 +3351,13 @@
   var $ = function (id) { return document.getElementById(id); };
   var STORAGE_KEY = "ourcheck.simulator.profile";
 
+  var SIDOS = ["서울특별시","부산광역시","대구광역시","인천광역시","광주광역시","대전광역시",
+    "울산광역시","세종특별자치시","경기도","강원특별자치도","충청북도","충청남도",
+    "전북특별자치도","전라남도","경상북도","경상남도","제주특별자치도"];
+
   var DEFAULTS = {
     householdType: "couple",
-    marriageDate: fmtDate(new Date(T.getFullYear() - 2, 4, 1)),
+    marriageDate: fmtDate(new Date(T.getFullYear() - 3, 4, 20)),
     childCount: 0,
     isProspectiveCouple: false,
     selfCash: 8000, selfLoanLimit: 25000,
@@ -3408,7 +3370,8 @@
     accountOpenedAt: fmtDate(new Date(T.getFullYear() - 8, 2, 1)),
     accountPaymentCount: 60, accountTotalAmount: 1500,
     interestTypes: ["APT", "OFFICETEL", "REMNANT"],
-    remnantRequiresHomeless: true
+    remnantRequiresHomeless: true,
+    alertOn: true, alertHour: 8
   };
 
   var FIELDS = ["householdType", "marriageDate", "childCount", "selfCash", "selfLoanLimit",
@@ -3417,12 +3380,17 @@
   var FLAGS = ["isProspectiveCouple", "isHomeless", "ownsHouse", "isHouseholder",
     "isFirstTimeBuyer", "remnantRequiresHomeless"];
 
+  // 폼에 없는 설정(알림 등)도 같은 곳에 담는다
+  var settings = { alertOn: DEFAULTS.alertOn, alertHour: DEFAULTS.alertHour };
+
   function applyToForm(v) {
     FIELDS.forEach(function (k) { if ($(k)) $(k).value = v[k]; });
     FLAGS.forEach(function (k) { if ($(k)) $(k).checked = !!v[k]; });
     document.querySelectorAll(".itype").forEach(function (el) {
-      el.checked = v.interestTypes.indexOf(el.value) >= 0;
+      el.checked = (v.interestTypes || []).indexOf(el.value) >= 0;
     });
+    settings.alertOn = v.alertOn !== false;
+    settings.alertHour = v.alertHour || DEFAULTS.alertHour;
   }
 
   function readForm() {
@@ -3466,37 +3434,120 @@
     FLAGS.forEach(function (k) { v[k] = $(k).checked; });
     v.interestTypes = Array.prototype.map.call(
       document.querySelectorAll(".itype:checked"), function (el) { return el.value; });
+    v.alertOn = settings.alertOn;
+    v.alertHour = settings.alertHour;
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(v));
       markSaved();
     } catch (e) {
       // 시크릿 모드 등 저장이 막힌 환경
-      $("savedAt").textContent = "이 브라우저에서는 저장이 막혀 있습니다";
+      $("savedAt").textContent = "저장 불가";
+      $("savedAt").classList.add("show");
     }
   }
 
   /// 입력이 실제로 보관됐음을 알려준다. 저장 여부가 안 보이면 매번 다시 넣게 된다.
+  var savedTimer = null;
   function markSaved() {
-    var now = new Date();
-    var hh = String(now.getHours()).padStart(2, "0");
-    var mm = String(now.getMinutes()).padStart(2, "0");
-    $("savedAt").textContent = "저장됨 · " + hh + ":" + mm + " (이 브라우저에만)";
+    var el = $("savedAt");
+    el.textContent = "저장됨";
+    el.classList.add("show");
+    clearTimeout(savedTimer);
+    savedTimer = setTimeout(function () { el.classList.remove("show"); }, 1600);
   }
 
   function load() {
-    try {
-      var raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return null;
-      var v = JSON.parse(raw);
-      return (v && v.interestTypes) ? v : null;
-    } catch (e) { return null; }
+    var v = null;
+    try { v = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null"); } catch (e) { v = null; }
+    return v || DEFAULTS;
   }
 
-  // ── 렌더 ───────────────────────────────────────────────
   function esc(s) {
-    return String(s).replace(/[&<>"']/g, function (c) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[c];
     });
+  }
+
+  // ── 라우팅 ─────────────────────────────────────────────
+  //
+  // 화면설계서의 9개 화면을 그대로 옮겼다. 탭바로 갈 수 있는 곳은 5개고,
+  // 나머지(전체 공고 · 상세 · 알림 · 온보딩)는 화면 안에서 들어간다.
+  // 주소에 남겨 두면 뒤로 가기가 되고 링크로 바로 열 수도 있다.
+  var SCREENS = {
+    home:       { el: "sc-home",       title: "오늘의 청약",       tab: "home" },
+    all:        { el: "sc-all",        title: "전체 공고",         tab: "home", back: "home" },
+    detail:     { el: "sc-detail",     title: "공고 상세",         tab: "home", back: "all" },
+    calendar:   { el: "sc-calendar",   title: "청약 캘린더",       tab: "calendar" },
+    map:        { el: "sc-map",        title: "청약 지도",         tab: "map" },
+    policy:     { el: "sc-policy",     title: "정책 · 법령",       tab: "policy" },
+    alert:      { el: "sc-alert",      title: "알림",              tab: "my",   back: "my" },
+    my:         { el: "sc-my",         title: "MY",                tab: "my" },
+    onboarding: { el: "sc-onboarding", title: "내 조건 입력",      tab: "my",   back: "my" }
+  };
+
+  var current = "home";
+  var detailId = null;
+
+  function go(name, arg) {
+    if (!SCREENS[name]) name = "home";
+    location.hash = name + (arg != null ? "/" + arg : "");
+  }
+
+  function applyRoute() {
+    var raw = (location.hash || "").replace(/^#/, "");
+    var parts = raw.split("/");
+    var name = SCREENS[parts[0]] ? parts[0] : "home";
+    var arg = parts[1];
+
+    current = name;
+    var spec = SCREENS[name];
+
+    Object.keys(SCREENS).forEach(function (k) {
+      $(SCREENS[k].el).hidden = (k !== name);
+    });
+    $("scTitle").textContent = spec.title;
+    $("navBack").hidden = !spec.back;
+    $("navBack").onclick = function () { go(spec.back); };
+
+    document.querySelectorAll(".tabbar button").forEach(function (b) {
+      b.classList.toggle("on", b.getAttribute("data-tab") === spec.tab);
+    });
+
+    if (name === "detail") {
+      detailId = arg == null ? detailId : parseInt(arg, 10);
+      renderDetail(detailId);
+    }
+    if (name === "calendar") renderCalendar();
+    if (name === "map") whenMapVisible();
+    if (name === "alert") renderAlert();
+    if (name === "my") renderMy();
+    if (name === "onboarding") showStep(obStep);
+
+    scrollTop();
+  }
+
+  /// 지원하지 않는 환경이 있어 감싼다
+  function scrollTop() {
+    try { window.scrollTo(0, 0); } catch (e) { /* 무시 */ }
+  }
+
+  window.addEventListener("hashchange", applyRoute);
+
+  document.querySelectorAll(".tabbar button").forEach(function (b) {
+    b.addEventListener("click", function () { go(b.getAttribute("data-tab")); });
+  });
+  document.querySelectorAll("[data-go]").forEach(function (b) {
+    b.addEventListener("click", function () { go(b.getAttribute("data-go")); });
+  });
+  $("navAlert").addEventListener("click", function () { go("alert"); });
+
+  // ── 판정 · 목록 ────────────────────────────────────────
+  var results = [];        // [{ n, ev }] — 조건이 바뀔 때마다 다시 계산한다
+  var profile = null;
+  var listFilter = "ALL";
+
+  function typeClass(t) {
+    return t === "APT" ? "apt" : (t === "OFFICETEL" ? "oft" : "rem");
   }
 
   function scheduleLabel(n, now) {
@@ -3510,70 +3561,252 @@
   }
 
   function priceRange(n) {
-    if (!n.price) return '미공개';
+    if (!n.price) return "미공개";
     if (n.priceMax && n.priceMax !== n.price) {
-      return manwon(n.price) + ' ~ ' + manwon(n.priceMax);
+      return manwon(n.price) + " ~ " + manwon(n.priceMax);
     }
     return manwon(n.price);
   }
 
-  function typeClass(t) {
-    return t === "APT" ? "apt" : (t === "OFFICETEL" ? "officetel" : "remnant");
+  function regionLabel(n) {
+    return (n.sido || "").replace("특별시", "").replace("광역시", "").replace("특별자치시", "")
+      + " " + (n.sigungu || "");
   }
 
-  function cardHtml(n, ev, now) {
-    var verdict = ev.eligible ? "pass" : "fail";
+  /// 목록에 놓이는 한 장. 누르면 상세로 간다.
+  function listCard(r, now) {
+    var n = r.n, ev = r.ev;
     var blockers = ev.reasons
-      .filter(function (r) { return r.required && !r.passed; })
-      .map(function (r) { return r.label; });
+      .filter(function (x) { return x.required && !x.passed; })
+      .map(function (x) { return x.label; });
 
-    var reasonsHtml = ev.reasons.map(function (r) {
-      var cls = r.passed ? "pass" : (r.required ? "fail" : "note");
-      var mark = r.passed ? "PASS" : (r.required ? "FAIL" : "—");
+    return '<button type="button" class="card tap lead' + (ev.eligible ? "" : " no") + '"' +
+      ' style="width:100%;text-align:left" data-notice="' + n._id + '">' +
+      '<div class="row between">' +
+        '<span class="row">' +
+          '<span class="pill ' + typeClass(n.type) + '">' + TYPE_LABEL[n.type] + '</span>' +
+          '<span class="badge ' + (ev.eligible ? "ok" : "no") + '">' +
+            (ev.eligible ? "신청 가능" : "요건 미달") + '</span>' +
+        '</span>' +
+        '<span class="dday">' + esc(scheduleLabel(n, now)) + '</span>' +
+      '</div>' +
+      '<div class="title-s" style="margin-top:6px">' + esc(n.name) + '</div>' +
+      '<div class="sub-s">' + esc(regionLabel(n)) + ' · ' + priceRange(n) +
+        (n.area ? ' · 전용 ' + n.area.toFixed(1) + '㎡~' : '') + '</div>' +
+      (blockers.length
+        ? '<div class="sub-s" style="margin-top:4px;color:var(--fail)">막는 요건 — ' +
+          esc(blockers.join(" · ")) + '</div>'
+        : '<div class="sub-s" style="margin-top:4px">적합도 ' + ev.score + ' · ' +
+          (n.supply ? n.supply + '세대' : '세대수 미공개') + '</div>') +
+    '</button>';
+  }
+
+  function bindCards(root) {
+    root.querySelectorAll("[data-notice]").forEach(function (el) {
+      el.addEventListener("click", function () {
+        go("detail", el.getAttribute("data-notice"));
+      });
+    });
+  }
+
+  // ── 02 홈 ──────────────────────────────────────────────
+  function renderHome(now) {
+    $("homeBudget").textContent = manwon(profile.totalBudget);
+
+    var chips = [
+      "현금 " + manwon(profile.totalCash),
+      profile.isHomeless ? "무주택" : "주택 보유",
+      profile.residenceSido.replace("특별시", "").replace("광역시", ""),
+      "통장 " + profile.accountPaymentCount + "회"
+    ];
+    $("homeChips").innerHTML = chips.map(function (c) {
+      return '<span class="chip static">' + esc(c) + '</span>';
+    }).join("");
+
+    var pass = results.filter(function (r) { return r.ev.eligible; });
+    $("homePassCount").textContent = pass.length + "건";
+    $("homePass").innerHTML = pass.length
+      ? pass.slice(0, 5).map(function (r) { return listCard(r, now); }).join("") +
+        (pass.length > 5
+          ? '<button type="button" class="btn-s" data-more="all">신청 가능 ' +
+            pass.length + '건 모두 보기</button>'
+          : "")
+      : '<div class="card"><div class="empty">지금 조건으로 신청 가능한 공고가 없습니다.<br>' +
+        '전체 공고에서 무엇이 막고 있는지 확인해 보세요.</div></div>';
+    bindCards($("homePass"));
+    $("homePass").querySelectorAll("[data-more]").forEach(function (b) {
+      b.addEventListener("click", function () { listFilter = "PASS"; go("all"); });
+    });
+
+    var top = (typeof POLICIES === "undefined" ? [] : POLICIES).slice(0, 3);
+    $("homePolicy").innerHTML = top.length
+      ? top.map(function (p) {
+          return '<div class="card">' +
+            '<div class="title-s" style="font-size:12.5px">' + esc(p.title) + '</div>' +
+            '<div class="sub-s">' + esc([p.date, p.org, p.kind].filter(Boolean).join(" · ")) +
+            '</div></div>';
+        }).join("")
+      : '<div class="card"><div class="empty">최근 관보에 주택 관련 사항이 없습니다.</div></div>';
+
+    $("homeStamp").textContent =
+      "청약홈 · 국토교통부 실거래가 · 관보 기준일 " + DATA_DATE + " · 매일 아침 6시 갱신";
+  }
+
+  // ── 03 전체 공고 ───────────────────────────────────────
+  function renderAll(now) {
+    $("allDiag").innerHTML = diagnoseHtml(results, profile);
+
+    document.querySelectorAll("[data-filter]").forEach(function (b) {
+      b.classList.toggle("on", b.getAttribute("data-filter") === listFilter);
+    });
+
+    var shown = results.filter(function (r) {
+      if (listFilter === "PASS") return r.ev.eligible;
+      if (listFilter === "FAIL") return !r.ev.eligible;
+      return true;
+    });
+
+    $("allList").innerHTML = shown.length
+      ? shown.map(function (r) { return listCard(r, now); }).join("")
+      : '<div class="card"><div class="empty">해당하는 공고가 없습니다.</div></div>';
+    bindCards($("allList"));
+  }
+
+  document.querySelectorAll("[data-filter]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      listFilter = b.getAttribute("data-filter");
+      renderAll(today());
+    });
+  });
+
+  // ── 04 공고 상세 ───────────────────────────────────────
+  //
+  // 화면설계서대로 판정 → 공고문 요약 → 시세 순으로 읽힌다.
+  // 목록에서 줄여 보여 준 것을 여기서는 하나도 빼지 않는다.
+  function renderDetail(id) {
+    var r = null;
+    for (var i = 0; i < results.length; i++) {
+      if (results[i].n._id === id) { r = results[i]; break; }
+    }
+    if (!r) {
+      $("detailBody").innerHTML = '<div class="card"><div class="empty">공고를 찾지 못했습니다.</div></div>';
+      return;
+    }
+
+    var n = r.n, ev = r.ev, now = today();
+
+    var reasons = ev.reasons.map(function (x) {
+      var cls = x.passed ? "pass" : (x.required ? "fail" : "note");
+      var mark = x.passed ? "PASS" : (x.required ? "FAIL" : "—");
       return '<div class="reason">' +
         '<div class="rcode ' + cls + '">' + mark + '</div>' +
-        '<div><p class="rlabel">' + esc(r.label) +
-        (r.required ? "" : '<span class="roptional">참고</span>') + '</p>' +
-        '<p class="rdetail">' + esc(r.detail || "") + '</p></div>' +
+        '<div><p class="rlabel">' + esc(x.label) +
+        (x.required ? "" : '<span class="roptional">참고</span>') + '</p>' +
+        '<p class="rdetail">' + esc(x.detail || "") + '</p></div>' +
         '</div>';
     }).join("");
 
     var money = "";
     if (ev.requiredCash !== null && ev.requiredCash !== undefined) {
-      money = '<div class="money-line">' +
-        '계약금(약 10%) <b>' + manwon(ev.requiredCash) + '</b>' +
+      money = '<div class="money-line">계약금(약 10%) <b>' + manwon(ev.requiredCash) + '</b>' +
         (ev.budgetGap > 0
           ? ' · 가용 자금 대비 <b style="color:var(--fail)">' + manwon(ev.budgetGap) + ' 부족</b>'
-          : ' · 자금 여유 <b>' + manwon(-ev.budgetGap) + '</b>') +
-        '</div>';
+          : ' · 자금 여유 <b>' + manwon(-ev.budgetGap) + '</b>') + '</div>';
     }
 
-    return '<details class="card" id="notice-' + n._id + '" data-verdict="' + verdict + '">' +
-      '<summary>' +
-        '<div>' +
-          '<div class="meta-row">' +
-            '<span class="tag ' + typeClass(n.type) + '">' + TYPE_LABEL[n.type] + '</span>' +
-            (n.isSpeculationArea ? '<span class="tag reg">규제지역</span>' : '') +
-            (n.isNationalHousing ? '<span class="tag" style="color:var(--note)">국민주택</span>' : '') +
-            '<span class="region">' + esc(n.sido.replace("특별시", "").replace("광역시", "")) + ' ' + esc(n.sigungu) + '</span>' +
-          '</div>' +
-          '<h3 class="name">' + esc(n.name) + '</h3>' +
-          '<div class="facts">' +
-            '<span>분양가 <b>' + priceRange(n) + '</b></span>' +
-            '<span>전용 <b>' + n.area.toFixed(1) + '㎡</b></span>' +
-            '<span>' + n.supply + '세대</span>' +
-            '<span>' + scheduleLabel(n, now) + '</span>' +
-          '</div>' +
+    $("detailBody").innerHTML =
+      '<div class="card lead' + (ev.eligible ? "" : " no") + '">' +
+        '<div class="row between">' +
+          '<span class="row">' +
+            '<span class="pill ' + typeClass(n.type) + '">' + TYPE_LABEL[n.type] + '</span>' +
+            (n.isSpeculationArea ? '<span class="flag">규제지역</span>' : '') +
+            (n.isNationalHousing ? '<span class="chip static">국민주택</span>' : '') +
+          '</span>' +
+          '<span class="dday">' + esc(scheduleLabel(n, now)) + '</span>' +
         '</div>' +
-        '<div class="verdict">' +
-          '<span class="badge ' + verdict + '">' + (ev.eligible ? "신청 가능" : "요건 미달") + '</span>' +
-          '<span class="score">적합도 ' + ev.score + '</span>' +
-          (blockers.length ? '<span class="blockers">' + esc(blockers.slice(0, 2).join(" · ")) + '</span>' : '') +
+        '<div class="title-s" style="font-size:16px;margin-top:7px">' + esc(n.name) + '</div>' +
+        '<div class="sub-s">' + esc(regionLabel(n)) + ' · ' + priceRange(n) + '</div>' +
+        '<div class="row between" style="margin-top:9px">' +
+          '<span class="badge ' + (ev.eligible ? "ok" : "no") + '">' +
+            (ev.eligible ? "신청 가능" : "요건 미달") + '</span>' +
+          '<span class="sub-s">적합도 ' + ev.score + '</span>' +
         '</div>' +
-      '</summary>' +
-      '<div class="reasons">' + reasonsHtml + money + '</div>' +
-      noticeSummaryHtml(n) +
-    '</details>';
+      '</div>' +
+
+      '<div class="card">' +
+        '<h4 class="sec" style="margin-top:0">판정 근거</h4>' +
+        reasons + money +
+      '</div>' +
+
+      '<div class="card">' + noticeSummaryHtml(n) + '</div>' +
+
+      '<p class="foot-note">판정은 참고용입니다. 최종 자격은 청약홈 모집공고문이 기준입니다.</p>';
+  }
+
+  // ── 진단: 무엇이 몇 건을 막고 있나 ─────────────────────────
+  var RULE_ORDER = ["BUDGET", "REGION", "ACCOUNT", "HOMELESS", "SCHEDULE", "TYPE"];
+  var RULE_NAME = {
+    BUDGET: "자금", REGION: "지역", ACCOUNT: "청약통장",
+    HOMELESS: "무주택", SCHEDULE: "일정", TYPE: "공고 유형"
+  };
+
+  function diagnoseHtml(rows, p) {
+    if (!rows.length) return "";
+    var pass = rows.filter(function (r) { return r.ev.eligible; }).length;
+
+    if (pass) {
+      return '<div class="card lead">' +
+        '<h4 style="margin:0 0 4px;font-size:14px">신청 가능한 공고가 ' + pass + '건 있습니다</h4>' +
+        '<p class="sub-s">아래에서 <b>신청 가능</b> 배지가 붙은 공고를 눌러 보세요. ' +
+        '7개 규칙의 판정 근거가 그대로 나옵니다.</p></div>';
+    }
+
+    var counts = {};
+    rows.forEach(function (r) {
+      r.ev.reasons.forEach(function (x) {
+        if (x.required && !x.passed) counts[x.code] = (counts[x.code] || 0) + 1;
+      });
+    });
+
+    var bars = RULE_ORDER.filter(function (c) { return counts[c]; }).map(function (c) {
+      var pct = Math.round(counts[c] / rows.length * 100);
+      return '<div class="bar-row"><span>' + RULE_NAME[c] + '</span>' +
+        '<span class="bar"><i style="width:' + pct + '%"></i></span>' +
+        '<span class="n">' + counts[c] + '</span></div>';
+    }).join("");
+
+    var hint = hintHtml(rows, p, counts);
+
+    return '<div class="card diag">' +
+      '<h4>신청 가능한 공고가 없습니다</h4>' +
+      '<p>공고 ' + rows.length + '건 가운데 무엇이 몇 건을 막고 있는지입니다.</p>' +
+      bars + (hint ? '<p style="margin-top:9px">' + hint + '</p>' : "") +
+      '</div>';
+  }
+
+  function hintHtml(rows, p, counts) {
+    // 자금만 조금 모자란 경우가 가장 흔하다. 얼마가 비는지 짚어 준다.
+    var nearBudget = null;
+    rows.forEach(function (r) {
+      if (r.ev.budgetGap > 0 && (!nearBudget || r.ev.budgetGap < nearBudget.ev.budgetGap)) {
+        var others = r.ev.reasons.filter(function (x) {
+          return x.required && !x.passed && x.code !== "BUDGET";
+        });
+        if (!others.length) nearBudget = r;
+      }
+    });
+    if (nearBudget) {
+      return '<b>' + esc(nearBudget.n.name) + '</b> 은 자금만 맞으면 신청 가능합니다. ' +
+        '<b>' + manwon(nearBudget.ev.budgetGap) + '</b> 이 모자랍니다.';
+    }
+    if (counts.TYPE === rows.length) {
+      return '관심 공고 유형이 하나도 켜져 있지 않습니다. 조건 수정에서 켜 주세요.';
+    }
+    if (counts.REGION) {
+      return '거주 시·도가 <b>' + esc(p.residenceSido) + '</b> 로 되어 있습니다. ' +
+        '실제 거주지와 다르면 조건 수정에서 고쳐 주세요.';
+    }
+    return "";
   }
 
   /// 같은 시·군·구의 최근 실거래. 분양가가 주변 시세 대비 어떤지 보려는 것이다.
@@ -3824,7 +4057,6 @@
   var tradeMarkers = [];    // 근처 시세 마커
   var mapType = "";         // "" = 전체
   var showTrades = true;
-  var lastResults = [];     // render() 가 채운다 — 판정 색을 마커에 쓰기 위해
 
   function mapFail(info, detail) {
     // 예전 호출 방식(제목, 설명)도 그대로 받는다
@@ -3849,6 +4081,7 @@
     el.onload = function () {
       if (!window.kakao || !kakao.maps) { mapFail(domainHelp()); return; }
       kakao.maps.load(function () {
+        if (current !== "map") return;   // 지도 탭을 열 때 그린다
         try { setupMap(); }
         catch (e) { mapFail(domainHelp(String(e && e.message || e))); return; }
         // SDK 가 로드돼도 도메인이 등록돼 있지 않으면 타일 요청이 거부되어
@@ -3884,6 +4117,17 @@
         (detail ? "<br><br>오류: " + esc(detail) : ""),
       retry: true
     };
+  }
+
+  /// 지도 탭이 실제로 보일 때 만든다.
+  /// 숨겨진 채로 만들면 컨테이너 크기가 0이라 타일이 그려지지 않는다.
+  function whenMapVisible() {
+    if (!map) {
+      if (window.kakao && kakao.maps) setupMap();
+      return;
+    }
+    kakao.maps.event.trigger(map, "resize");
+    refreshMapMarkers();
   }
 
   function setupMap() {
@@ -3939,7 +4183,7 @@
     var bounds = new kakao.maps.LatLngBounds();
     var shown = 0;
 
-    lastResults.forEach(function (r) {
+    results.forEach(function (r) {
       var n = r.n;
       if (!n.lat || !n.lng) return;
       if (mapType && n.type !== mapType) return;
@@ -4031,14 +4275,9 @@
     };
   }
 
-  /// 지도에서 고른 공고를 목록에서 펼치고 그리로 스크롤한다.
+  /// 지도에서 고른 공고의 상세 화면으로 간다.
   function goToNotice(id) {
-    var card = document.getElementById("notice-" + id);
-    if (!card) return;
-    card.open = true;
-    card.classList.add("hit");
-    if (card.scrollIntoView) card.scrollIntoView({ behavior: "smooth", block: "start" });
-    setTimeout(function () { card.classList.remove("hit"); }, 2400);
+    go("detail", id);
   }
 
   document.querySelectorAll("[data-mtype]").forEach(function (chip) {
@@ -4099,164 +4338,291 @@
       '제목을 누르면 관보 원문(PDF)이 열립니다.</p>';
   }
 
-  function render() {
-    var p = readForm();
-    var now = today();
+  // ── 05 캘린더 ──────────────────────────────────────────
+  //
+  // 공고 하나가 일정마다 점을 남긴다. 날짜를 누르면 그날 일정이 아래에 펼쳐진다.
+  var EVENT_KINDS = [
+    { key: "special",  label: "특별공급",     color: "var(--rem)" },
+    { key: "rank1",    label: "1순위",        color: "var(--apt)" },
+    { key: "begin",    label: "접수 시작",    color: "var(--oft)" },
+    { key: "announce", label: "당첨자 발표",  color: "var(--pass)" }
+  ];
 
-    // 파트너 관련 입력은 가구 유형에 따라 감춘다
-    var hasPartner = p.householdType !== "single";
-    ["wrap-pcash", "wrap-ploan", "wrap-marriage", "wrap-prospective"].forEach(function (id) {
-      $(id).style.display = hasPartner ? "" : "none";
+  var calMonth = new Date(T.getFullYear(), T.getMonth(), 1);
+  var calPicked = null;
+
+  /// 날짜 → 그날의 일정들. 한 번 만들어 두고 달을 옮길 때 다시 쓴다.
+  function calendarEvents() {
+    var byDay = {};
+    results.forEach(function (r) {
+      EVENT_KINDS.forEach(function (kind) {
+        var raw = r.n[kind.key];
+        if (!raw) return;
+        var key = String(raw).slice(0, 10);
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(key)) return;
+        (byDay[key] = byDay[key] || []).push({ r: r, kind: kind });
+      });
     });
-    $("wrap-child").style.display = p.householdType === "family" ? "" : "none";
-    if (hasPartner) {
-      $("wrap-marriage").style.display = $("isProspectiveCouple").checked ? "none" : "";
+    return byDay;
+  }
+
+  function renderCalendar() {
+    var byDay = calendarEvents();
+
+    $("calLabel").textContent = calMonth.getFullYear() + "년 " + (calMonth.getMonth() + 1) + "월";
+    $("calWeekdays").innerHTML = ["일","월","화","수","목","금","토"]
+      .map(function (d) { return '<span class="wd">' + d + '</span>'; }).join("");
+
+    var first = new Date(calMonth.getFullYear(), calMonth.getMonth(), 1);
+    var start = new Date(first);
+    start.setDate(1 - first.getDay());          // 그 주 일요일부터
+    var todayKey = fmtDate(T);
+
+    var cells = "";
+    for (var i = 0; i < 42; i++) {
+      var d = addDays(start, i);
+      var key = fmtDate(d);
+      var out = d.getMonth() !== calMonth.getMonth();
+      var events = byDay[key] || [];
+
+      // 같은 종류가 여러 건이면 점은 하나만. 최대 3개까지 찍는다.
+      var seen = {}, dots = "";
+      events.forEach(function (e) {
+        if (seen[e.kind.key] || Object.keys(seen).length >= 3) return;
+        seen[e.kind.key] = 1;
+        // 신청 가능한 공고의 점은 초록으로 덮어쓴다 — 한눈에 내 것이 보인다
+        var color = e.r.ev.eligible ? "var(--pass)" : e.kind.color;
+        dots += '<span class="dot" style="background:' + color + '"></span>';
+      });
+
+      cells += '<button type="button" class="d' + (out ? " out" : "") +
+        (key === todayKey ? " today" : "") + (key === calPicked ? " sel" : "") +
+        '" data-day="' + key + '">' + d.getDate() +
+        '<span class="dots">' + dots + '</span></button>';
+    }
+    $("calGrid").innerHTML = cells;
+
+    $("calGrid").querySelectorAll("[data-day]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        calPicked = b.getAttribute("data-day");
+        renderCalendar();
+      });
+    });
+
+    renderCalendarDay(byDay);
+  }
+
+  function renderCalendarDay(byDay) {
+    if (!calPicked) {
+      $("calDay").innerHTML =
+        '<div class="card"><div class="empty">날짜를 누르면 그날 일정이 여기에 나옵니다.</div></div>';
+      return;
+    }
+    var events = byDay[calPicked] || [];
+    if (!events.length) {
+      $("calDay").innerHTML = '<div class="card"><div class="empty">' +
+        esc(calPicked) + ' 에는 일정이 없습니다.</div></div>';
+      return;
     }
 
-    $("budgetOut").textContent = manwon(p.totalBudget);
-    $("sumBudget").textContent = manwon(p.totalBudget);
+    $("calDay").innerHTML =
+      '<div class="sec-title"><b>' + esc(calPicked) + ' · ' + events.length + '건</b></div>' +
+      events.map(function (e) {
+        var n = e.r.n;
+        return '<button type="button" class="card tap lead' +
+          (e.r.ev.eligible ? "" : " no") + '" style="width:100%;text-align:left"' +
+          ' data-notice="' + n._id + '">' +
+          '<div class="row between">' +
+            '<span class="row">' +
+              '<span class="pill ' + typeClass(n.type) + '">' + TYPE_LABEL[n.type] + '</span>' +
+              '<span class="chip static">' + e.kind.label + '</span>' +
+            '</span>' +
+            '<span class="badge ' + (e.r.ev.eligible ? "ok" : "no") + '">' +
+              (e.r.ev.eligible ? "신청 가능" : "요건 미달") + '</span>' +
+          '</div>' +
+          '<div class="title-s" style="margin-top:6px">' + esc(n.name) + '</div>' +
+          '<div class="sub-s">' + esc(regionLabel(n)) + ' · ' + priceRange(n) + '</div>' +
+        '</button>';
+      }).join("");
+    bindCards($("calDay"));
+  }
 
-    var results = NOTICES.map(function (n) { return { n: n, ev: evaluate(p, n, now) }; });
+  $("calPrev").addEventListener("click", function () {
+    calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() - 1, 1);
+    renderCalendar();
+  });
+  $("calNext").addEventListener("click", function () {
+    calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() + 1, 1);
+    renderCalendar();
+  });
+
+  // ── 08 알림 ────────────────────────────────────────────
+  var ALERT_HOURS = [6, 7, 8, 9, 12, 18, 21];
+
+  function renderAlert() {
+    $("alertSwitch").classList.toggle("on", settings.alertOn);
+
+    $("alertHours").innerHTML = ALERT_HOURS.map(function (h) {
+      return '<button type="button" class="chip' + (h === settings.alertHour ? " on" : "") +
+        '" data-hour="' + h + '">' + h + '시</button>';
+    }).join("");
+    $("alertHours").querySelectorAll("[data-hour]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        settings.alertHour = parseInt(b.getAttribute("data-hour"), 10);
+        save();
+        renderAlert();
+      });
+    });
+
+    // 알림이 켜져 있었다면 오늘 무엇이 갔을지 그대로 보여 준다
+    var now = today();
+    var fresh = results.filter(function (r) {
+      return r.ev.eligible && r.n.receiptEnd && r.n.receiptEnd >= now;
+    });
+    $("alertPreviewSub").textContent = settings.alertOn
+      ? "알림이 켜져 있으면 " + settings.alertHour + "시 이후 첫 확인 때 아래 내용이 갑니다."
+      : "알림이 꺼져 있습니다.";
+    $("alertPreview").innerHTML = fresh.length
+      ? fresh.slice(0, 4).map(function (r) {
+          return '<button type="button" class="card tap lead" style="width:100%;text-align:left"' +
+            ' data-notice="' + r.n._id + '">' +
+            '<div class="title-s" style="font-size:13px">' + esc(r.n.name) + '</div>' +
+            '<div class="sub-s">' + esc(regionLabel(r.n)) + ' · ' +
+            esc(scheduleLabel(r.n, now)) + '</div></button>';
+        }).join("")
+      : '<div class="empty" style="padding:14px">보낼 것이 없습니다. ' +
+        '조건에 맞는 공고가 새로 뜨면 여기에 나옵니다.</div>';
+    bindCards($("alertPreview"));
+  }
+
+  $("alertSwitch").addEventListener("click", function () {
+    settings.alertOn = !settings.alertOn;
+    save();
+    renderAlert();
+  });
+
+  // ── 09 MY ──────────────────────────────────────────────
+  function renderMy() {
+    var who = { single: "혼자 신청", couple: "배우자·파트너와 함께", family: "자녀가 있는 가구" };
+    $("myWho").textContent = who[profile.householdType] || "내 조건";
+    $("myWhere").textContent = profile.residenceSido;
+
+    var lines = [
+      ["합산 가용 자금", manwon(profile.totalBudget)],
+      ["보유 현금", manwon(profile.totalCash)],
+      ["무주택 여부", profile.isHomeless ? "무주택" : "주택 보유"],
+      ["세대주 여부", profile.isHouseholder ? "세대주" : "세대원"],
+      ["청약통장", profile.accountType === "없음"
+        ? "없음"
+        : profile.accountPaymentCount + "회 · " + comma(profile.accountTotalAmount) + "만원"],
+      ["관심 유형", (profile.interestTypes || []).map(function (t) {
+        return TYPE_LABEL[t];
+      }).join(", ") || "없음"],
+      ["알림", settings.alertOn ? settings.alertHour + "시 · 하루 1회" : "꺼짐"]
+    ];
+    $("myLines").innerHTML = lines.map(function (l) {
+      return '<span><span class="k">' + esc(l[0]) + '</span><b>' + esc(l[1]) + '</b></span>';
+    }).join("");
+
+    $("myStamp").textContent =
+      "데이터 기준일 " + DATA_DATE + " · 공고 " + results.length + "건 · 매일 아침 6시 갱신";
+  }
+
+  $("myReset").addEventListener("click", function () {
+    if (!window.confirm("입력한 조건을 모두 지우고 기본값으로 되돌립니다. 계속할까요?")) return;
+    try { localStorage.removeItem(STORAGE_KEY); } catch (e) { /* 저장이 막힌 환경 */ }
+    applyToForm(DEFAULTS);
+    render();
+    go("onboarding");
+  });
+
+  // ── 01 온보딩 ──────────────────────────────────────────
+  var obStep = 1;
+  var OB_LAST = 4;
+
+  function showStep(step) {
+    obStep = Math.min(OB_LAST, Math.max(1, step));
+    document.querySelectorAll(".ob-step").forEach(function (el) {
+      el.hidden = parseInt(el.getAttribute("data-step"), 10) !== obStep;
+    });
+    $("obSteps").querySelectorAll("i").forEach(function (el, i) {
+      el.classList.toggle("on", i < obStep);
+    });
+    $("scTitle").textContent = "내 조건 입력 (" + obStep + "/" + OB_LAST + ")";
+    $("obPrev").textContent = obStep === 1 ? "취소" : "이전";
+    $("obNext").textContent = obStep === OB_LAST ? "저장하고 보기" : "다음";
+    syncFormVisibility();
+    scrollTop();
+  }
+
+  $("obPrev").addEventListener("click", function () {
+    if (obStep === 1) { go("home"); return; }
+    showStep(obStep - 1);
+  });
+  $("obNext").addEventListener("click", function () {
+    if (obStep === OB_LAST) { render(); go("home"); return; }
+    showStep(obStep + 1);
+  });
+
+  /// 가구 구성에 따라 안 쓰는 칸은 감춘다
+  function syncFormVisibility() {
+    var type = $("householdType").value;
+    var hasPartner = type !== "single";
+    $("wrap-child").hidden = type !== "family";
+    $("wrap-marriage").hidden = !hasPartner || $("isProspectiveCouple").checked;
+    document.querySelectorAll(".group-label").forEach(function (el) {
+      if (el.textContent.indexOf("배우자") >= 0) el.hidden = !hasPartner;
+    });
+    var partnerGrid = $("partnerCash").closest(".field-2");
+    if (partnerGrid) partnerGrid.hidden = !hasPartner;
+  }
+
+  // ── 다시 그리기 ────────────────────────────────────────
+  //
+  // 조건이 바뀌면 판정부터 다시 한다. 화면마다 흩어 두면 어긋나므로
+  // 한 곳에서 계산하고 각 화면은 그 결과만 읽는다.
+  function render() {
+    syncFormVisibility();
+    profile = readForm();
+
+    $("budgetOut").textContent = manwon(profile.totalBudget);
+
+    var now = today();
+    results = NOTICES.map(function (n) { return { n: n, ev: evaluate(profile, n, now) }; });
     results.sort(function (a, b) {
       if (a.ev.eligible !== b.ev.eligible) return a.ev.eligible ? -1 : 1;
       return b.ev.score - a.ev.score;
     });
 
-    var pass = results.filter(function (r) { return r.ev.eligible; }).length;
-    $("cntPass").textContent = pass;
-    $("cntFail").textContent = results.length - pass;
-
-    $("dataDate").textContent =
-      "청약홈·국토교통부 실거래가 기준일 " + DATA_DATE + " · 매일 오전 6시 자동 갱신";
-
-    $("diag").innerHTML = diagnoseHtml(results, p, pass);
-
-    $("cards").innerHTML = results.length
-      ? results.map(function (r) { return cardHtml(r.n, r.ev, now); }).join("")
-      : '<div class="panel empty">표시할 공고가 없습니다.</div>';
-
-    lastResults = results;
-    refreshMapMarkers();
+    renderHome(now);
+    renderAll(now);
     $("policies").innerHTML = policiesHtml();
+    refreshMapMarkers();
+    if (current === "calendar") renderCalendar();
+    if (current === "alert") renderAlert();
+    if (current === "my") renderMy();
+    if (current === "detail") renderDetail(detailId);
 
     save();
   }
 
-  // ── 진단: 무엇이 몇 건을 막고 있나 ─────────────────────────
-  var RULE_ORDER = ["BUDGET", "REGION", "ACCOUNT", "HOMELESS", "SCHEDULE", "TYPE"];
-  var RULE_NAME = {
-    BUDGET: "자금", REGION: "지역", ACCOUNT: "청약통장",
-    HOMELESS: "무주택", SCHEDULE: "일정", TYPE: "공고 유형"
-  };
+  // ── 초기화 ─────────────────────────────────────────────
+  $("residenceSido").innerHTML = SIDOS.map(function (s) {
+    return '<option>' + s + '</option>';
+  }).join("");
 
-  function diagnoseHtml(results, p, pass) {
-    if (!results.length) return "";
+  applyToForm(load());
 
-    if (pass > 0) {
-      return '<div class="diag ok">' +
-        '<h3>신청 가능한 공고가 ' + pass + '건 있습니다</h3>' +
-        '<p style="margin:0;font-size:13px;color:var(--ink-2);line-height:1.6">' +
-        '아래 목록에서 <b>신청 가능</b> 뱃지가 붙은 공고를 눌러 보세요. ' +
-        '7개 규칙의 판정 근거가 그대로 나옵니다.</p></div>';
-    }
-
-    // 필수 규칙별로 몇 건이 걸렸는지 센다
-    var counts = {};
-    results.forEach(function (r) {
-      r.ev.reasons.forEach(function (rs) {
-        if (!rs.required || rs.passed) return;
-        counts[rs.code] = (counts[rs.code] || 0) + 1;
-      });
+  // 조건이 바뀌면 즉시 다시 판정한다. 버튼을 누르게 하면 바꾼 걸 잊는다.
+  document.querySelectorAll("#sc-onboarding input, #sc-onboarding select")
+    .forEach(function (el) {
+      el.addEventListener("input", render);
+      el.addEventListener("change", render);
     });
 
-    var rows = RULE_ORDER
-      .filter(function (code) { return counts[code]; })
-      .map(function (code) {
-        var n = counts[code];
-        var pct = Math.round((n / results.length) * 100);
-        return '<div class="why-row">' +
-          '<span class="rname">' + RULE_NAME[code] + '</span>' +
-          '<span class="bar"><i style="width:' + pct + '%"></i></span>' +
-          '<span class="n">' + n + '/' + results.length + '</span>' +
-          '</div>';
-      }).join("");
-
-    return '<div class="diag">' +
-      '<h3>신청 가능한 공고가 없습니다 — 무엇이 막고 있나</h3>' +
-      '<div class="why">' + rows + '</div>' +
-      hintHtml(results, p, counts) +
-      '</div>';
-  }
-
-  /// 가장 가까운 공고 하나를 짚어 구체적으로 안내한다.
-  function hintHtml(results, p, counts) {
-    var budgetBlocked = counts.BUDGET || 0;
-
-    // 자금만 아니면 됐을 공고들 중 가장 싼 것
-    var nearBudget = results.filter(function (r) {
-      var blockers = r.ev.reasons.filter(function (rs) {
-        return rs.required && !rs.passed;
-      });
-      return blockers.length === 1 && blockers[0].code === "BUDGET" && r.n.price;
-    }).sort(function (a, b) { return a.n.price - b.n.price; })[0];
-
-    if (nearBudget) {
-      var need = nearBudget.n.price - p.totalBudget;
-      var cash = Math.round(nearBudget.n.price * 0.10);
-      var cashShort = cash - p.totalCash;
-      var msg = '<b>' + esc(nearBudget.n.name) + '</b> 은 자금만 맞으면 신청 가능합니다. ';
-      if (need > 0) {
-        msg += '분양가 ' + manwon(nearBudget.n.price) + ' 기준 <b>' + manwon(need) + '</b> 이 더 필요합니다.';
-      } else if (cashShort > 0) {
-        msg += '총액은 충분한데 계약금(약 10%) ' + manwon(cash) + ' 을 낼 현금이 <b>' + manwon(cashShort) + '</b> 모자랍니다.';
-      }
-      return '<div class="hint">' + msg + '</div>';
-    }
-
-    if (budgetBlocked === results.length) {
-      var cheapest = results.filter(function (r) { return r.n.price; })
-        .sort(function (a, b) { return a.n.price - b.n.price; })[0];
-      if (cheapest) {
-        return '<div class="hint">모든 공고가 자금 요건에서 걸렸습니다. ' +
-          '가장 저렴한 공고가 <b>' + manwon(cheapest.n.price) + '</b> 이라, ' +
-          '현재 가용 자금 ' + manwon(p.totalBudget) + ' 으로는 닿지 않습니다.<br>' +
-          '왼쪽에서 현금·대출 가능액을 조정해 보세요. (단위: 만원, 1억 = 10000)</div>';
-      }
-    }
-
-    if ((counts.REGION || 0) === results.length) {
-      return '<div class="hint">모든 공고가 <b>지역 요건</b>에서 걸렸습니다. ' +
-        '거주 시·도가 <b>' + esc(p.residenceSido) + '</b> 로 되어 있는데, ' +
-        '샘플 공고는 서울·경기·인천·부산·대구에만 있습니다. ' +
-        '거주지를 바꿔 보시거나, 실제 공고를 넣어 확인하시면 됩니다.</div>';
-    }
-
-    return '<div class="hint">왼쪽 조건을 조정하면 결과가 바로 다시 계산됩니다. ' +
-      '각 공고를 눌러 어떤 규칙에서 걸렸는지 확인해 보세요.</div>';
-  }
-
-  // ── 초기화 ─────────────────────────────────────────────
-  applyToForm(load() || DEFAULTS);
   render();
+  applyRoute();
   loadKakaoSdk();
-
-  document.querySelector(".col-form").addEventListener("input", render);
-  document.querySelector(".col-form").addEventListener("change", render);
-
-  $("reset").addEventListener("click", function () {
-    applyToForm(DEFAULTS);
-    render();
-  });
-
-  // 결과는 입력할 때마다 자동으로 갱신되지만, 누를 곳이 있어야 확인이 된다.
-  // 좁은 화면에서는 결과가 아래에 있어 보이지 않으므로 스크롤까지 해준다.
-  $("findBtn").addEventListener("click", function () {
-    render();
-    var target = document.getElementById("diag");
-    var summary = document.querySelector(".summary");
-    (target && target.firstChild ? target : summary)
-      .scrollIntoView({ behavior: "smooth", block: "start" });
-  });
 })();
 </script>
 
