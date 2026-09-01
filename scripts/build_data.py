@@ -1,0 +1,364 @@
+"""웹 시뮬레이터의 공고 데이터를 공공 API 에서 받아 index.html 에 갈아끼운다.
+
+브라우저는 공공데이터포털 API 를 CORS 로 직접 부를 수 없다.
+그래서 하루 한 번 이 스크립트가 대신 받아 페이지에 구워 넣는다.
+(GitHub Actions 가 매일 06:00 KST 에 실행한다 — .github/workflows/daily.yml)
+
+수집 대상
+  1) 청약홈 분양정보  — 접수가 끝나지 않은 공고 + 주택형별 분양가
+  2) 국토교통부 실거래가 — 각 공고 시·군·구의 최근 아파트 매매 (주변 시세)
+
+실행:
+    DATA_GO_KR_KEY=... python scripts/build_data.py [--out web/index.html]
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import re
+import subprocess
+import sys
+import urllib.parse
+import urllib.request
+import xml.etree.ElementTree as ET
+from datetime import date, timedelta
+
+APPLYHOME_BASE = "https://api.odcloud.kr/api/ApplyhomeInfoDetailSvc/v1"
+RTMS_URL = (
+    "https://apis.data.go.kr/1613000/RTMSDataSvcAptTrade/getRTMSDataSvcAptTrade"
+)
+
+OPERATIONS = {
+    "APT": ("getAPTLttotPblancDetail", "getAPTLttotPblancMdl"),
+    "OFFICETEL": ("getUrbtyOfctlLttotPblancDetail", "getUrbtyOfctlLttotPblancMdl"),
+    "REMNANT": ("getRemndrLttotPblancDetail", "getRemndrLttotPblancMdl"),
+}
+
+# SUBSCRPT_AREA_CODE_NM 은 축약형('경기')으로 온다.
+AREA_NAMES = {
+    "서울": "서울특별시", "부산": "부산광역시", "대구": "대구광역시",
+    "인천": "인천광역시", "광주": "광주광역시", "대전": "대전광역시",
+    "울산": "울산광역시", "세종": "세종특별자치시", "경기": "경기도",
+    "강원": "강원특별자치도", "충북": "충청북도", "충남": "충청남도",
+    "전북": "전북특별자치도", "전남": "전라남도", "경북": "경상북도",
+    "경남": "경상남도", "제주": "제주특별자치도",
+}
+
+# 실거래가 조회에 쓰는 법정동코드(5자리).
+# 실제 응답의 estateAgentSggNm 으로 검증한 값만 넣는다.
+# 새 지역 공고가 뜨면 여기에 추가한다 — 없으면 시세만 비고, 공고는 정상 표시된다.
+LAWD_CODES = {
+    ("서울특별시", "종로구"): "11110", ("서울특별시", "중구"): "11140",
+    ("서울특별시", "용산구"): "11170", ("서울특별시", "성동구"): "11200",
+    ("서울특별시", "광진구"): "11215", ("서울특별시", "동대문구"): "11230",
+    ("서울특별시", "중랑구"): "11260", ("서울특별시", "성북구"): "11290",
+    ("서울특별시", "강북구"): "11305", ("서울특별시", "도봉구"): "11320",
+    ("서울특별시", "노원구"): "11350", ("서울특별시", "은평구"): "11380",
+    ("서울특별시", "서대문구"): "11410", ("서울특별시", "마포구"): "11440",
+    ("서울특별시", "양천구"): "11470", ("서울특별시", "강서구"): "11500",
+    ("서울특별시", "구로구"): "11530", ("서울특별시", "금천구"): "11545",
+    ("서울특별시", "영등포구"): "11560", ("서울특별시", "동작구"): "11590",
+    ("서울특별시", "관악구"): "11620", ("서울특별시", "서초구"): "11650",
+    ("서울특별시", "강남구"): "11680", ("서울특별시", "송파구"): "11710",
+    ("서울특별시", "강동구"): "11740",
+    ("인천광역시", "중구"): "28110", ("인천광역시", "동구"): "28140",
+    ("인천광역시", "미추홀구"): "28177", ("인천광역시", "연수구"): "28185",
+    ("인천광역시", "남동구"): "28200", ("인천광역시", "부평구"): "28237",
+    ("인천광역시", "계양구"): "28245", ("인천광역시", "서구"): "28260",
+    ("경기도", "수원시"): "41110", ("경기도", "성남시"): "41130",
+    ("경기도", "의정부시"): "41150", ("경기도", "안양시"): "41170",
+    ("경기도", "부천시"): "41190", ("경기도", "광명시"): "41210",
+    ("경기도", "평택시"): "41220", ("경기도", "안산시"): "41270",
+    ("경기도", "고양시"): "41280", ("경기도", "과천시"): "41290",
+    ("경기도", "구리시"): "41310", ("경기도", "남양주시"): "41360",
+    ("경기도", "오산시"): "41370", ("경기도", "시흥시"): "41390",
+    ("경기도", "군포시"): "41410", ("경기도", "의왕시"): "41430",
+    ("경기도", "하남시"): "41450", ("경기도", "용인시"): "41460",
+    ("경기도", "파주시"): "41480", ("경기도", "이천시"): "41500",
+    ("경기도", "안성시"): "41550", ("경기도", "김포시"): "41570",
+    ("경기도", "화성시"): "41590", ("경기도", "광주시"): "41610",
+    ("경기도", "양주시"): "41630", ("경기도", "포천시"): "41650",
+    ("부산광역시", "해운대구"): "26350", ("부산광역시", "남구"): "26290",
+    ("대구광역시", "수성구"): "27260", ("대전광역시", "유성구"): "30200",
+    ("경상남도", "창원시"): "48120",
+}
+
+# 특별공급 유형별 세대수 필드
+SPECIAL_FIELDS = [
+    ("NWBB_HSHLDCO", "신혼부부"), ("LFE_FRST_HSHLDCO", "생애최초"),
+    ("MNYCH_HSHLDCO", "다자녀"), ("OLD_PARNTS_SUPORT_HSHLDCO", "노부모부양"),
+    ("NWWDS_HSHLDCO", "신생아"), ("YGMN_HSHLDCO", "청년"),
+    ("INSTT_RECOMEND_HSHLDCO", "기관추천"), ("ETC_HSHLDCO", "기타"),
+]
+
+TIMEOUT = 40
+
+# urllib 이 막힌 환경인지 한 번만 판단한다.
+# 매 요청마다 타임아웃(20초+)을 기다리면 전체 수집이 몇 분씩 늘어진다.
+_USE_CURL = False
+
+
+# ---------------------------------------------------------------------------
+def fetch(url: str, params: dict) -> bytes:
+    """urllib 우선, 막히면 curl 로 폴백.
+
+    사내망처럼 프록시를 강제하는 환경에서는 urllib 이 직접 나가지 못하는데
+    curl 은 시스템 프록시를 타서 동작한다. GitHub Actions 에서는 urllib 로 끝난다.
+    """
+    global _USE_CURL
+    query = urllib.parse.urlencode(params, doseq=True)
+    full = f"{url}?{query}"
+
+    if not _USE_CURL:
+        try:
+            with urllib.request.urlopen(full, timeout=TIMEOUT) as res:
+                return res.read()
+        except Exception:
+            _USE_CURL = True  # 이후 요청은 바로 curl 로 간다
+
+    result = subprocess.run(
+        ["curl", "-s", "--max-time", str(TIMEOUT), full], capture_output=True
+    )
+    if result.returncode != 0 or not result.stdout:
+        raise RuntimeError(f"요청 실패: {url}")
+    return result.stdout
+
+
+def fetch_json(url: str, params: dict):
+    return json.loads(fetch(url, params).decode("utf-8"))
+
+
+def odcloud(operation: str, key: str, params: dict) -> list[dict]:
+    body = fetch_json(
+        f"{APPLYHOME_BASE}/{operation}", {"serviceKey": key, **params}
+    )
+    data = body.get("data")
+    return data if isinstance(data, list) else []
+
+
+def area_of(house_ty: str | None) -> float | None:
+    """'055.9700A' → 55.97 (전용면적). SUPLY_AR 은 공급면적이라 쓰면 안 된다."""
+    match = re.match(r"^\s*(\d+(?:\.\d+)?)", house_ty or "")
+    return round(float(match.group(1)), 2) if match else None
+
+
+def to_int(value) -> int | None:
+    digits = re.sub(r"[^0-9]", "", str(value or ""))
+    return int(digits) if digits else None
+
+
+# ---------------------------------------------------------------------------
+def collect_notices(key: str, today: date) -> list[dict]:
+    """접수가 끝나지 않은 공고 + 주택형별 분양가."""
+    since = (today - timedelta(days=90)).isoformat()
+    notices: list[dict] = []
+
+    for kind, (detail_op, model_op) in OPERATIONS.items():
+        rows: list[dict] = []
+        for page in range(1, 6):
+            page_rows = odcloud(detail_op, key, {
+                "page": page, "perPage": 100,
+                "cond[RCRIT_PBLANC_DE::GTE]": since,
+            })
+            rows += page_rows
+            if len(page_rows) < 100:
+                break
+
+        for row in rows:
+            remnant = kind == "REMNANT"
+            begin = row.get("SUBSCRPT_RCEPT_BGNDE" if remnant else "RCEPT_BGNDE")
+            end = row.get("SUBSCRPT_RCEPT_ENDDE" if remnant else "RCEPT_ENDDE") or begin
+            if not end or end < today.isoformat():
+                continue  # 이미 마감
+
+            house_manage_no = str(row.get("HOUSE_MANAGE_NO") or "")
+            pblanc_no = str(row.get("PBLANC_NO") or "")
+            if not house_manage_no or not pblanc_no:
+                continue
+
+            address = row.get("HSSPLY_ADRES") or ""
+            tokens = address.split()
+            sido = AREA_NAMES.get((row.get("SUBSCRPT_AREA_CODE_NM") or "").strip())
+            # 무순위 공고 주소는 시도로 시작하지 않는 경우가 있어 일치할 때만 쓴다
+            sigungu = tokens[1] if len(tokens) > 1 and tokens[0] == sido else ""
+
+            units = []
+            for unit in odcloud(model_op, key, {
+                "page": 1, "perPage": 50,
+                "cond[HOUSE_MANAGE_NO::EQ]": house_manage_no,
+                "cond[PBLANC_NO::EQ]": pblanc_no,
+            }):
+                units.append({
+                    "ty": unit.get("HOUSE_TY"),
+                    "area": area_of(unit.get("HOUSE_TY")),
+                    "gen": to_int(unit.get("SUPLY_HSHLDCO")) or 0,
+                    "spc": to_int(unit.get("SPSPLY_HSHLDCO")) or 0,
+                    "price": to_int(unit.get("LTTOT_TOP_AMOUNT")),
+                    "sp": {
+                        label: to_int(unit.get(field))
+                        for field, label in SPECIAL_FIELDS
+                        if to_int(unit.get(field))
+                    },
+                })
+            units.sort(key=lambda u: u["area"] or 0)
+            prices = [u["price"] for u in units if u["price"]]
+
+            flags = []
+            if row.get("SPECLT_RDN_EARTH_AT") == "Y":
+                flags.append("투기과열지구")
+            if row.get("MDAT_TRGET_AREA_SECD") == "Y":
+                flags.append("조정대상지역")
+            if row.get("PARCPRC_ULS_AT") == "Y":
+                flags.append("분양가상한제")
+            if row.get("PUBLIC_HOUSE_EARTH_AT") == "Y":
+                flags.append("공공주택지구")
+            if row.get("LRSCL_BLDLND_AT") == "Y":
+                flags.append("대규모 택지")
+            if row.get("IMPRMN_BSNS_AT") == "Y":
+                flags.append("정비사업")
+
+            notices.append({
+                "name": (row.get("HOUSE_NM") or "").strip(),
+                "type": kind,
+                "sido": sido, "sigungu": sigungu, "addr": address,
+                "builder": (row.get("CNSTRCT_ENTRPS_NM")
+                            or row.get("BSNS_MBY_NM") or "")[:40],
+                # 국민/민영 구분은 HOUSE_DTL_SECD_NM 에 있다(HOUSE_SECD_NM 은 주택 종류)
+                "isNationalHousing": "국민" in (row.get("HOUSE_DTL_SECD_NM") or ""),
+                "isSpeculationArea": row.get("SPECLT_RDN_EARTH_AT") == "Y"
+                                     or row.get("MDAT_TRGET_AREA_SECD") == "Y",
+                "price": min(prices) if prices else None,
+                "priceMax": max(prices) if prices else None,
+                "area": units[0]["area"] if units else None,
+                "supply": to_int(row.get("TOT_SUPLY_HSHLDCO")),
+                "begin": begin, "end": end,
+                "special": row.get("SPSPLY_RCEPT_BGNDE"),
+                "rank1": (row.get("GNRL_RNK1_CRSPAREA_RCPTDE")
+                          or row.get("GNRL_RNK1_ETC_AREA_RCPTDE")),
+                "announce": row.get("PRZWNER_PRESNATN_DE"),
+                "moveIn": row.get("MVN_PREARNGE_YM"),
+                "flags": flags,
+                "url": row.get("PBLANC_URL") or row.get("HMPG_ADRES") or "",
+                "tel": row.get("MDHS_TELNO") or "",
+                "units": units,
+            })
+
+    notices.sort(key=lambda n: n["begin"] or "9999")
+    return notices
+
+
+# ---------------------------------------------------------------------------
+def collect_trades(key: str, regions: set[tuple[str, str]], today: date) -> dict:
+    """공고가 있는 시·군·구의 최근 아파트 매매 실거래 (주변 시세)."""
+    trades: dict[str, list[dict]] = {}
+
+    for sido, sigungu in sorted(regions):
+        code = LAWD_CODES.get((sido, sigungu))
+        if not code:
+            continue  # 코드 미등록 지역 — 시세만 비고 공고는 정상 표시
+
+        rows: list[dict] = []
+        # 최근 2개월치를 본다. 이번 달은 거래가 적을 수 있다.
+        for back in (0, 1):
+            month = date(today.year, today.month, 1) - timedelta(days=back * 28)
+            try:
+                xml = fetch(RTMS_URL, {
+                    "serviceKey": key, "LAWD_CD": code,
+                    "DEAL_YMD": month.strftime("%Y%m"), "numOfRows": 200,
+                })
+            except Exception as error:  # 한 지역 실패가 전체를 막지 않게
+                print(f"  ! {sido} {sigungu} 실거래 실패: {error}", file=sys.stderr)
+                continue
+
+            for item in ET.fromstring(xml).findall(".//item"):
+                def text(tag):
+                    return (item.findtext(tag) or "").strip()
+
+                amount = to_int(text("dealAmount"))
+                area = text("excluUseAr")
+                if not amount or not area:
+                    continue
+                rows.append({
+                    "apt": text("aptNm"), "dong": text("umdNm"),
+                    "area": round(float(area), 2), "amount": amount,
+                    "year": to_int(text("buildYear")),
+                    "ym": f"{text('dealYear')}.{text('dealMonth').zfill(2)}",
+                })
+
+        # 단지별로 가장 최근(=목록 뒤쪽) 거래 하나만 남기고, 거래가 많은 순으로
+        by_apt: dict[str, dict] = {}
+        counts: dict[str, int] = {}
+        for row in rows:
+            counts[row["apt"]] = counts.get(row["apt"], 0) + 1
+            by_apt[row["apt"]] = row
+        picked = sorted(by_apt.values(), key=lambda r: -counts[r["apt"]])[:5]
+        if picked:
+            trades[f"{sido} {sigungu}"] = picked
+
+    return trades
+
+
+# ---------------------------------------------------------------------------
+def main() -> int:
+    # 윈도우 콘솔(cp949)에서 한글·기호 출력이 깨지지 않게
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+    except AttributeError:
+        pass
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--out", default="index.html")
+    args = parser.parse_args()
+
+    key = os.environ.get("DATA_GO_KR_KEY", "").strip()
+    if not key:
+        print("DATA_GO_KR_KEY 환경변수가 필요합니다.", file=sys.stderr)
+        return 1
+
+    today = date.today()
+    print(f"[1/3] 청약 공고 수집 (기준일 {today})")
+    notices = collect_notices(key, today)
+    priced = sum(1 for n in notices if n["price"])
+    print(f"      접수 진행/예정 {len(notices)}건 · 분양가 확보 {priced}건")
+
+    regions = {(n["sido"], n["sigungu"]) for n in notices if n["sido"] and n["sigungu"]}
+    print(f"[2/3] 주변 시세 수집 ({len(regions)}개 시·군·구)")
+    trades = collect_trades(key, regions, today)
+    print(f"      시세 확보 {len(trades)}개 지역")
+
+    print(f"[3/3] {args.out} 갱신")
+    path = __import__("pathlib").Path(args.out)
+    html = path.read_text(encoding="utf-8")
+
+    block = (
+        "  /* DATA:BEGIN — scripts/build_data.py 가 매일 갈아끼운다. 직접 고치지 말 것 */\n"
+        "  var NOTICES = "
+        + json.dumps(notices, ensure_ascii=False, indent=2).replace("\n", "\n  ")
+        + ";\n  var TRADES = "
+        + json.dumps(trades, ensure_ascii=False, indent=2).replace("\n", "\n  ")
+        + ";\n"
+        + f'  var DATA_DATE = "{today.isoformat()}";\n'
+        "  /* DATA:END */"
+    )
+
+    updated = re.sub(
+        r"  /\* DATA:BEGIN.*?/\* DATA:END \*/",
+        lambda _: block,
+        html,
+        count=1,
+        flags=re.S,
+    )
+    if updated == html:
+        print("      DATA 마커를 찾지 못했습니다.", file=sys.stderr)
+        return 1
+
+    path.write_text(updated, encoding="utf-8")
+    print(f"      완료: 공고 {len(notices)}건, 시세 {len(trades)}개 지역")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
