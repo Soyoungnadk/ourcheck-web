@@ -104,6 +104,11 @@
   }
 
   * { box-sizing: border-box; }
+
+  /* hidden 은 display 선언에 밀린다. [hidden]{display:none} 은 브라우저
+     기본 규칙이라 .map-fallback{display:flex} 같은 한 줄에 지고, 숨겼다고
+     생각한 오버레이가 그대로 남아 지도를 덮는다. 전역으로 못 박는다. */
+  [hidden] { display: none !important; }
   html, body { margin: 0; padding: 0; }
   body {
     background: var(--paper); color: var(--ink);
@@ -399,7 +404,7 @@
     position: relative; border-radius: 10px; overflow: hidden;
     border: 1px solid var(--line); background: var(--surface-2);
   }
-  #map { width: 100%; height: 62vh; min-height: 300px; }
+  #map { width: 100%; height: 62vh; min-height: 300px; background: transparent; }
   .mk {
     display: inline-block; transform: translate(-50%, -100%);
     font-size: 11px; font-weight: 700; line-height: 1;
