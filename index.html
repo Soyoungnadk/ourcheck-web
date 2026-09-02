@@ -4179,12 +4179,15 @@
   /// 숨겨진 채로 만들면 컨테이너 크기가 0이라 타일이 그려지지 않는다.
   function whenMapVisible() {
     if (!map) {
-      // setupMap 이 던지면 지도가 조용히 죽는다. 이유를 남기고 넘어간다.
-      if (sdkReady) {
+      if (!sdkReady) return;   // SDK 가 준비될 때 다시 부른다
+      // 방금 hidden 을 푼 칸이라 배치가 아직 끝나지 않았다. 카카오는 만들 때
+      // 본 크기를 그대로 쓰므로 배치가 끝난 다음 프레임까지 기다린다.
+      nextFrame(function () {
+        if (map) return;
         try { setupMap(); }
         catch (e) { mapFail(domainHelp(String(e && e.message || e))); }
-      }
-      return;   // 아직이면 SDK 가 준비될 때 그린다
+      });
+      return;
     }
     kakao.maps.event.trigger(map, "resize");
     refreshMapMarkers();
@@ -4219,10 +4222,23 @@
     setTimeout(checkTiles, 4000);
   }
 
+  /// 다음 그리기 차례까지 기다린다. 오래된 WebView 에는 rAF 가 없다.
+  function nextFrame(fn) {
+    if (window.requestAnimationFrame) window.requestAnimationFrame(fn);
+    else setTimeout(fn, 16);
+  }
+
   /// 지도에게 칸 크기를 다시 재라고 시킨다.
+  ///
+  /// 카카오는 이 상황을 위해 map.relayout() 을 따로 준다.
+  /// event.trigger(map, "resize") 는 구글 지도식 관용구라 여기서는 듣지 않는다.
+  /// 크기를 다시 잡은 뒤에는 중심을 새로 정해 줘야 그려진다.
   function relayout() {
     if (!map) return;
-    kakao.maps.event.trigger(map, "resize");
+    try {
+      if (typeof map.relayout === "function") map.relayout();
+      else kakao.maps.event.trigger(map, "resize");
+    } catch (e) { /* 진단이 본체를 막으면 안 된다 */ }
     refreshMapMarkers();
   }
 
@@ -4243,7 +4259,11 @@
     });
 
     var box = $("map").getBoundingClientRect();
-    mapNote("크기 " + Math.round(box.width) + "×" + Math.round(box.height) +
+    // 겉칸은 멀쩡한데 카카오가 만든 속칸이 0 이면 자식이 통째로 잘린다
+    var inner = $("map").firstElementChild;
+    var innerBox = inner ? inner.getBoundingClientRect() : { width: 0, height: 0 };
+    mapNote("겉 " + Math.round(box.width) + "×" + Math.round(box.height) +
+            " · 속 " + Math.round(innerBox.width) + "×" + Math.round(innerBox.height) +
             " · 타일 " + loaded + "/" + tiles.length + " 로드" +
             (host ? " (" + host + ")" : "") +
             " · 마커 " + mapMarkers.length);
