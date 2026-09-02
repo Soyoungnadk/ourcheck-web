@@ -4104,6 +4104,8 @@
 
   var map = null;
   var sdkReady = false;   // kakao.maps.load 가 끝났는지
+  var rebuilds = 0;       // 비어 있어 다시 만든 횟수
+  var mapHealthy = false; // 한 번이라도 제대로 그려졌는지
   var mapMarkers = [];      // 공고 마커
   var tradeMarkers = [];    // 근처 시세 마커
   var mapType = "";         // "" = 전체
@@ -4219,7 +4221,25 @@
     // 0×0 으로 굳어 타일을 받고도 그릴 자리가 없다. 다음 프레임에 다시 잡아 준다.
     relayout();
     setTimeout(relayout, 300);
+    // 비어 있으면 빨리 알아채고 다시 만든다. 4초를 기다리면 이미 늦다.
+    setTimeout(checkTiles, 800);
+    setTimeout(checkTiles, 2000);
     setTimeout(checkTiles, 4000);
+  }
+
+  /// 지도를 통째로 버리고 다시 만든다. 마커도 함께 새로 붙는다.
+  function rebuildMap() {
+    try {
+      mapMarkers.forEach(function (m) { m.overlay.setMap(null); });
+      tradeMarkers.forEach(function (m) { m.overlay.setMap(null); });
+    } catch (e) { /* 이미 사라졌을 수 있다 */ }
+    mapMarkers = [];
+    tradeMarkers = [];
+    map = null;
+    mapHealthy = false;
+    $("map").innerHTML = "";
+    try { setupMap(); }
+    catch (e) { mapFail(domainHelp(String(e && e.message || e))); }
   }
 
   /// 다음 그리기 차례까지 기다린다. 오래된 WebView 에는 rAF 가 없다.
@@ -4248,6 +4268,7 @@
   /// (타일은 dapi.kakao.com 이 아니라 daumcdn.net 에서 온다)
   function checkTiles() {
     if (!$("mapFallback").hidden) return;
+    if (mapHealthy) return;   // 한 번 제대로 그려졌으면 그만 본다
 
     var tiles = $("map").querySelectorAll("img");
     var loaded = 0, host = "";
@@ -4268,6 +4289,17 @@
             (host ? " (" + host + ")" : "") +
             " · 마커 " + mapMarkers.length);
 
+    // 겉칸은 멀쩡한데 속이 비었으면 지도를 버리고 다시 만든다.
+    // 크기를 다시 재라고 시키는 것만으로 안 되는 경우가 있는데,
+    // 이 시점에는 배치가 확실히 끝나 있어 새로 만들면 제대로 잡힌다.
+    var broken = box.width > 40 && (innerBox.width < 40 || !loaded);
+    if (broken && rebuilds < 2) {
+      rebuilds++;
+      mapNote("비어 있어 다시 만듦(" + rebuilds + ")");
+      rebuildMap();
+      return;
+    }
+
     if (box.width < 40 || box.height < 40) {
       mapFail({
         title: "지도 자리가 확보되지 않았습니다",
@@ -4276,6 +4308,10 @@
               "새로고침해 주세요.",
         retry: true
       });
+      return;
+    }
+    if (loaded && innerBox.width > 40) {
+      mapHealthy = true;
       return;
     }
     if (!loaded) {
