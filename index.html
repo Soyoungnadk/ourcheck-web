@@ -594,6 +594,7 @@
         <button type="button" class="chip" data-mtype="REMNANT">무순위</button>
         <span style="flex:1"></span>
         <button type="button" class="chip trade on" id="chipTrade">근처 시세</button>
+        <button type="button" class="chip" id="chipRedraw" title="지도 다시 그리기">↻</button>
       </div>
       <div class="map-stage">
         <div id="map"></div>
@@ -4178,7 +4179,11 @@
   /// 숨겨진 채로 만들면 컨테이너 크기가 0이라 타일이 그려지지 않는다.
   function whenMapVisible() {
     if (!map) {
-      if (sdkReady) setupMap();
+      // setupMap 이 던지면 지도가 조용히 죽는다. 이유를 남기고 넘어간다.
+      if (sdkReady) {
+        try { setupMap(); }
+        catch (e) { mapFail(domainHelp(String(e && e.message || e))); }
+      }
       return;   // 아직이면 SDK 가 준비될 때 그린다
     }
     kakao.maps.event.trigger(map, "resize");
@@ -4206,7 +4211,19 @@
     buildTradeMarkers();
     refreshMapMarkers();
 
+    // 방금 hidden 을 푼 칸이라 브라우저가 아직 배치를 계산하지 않았을 수 있다.
+    // 카카오는 만들 때 본 크기를 그대로 쓰므로, 그때 0 이었으면 내부 화면이
+    // 0×0 으로 굳어 타일을 받고도 그릴 자리가 없다. 다음 프레임에 다시 잡아 준다.
+    relayout();
+    setTimeout(relayout, 300);
     setTimeout(checkTiles, 4000);
+  }
+
+  /// 지도에게 칸 크기를 다시 재라고 시킨다.
+  function relayout() {
+    if (!map) return;
+    kakao.maps.event.trigger(map, "resize");
+    refreshMapMarkers();
   }
 
   /// 타일 <img> 가 만들어졌다고 그려진 게 아니다.
@@ -4386,6 +4403,18 @@
       mapType = chip.getAttribute("data-mtype");
       refreshMapMarkers();
     });
+  });
+
+  $("chipRedraw").addEventListener("click", function () {
+    mapSteps.length = 0;
+    mapErrors.length = 0;
+    mapNote("다시 그리기");
+    relayout();
+    setTimeout(checkTiles, 1500);
+  });
+
+  window.addEventListener("resize", function () {
+    if (current === "map") relayout();
   });
 
   $("chipTrade").addEventListener("click", function () {
