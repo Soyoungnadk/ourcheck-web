@@ -444,6 +444,12 @@
     border: 1px solid var(--line);
   }
 
+  .map-status {
+    margin: 8px 2px 0; font-family: var(--mono); font-size: 11px;
+    color: var(--ink-3); line-height: 1.6; word-break: break-all;
+  }
+  .map-status.bad { color: var(--fail); }
+
   /* ── 정책 ──────────────────────────────────────────────── */
   .policy-list { list-style: none; margin: 0; padding: 0; }
   .policy-list li {
@@ -594,6 +600,7 @@
         <div class="map-fallback" id="mapFallback" hidden></div>
         <div class="map-pick" id="mapPick" hidden></div>
       </div>
+      <p class="map-status" id="mapStatus">지도 준비 중…</p>
       <div class="legend">
         <span><i style="background:var(--pass);border-radius:2px"></i>신청 가능</span>
         <span><i style="background:var(--apt);border-radius:2px"></i>아파트</span>
@@ -3541,6 +3548,48 @@
   });
   $("navAlert").addEventListener("click", function () { go("alert"); });
 
+  // ── 지도 진단 ───────────────────────────────────────────
+  //
+  // 지도가 왜 안 나오는지 두 번 짐작으로 고치다 실패했다.
+  // 이제는 페이지가 스스로 상태를 말하게 한다. 화면 아래 한 줄에
+  // 어디까지 갔는지와 카카오가 뱉은 오류를 그대로 적는다.
+  var mapSteps = [];
+  var mapErrors = [];
+
+  function mapNote(step) {
+    if (step) mapSteps.push(step);
+    var el = $("mapStatus");
+    if (!el) return;
+    var line = mapSteps.join(" → ");
+    if (mapErrors.length) line += "  ⚠ " + mapErrors.join(" / ");
+    el.textContent = line;
+    el.classList.toggle("bad", mapErrors.length > 0);
+  }
+
+  // 카카오는 도메인이 등록돼 있지 않으면 콘솔에만 오류를 남기고 조용히 멈춘다.
+  // 폰에서는 콘솔을 볼 수 없으니 여기서 붙잡아 화면에 띄운다.
+  ["error", "warn"].forEach(function (level) {
+    var original = console[level];
+    console[level] = function () {
+      try {
+        var msg = Array.prototype.map.call(arguments, String).join(" ");
+        if (/kakao|appkey|authoriz|도메인|dapi|maps/i.test(msg)) {
+          mapErrors.push(msg.slice(0, 200));
+          mapNote(null);
+        }
+      } catch (e) { /* 진단이 본체를 막으면 안 된다 */ }
+      return original.apply(console, arguments);
+    };
+  });
+
+  window.addEventListener("error", function (e) {
+    var src = (e.target && (e.target.src || e.target.href)) || "";
+    if (/dapi\.kakao/.test(String(src))) {
+      mapErrors.push("SDK 파일을 받지 못함 (차단 또는 도메인 거부)");
+      mapNote(null);
+    }
+  }, true);
+
   // ── 판정 · 목록 ────────────────────────────────────────
   var results = [];        // [{ n, ev }] — 조건이 바뀔 때마다 다시 계산한다
   var profile = null;
@@ -4053,6 +4102,7 @@
   var KAKAO_JS_KEY = "8f5adbaf8384edb299b5e1a6abbc39f4";
 
   var map = null;
+  var sdkReady = false;   // kakao.maps.load 가 끝났는지
   var mapMarkers = [];      // 공고 마커
   var tradeMarkers = [];    // 근처 시세 마커
   var mapType = "";         // "" = 전체
@@ -4077,27 +4127,29 @@
   function loadKakaoSdk() {
     var el = document.createElement("script");
     el.src = "https://dapi.kakao.com/v2/maps/sdk.js?autoload=false&appkey=" + KAKAO_JS_KEY;
+    mapNote("SDK 요청");
 
     el.onload = function () {
-      if (!window.kakao || !kakao.maps) { mapFail(domainHelp()); return; }
+      mapNote("SDK 응답");
+      if (!window.kakao || !kakao.maps) {
+        mapNote("kakao.maps 없음");
+        mapFail(domainHelp());
+        return;
+      }
       kakao.maps.load(function () {
-        if (current !== "map") return;   // 지도 탭을 열 때 그린다
-        try { setupMap(); }
-        catch (e) { mapFail(domainHelp(String(e && e.message || e))); return; }
-        // SDK 가 로드돼도 도메인이 등록돼 있지 않으면 타일 요청이 거부되어
-        // 지도가 빈 채로 남는다. 오류도 던지지 않아 여기서 직접 확인한다.
-        setTimeout(function () {
-          if (!$("mapFallback").hidden) return;
-          var drawn = $("map").querySelectorAll("img, canvas").length;
-          if (!drawn) mapFail(domainHelp("지도 타일이 그려지지 않았습니다"));
-        }, 4000);
+        sdkReady = true;
+        mapNote("SDK 준비됨");
+        if (current === "map") whenMapVisible();
       });
     };
 
     // 카카오는 등록되지 않은 도메인의 요청을 거부한다.
     // 그러면 브라우저에는 '스크립트 로드 실패' 로 잡히므로 여기로 온다.
     // 네트워크 차단보다 도메인 미등록이 훨씬 흔하다 — 그 순서로 안내한다.
-    el.onerror = function () { mapFail(domainHelp()); };
+    el.onerror = function () {
+      mapNote("SDK 로드 실패");
+      mapFail(domainHelp());
+    };
 
     document.head.appendChild(el);
   }
@@ -4123,8 +4175,8 @@
   /// 숨겨진 채로 만들면 컨테이너 크기가 0이라 타일이 그려지지 않는다.
   function whenMapVisible() {
     if (!map) {
-      if (window.kakao && kakao.maps) setupMap();
-      return;
+      if (sdkReady) setupMap();
+      return;   // 아직이면 SDK 가 준비될 때 그린다
     }
     kakao.maps.event.trigger(map, "resize");
     refreshMapMarkers();
@@ -4143,12 +4195,20 @@
       level: 9
     });
     map.addControl(new kakao.maps.ZoomControl(), kakao.maps.ControlPosition.RIGHT);
+    mapNote("지도 생성");
 
     // 빈 곳을 누르면 요약 카드를 닫는다
     kakao.maps.event.addListener(map, "click", function () { clearPick(); });
 
     buildTradeMarkers();
     refreshMapMarkers();
+
+    setTimeout(function () {
+      if (!$("mapFallback").hidden) return;
+      var drawn = $("map").querySelectorAll("img, canvas").length;
+      mapNote("타일 " + drawn + "개 · 마커 " + mapMarkers.length + "개");
+      if (!drawn) mapFail(domainHelp("지도 타일이 그려지지 않았습니다"));
+    }, 4000);
   }
 
   /// 근처 시세 — 회색 점. 공고와 구분되게 모양도 다르게 둔다.
