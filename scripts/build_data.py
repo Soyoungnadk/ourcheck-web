@@ -34,11 +34,71 @@ GWANBO_HOST = "https://gwanbo.go.kr"
 KAKAO_ADDRESS_URL = "https://dapi.kakao.com/v2/local/search/address.json"
 KAKAO_KEYWORD_URL = "https://dapi.kakao.com/v2/local/search/keyword.json"
 
+# 청약홈이 주는 다섯 갈래를 모두 본다. 오퍼레이션마다 필드 이름이 달라서
+# 여기에 함께 적어 둔다 — 오피스텔에서 APT 필드를 그대로 읽다가 분양가가
+# 통째로 빈 적이 있다.
+#
+#   detail/model : 오퍼레이션 이름
+#   begin/end    : 접수 시작·종료 필드
+#   ty           : 주택형 이름 필드(여럿이면 앞에서부터 찾는다)
+#   area         : 전용면적. None 이면 주택형 문자열에서 뽑는다
+#   price        : 분양가(만원)
+#   general      : 일반공급 세대수
+#   special      : 특별공급 세대수. None 이면 특별공급이 없는 갈래다
+#   rental       : 분양이 아니라 임대인가
 OPERATIONS = {
-    "APT": ("getAPTLttotPblancDetail", "getAPTLttotPblancMdl"),
-    "OFFICETEL": ("getUrbtyOfctlLttotPblancDetail", "getUrbtyOfctlLttotPblancMdl"),
-    "REMNANT": ("getRemndrLttotPblancDetail", "getRemndrLttotPblancMdl"),
+    "APT": {
+        "detail": "getAPTLttotPblancDetail", "model": "getAPTLttotPblancMdl",
+        "begin": ["RCEPT_BGNDE"], "end": ["RCEPT_ENDDE"],
+        "ty": ["HOUSE_TY"], "area": None,
+        "price": "LTTOT_TOP_AMOUNT",
+        "general": "SUPLY_HSHLDCO", "special": "SPSPLY_HSHLDCO",
+        "rental": False,
+    },
+    "OFFICETEL": {
+        "detail": "getUrbtyOfctlLttotPblancDetail", "model": "getUrbtyOfctlLttotPblancMdl",
+        "begin": ["SUBSCRPT_RCEPT_BGNDE"], "end": ["SUBSCRPT_RCEPT_ENDDE"],
+        "ty": ["TP", "GP"], "area": "EXCLUSE_AR",
+        "price": "SUPLY_AMOUNT",
+        "general": "SUPLY_HSHLDCO", "special": None,
+        "rental": False,
+    },
+    "REMNANT": {
+        "detail": "getRemndrLttotPblancDetail", "model": "getRemndrLttotPblancMdl",
+        "begin": ["SUBSCRPT_RCEPT_BGNDE", "GNRL_RCEPT_BGNDE"],
+        "end": ["SUBSCRPT_RCEPT_ENDDE", "GNRL_RCEPT_ENDDE"],
+        "ty": ["HOUSE_TY"], "area": None,
+        "price": "LTTOT_TOP_AMOUNT",
+        "general": "SUPLY_HSHLDCO", "special": "SPSPLY_HSHLDCO",
+        "rental": False,
+    },
+    "PUBLIC_RENT": {
+        "plainDate": True,   # 날짜가 YYYYMMDD 로 온다
+        "detail": "getPblPvtRentLttotPblancDetail", "model": "getPblPvtRentLttotPblancMdl",
+        "begin": ["SUBSCRPT_RCEPT_BGNDE"], "end": ["SUBSCRPT_RCEPT_ENDDE"],
+        "ty": ["TP", "GP"], "area": "EXCLUSE_AR",
+        "price": "SUPLY_AMOUNT",
+        "general": "GNSPLY_HSHLDCO", "special": None,
+        "rental": True,
+    },
+    "OPTIONAL": {
+        "plainDate": True,   # 날짜가 YYYYMMDD 로 온다
+        "detail": "getOPTLttotPblancDetail", "model": "getOPTLttotPblancMdl",
+        "begin": ["SUBSCRPT_RCEPT_BGNDE", "GNRL_RCEPT_BGNDE"],
+        "end": ["SUBSCRPT_RCEPT_ENDDE", "GNRL_RCEPT_ENDDE"],
+        "ty": ["HOUSE_TY"], "area": None,
+        "price": "LTTOT_TOP_AMOUNT",
+        "general": "SUPLY_HSHLDCO", "special": None,
+        "rental": False,
+    },
 }
+
+# 공공지원 민간임대의 특별공급은 이름이 따로다
+PUBLIC_RENT_SPECIAL = [
+    ("SPSPLY_YGMN_HSHLDCO", "청년"),
+    ("SPSPLY_NEW_MRRG_HSHLDCO", "신혼"),
+    ("SPSPLY_AGED_HSHLDCO", "고령자"),
+]
 
 # SUBSCRPT_AREA_CODE_NM 은 축약형('경기')으로 온다.
 AREA_NAMES = {
@@ -160,6 +220,21 @@ def area_of(house_ty: str | None) -> float | None:
 def to_int(value) -> int | None:
     digits = re.sub(r"[^0-9]", "", str(value or ""))
     return int(digits) if digits else None
+
+
+def as_date(value) -> str | None:
+    """'20260907' 과 '2026-09-07' 을 모두 '2026-09-07' 로 맞춘다.
+
+    갈래마다 형식이 다르게 온다. 섞인 채로 문자열 비교를 하면 '-' 가
+    숫자보다 작아서 마감 판정이 뒤집힌다.
+    """
+    text = str(value or "").strip()
+    if not text:
+        return None
+    digits = re.sub(r"[^0-9]", "", text)
+    if len(digits) != 8:
+        return None
+    return f"{digits[:4]}-{digits[4:6]}-{digits[6:]}"
 
 
 def to_float(value) -> float | None:
@@ -296,21 +371,33 @@ def collect_notices(key: str, today: date, kakao_key: str = "") -> list[dict]:
     since = (today - timedelta(days=90)).isoformat()
     notices: list[dict] = []
 
-    for kind, (detail_op, model_op) in OPERATIONS.items():
+    def first(row: dict, names: list[str]):
+        for name in names:
+            value = row.get(name)
+            if value not in (None, "", " "):
+                return value
+        return None
+
+    for kind, spec in OPERATIONS.items():
         rows: list[dict] = []
         for page in range(1, 6):
-            page_rows = odcloud(detail_op, key, {
-                "page": page, "perPage": 100,
-                "cond[RCRIT_PBLANC_DE::GTE]": since,
-            })
+            try:
+                # 모집공고일 형식도 갈래마다 다르다. 안 맞으면 조건이 무시된다.
+                page_rows = odcloud(spec["detail"], key, {
+                    "page": page, "perPage": 100,
+                    "cond[RCRIT_PBLANC_DE::GTE]":
+                        since.replace("-", "") if spec.get("plainDate") else since,
+                })
+            except Exception as error:   # 한 갈래가 막혀도 나머지는 살린다
+                print(f"  ! {kind} 조회 실패: {error}", file=sys.stderr)
+                break
             rows += page_rows
             if len(page_rows) < 100:
                 break
 
         for row in rows:
-            remnant = kind == "REMNANT"
-            begin = row.get("SUBSCRPT_RCEPT_BGNDE" if remnant else "RCEPT_BGNDE")
-            end = row.get("SUBSCRPT_RCEPT_ENDDE" if remnant else "RCEPT_ENDDE") or begin
+            begin = as_date(first(row, spec["begin"]))
+            end = as_date(first(row, spec["end"])) or begin
             if not end or end < today.isoformat():
                 continue  # 이미 마감
 
@@ -333,33 +420,30 @@ def collect_notices(key: str, today: date, kakao_key: str = "") -> list[dict]:
                 sigungu = sigungu or place["sigungu"]
 
             units = []
-            for unit in odcloud(model_op, key, {
+            for unit in odcloud(spec["model"], key, {
                 "page": 1, "perPage": 50,
                 "cond[HOUSE_MANAGE_NO::EQ]": house_manage_no,
                 "cond[PBLANC_NO::EQ]": pblanc_no,
             }):
-                # 오피스텔은 주택형별 필드 이름이 다르다.
-                #   APT·무순위 : HOUSE_TY(주택형=전용면적) · LTTOT_TOP_AMOUNT
-                #   오피스텔   : TP(타입) · EXCLUSE_AR(전용면적) · SUPLY_AMOUNT
-                # APT 필드를 그대로 읽으면 분양가와 면적이 통째로 빈다.
-                if kind == "OFFICETEL":
-                    label = unit.get("TP") or unit.get("GP") or ""
-                    area = to_float(unit.get("EXCLUSE_AR"))
-                    price = to_int(unit.get("SUPLY_AMOUNT"))
-                else:
-                    label = unit.get("HOUSE_TY")
-                    area = area_of(unit.get("HOUSE_TY"))
-                    price = to_int(unit.get("LTTOT_TOP_AMOUNT"))
+                label = first(unit, spec["ty"]) or ""
+                # 전용면적은 갈래마다 오는 방식이 다르다.
+                # APT·무순위·임의공급은 주택형 문자열이 곧 전용면적('055.9700A'),
+                # 오피스텔·공공지원임대는 EXCLUSE_AR 로 따로 온다.
+                area = (to_float(unit.get(spec["area"])) if spec["area"]
+                        else area_of(label))
+                special_fields = (PUBLIC_RENT_SPECIAL if kind == "PUBLIC_RENT"
+                                  else SPECIAL_FIELDS)
 
                 units.append({
                     "ty": label,
                     "area": area,
-                    "gen": to_int(unit.get("SUPLY_HSHLDCO")) or 0,
-                    "spc": to_int(unit.get("SPSPLY_HSHLDCO")) or 0,
-                    "price": price,
+                    "gen": to_int(unit.get(spec["general"])) or 0,
+                    "spc": (to_int(unit.get(spec["special"])) or 0
+                            if spec["special"] else 0),
+                    "price": to_int(unit.get(spec["price"])),
                     "sp": {
                         name: to_int(unit.get(field))
-                        for field, name in SPECIAL_FIELDS
+                        for field, name in special_fields
                         if to_int(unit.get(field))
                     },
                 })
@@ -375,6 +459,12 @@ def collect_notices(key: str, today: date, kakao_key: str = "") -> list[dict]:
             # 주택상세구분코드 01:민영, 03:국민. 오피스텔·무순위는 이 코드의 뜻이
             # 달라서(01:도시형생활주택 …) APT 에만 적용한다.
             national = kind == "APT" and str(row.get("HOUSE_DTL_SECD") or "") == "03"
+
+            # 같은 오퍼레이션 안에도 갈래가 있다. 무순위와 불법행위 재공급이
+            # 한데 오고, APT 에는 민간사전청약·신혼희망타운이 섞인다.
+            # 판정은 큰 유형으로 하되 화면에는 정확한 이름을 보여 준다.
+            kind_name = (str(row.get("HOUSE_DTL_SECD_NM") or "").strip()
+                         or str(row.get("HOUSE_SECD_NM") or "").strip())
 
             flags = []
             if speculation:
@@ -400,6 +490,8 @@ def collect_notices(key: str, today: date, kakao_key: str = "") -> list[dict]:
                 "lng": place["lng"] if place else None,
                 "builder": (row.get("CNSTRCT_ENTRPS_NM")
                             or row.get("BSNS_MBY_NM") or "")[:40],
+                "kindName": kind_name,
+                "isRental": spec["rental"],
                 "isNationalHousing": national,
                 "isSpeculationArea": speculation or adjustment,
                 "speculation": speculation,          # 투기과열지구
@@ -410,10 +502,11 @@ def collect_notices(key: str, today: date, kakao_key: str = "") -> list[dict]:
                 "area": units[0]["area"] if units else None,
                 "supply": to_int(row.get("TOT_SUPLY_HSHLDCO")),
                 "begin": begin, "end": end,
-                "special": row.get("SPSPLY_RCEPT_BGNDE"),
-                "rank1": (row.get("GNRL_RNK1_CRSPAREA_RCPTDE")
-                          or row.get("GNRL_RNK1_ETC_AREA_RCPTDE")),
-                "announce": row.get("PRZWNER_PRESNATN_DE"),
+                "special": as_date(row.get("SPSPLY_RCEPT_BGNDE")),
+                "rank1": as_date(row.get("GNRL_RNK1_CRSPAREA_RCPTDE")
+                                 or row.get("GNRL_RNK1_ETC_AREA_RCPTDE")
+                                 or row.get("GNRL_RCEPT_BGNDE")),
+                "announce": as_date(row.get("PRZWNER_PRESNATN_DE")),
                 "moveIn": row.get("MVN_PREARNGE_YM"),
                 "flags": flags,
                 "url": row.get("PBLANC_URL") or row.get("HMPG_ADRES") or "",
