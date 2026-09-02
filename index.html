@@ -1042,10 +1042,14 @@
 
   function checkBudget(p, n) {
     // 임대는 분양가가 아니라 보증금·임대료다. 같은 잣대로 재면 엉뚱한 답이 나온다.
+    // checkBudget 은 { reason, gap, cash } 를 돌려준다 — 모양을 지켜야 한다.
     if (n.isRental) {
-      return reason("BUDGET", "자금 요건", true,
-        "임대 공급 — 보증금·임대료 기준이라 분양가로 판단하지 않습니다. 공고문을 확인하세요.",
-        false);
+      return {
+        reason: reason("BUDGET", "자금 요건", true,
+          "임대 공급 — 보증금·임대료 기준이라 분양가로 판단하지 않습니다. 공고문을 확인하세요.",
+          false),
+        gap: 0, cash: null
+      };
     }
 
     if (n.price === null || n.price === undefined) {
