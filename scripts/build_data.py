@@ -23,7 +23,7 @@ import sys
 import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 
 APPLYHOME_BASE = "https://api.odcloud.kr/api/ApplyhomeInfoDetailSvc/v1"
 RTMS_URL = (
@@ -584,7 +584,9 @@ def main() -> int:
     if not kakao_key:
         print("      (KAKAO_REST_API_KEY 없음 — 좌표 없이 진행합니다)")
 
-    today = date.today()
+    # GitHub 러너는 UTC 로 돈다. 06:00 KST 는 전날 21:00 UTC 라
+    # date.today() 를 쓰면 기준일이 하루 전으로 잡히고 마감 판정도 어긋난다.
+    today = datetime.now(timezone(timedelta(hours=9))).date()
     print(f"[1/4] 청약 공고 수집 (기준일 {today})")
     notices = collect_notices(key, today, kakao_key)
     priced = sum(1 for n in notices if n["price"])
