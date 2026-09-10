@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>오늘의 청약 개인정보처리방침</title>
+<style>
+  :root {
+    --paper: #eef0f4; --surface: #ffffff; --line: #e2e5ec;
+    --ink: #16202e; --ink-2: #5c6675; --ink-3: #8a93a2;
+    --primary: #1b3a6b; --accent: #f2a93b;
+    --sans: "IBM Plex Sans KR", system-ui, -apple-system, "Malgun Gothic", sans-serif;
+    --serif: "Hahmlet", Georgia, serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #0f141b; --surface: #171d26; --line: #2a323d;
+      --ink: #e6eaf0; --ink-2: #a3adbb; --ink-3: #78828f; --primary: #7ba3dd;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #0f141b; --surface: #171d26; --line: #2a323d;
+    --ink: #e6eaf0; --ink-2: #a3adbb; --ink-3: #78828f; --primary: #7ba3dd;
+  }
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--sans);
+         font-size: 15px; line-height: 1.7; }
+  main { max-width: 640px; margin: 0 auto; padding: 32px 20px 64px; }
+  h1 { font-family: var(--serif); font-size: 24px; margin: 0 0 4px; letter-spacing: -.01em; }
+  .meta { color: var(--ink-3); font-size: 13px; margin: 0 0 28px; }
+  h2 { font-size: 16px; margin: 28px 0 8px; color: var(--primary); }
+  p, li { margin: 0 0 8px; color: var(--ink-2); }
+  ul { padding-left: 20px; margin: 0 0 8px; }
+  b { color: var(--ink); }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+          padding: 14px 16px; margin: 12px 0; }
+  .card p { margin: 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0; }
+  th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line);
+           vertical-align: top; color: var(--ink-2); }
+  th { color: var(--ink-3); font-weight: 600; font-size: 12.5px; }
+  a { color: var(--primary); }
+</style>
+</head>
+<body>
+<main>
+  <h1>오늘의 청약 개인정보처리방침</h1>
+  <p class="meta">시행일 2026년 9월 10일 · 앱 패키지 <code>com.ourcheck.app</code></p>
+
+  <div class="card">
+    <p><b>요약 —</b> 이 앱은 서버가 없습니다. 입력하신 자산·거주지·무주택 여부·청약통장 정보는
+    <b>사용하시는 기기 안에만 저장</b>되며, 개발자를 포함해 어디로도 전송되지 않습니다.
+    앱을 삭제하면 모든 데이터가 함께 삭제됩니다.</p>
+  </div>
+
+  <h2>1. 수집하는 개인정보</h2>
+  <p>개발자는 개인정보를 <b>수집하지 않습니다.</b> 회원가입이 없고, 서버가 없으며,
+  분석·광고 도구를 사용하지 않습니다.</p>
+  <p>다음 정보는 청약 자격 판정을 위해 <b>기기 내부 저장소에만</b> 보관됩니다.</p>
+  <ul>
+    <li>가용 자금(현금·대출 가능액), 가구 구성, 혼인 신고일, 자녀 수</li>
+    <li>거주 시·도, 전입일, 무주택 여부와 기간, 주택 소유 여부</li>
+    <li>청약통장 종류, 가입일, 납입 횟수, 총 납입액</li>
+    <li>알림 수신 여부와 시각</li>
+  </ul>
+
+  <h2>2. 외부 서비스와의 통신</h2>
+  <p>앱은 공고·시세·법령 정보를 받기 위해 아래 공개 API 를 호출합니다.
+  이 요청에는 위 1항의 개인정보가 <b>포함되지 않습니다.</b> 통신 과정에서 각 서비스 제공자가
+  IP 주소 등 기술적 정보를 수신할 수 있으며, 이는 해당 제공자의 정책을 따릅니다.</p>
+  <table>
+    <tr><th>서비스</th><th>용도</th><th>보내는 것</th></tr>
+    <tr><td>한국부동산원 청약홈<br>(공공데이터포털)</td><td>청약 공고와 주택형·분양가</td><td>조회 조건(날짜·공고번호)</td></tr>
+    <tr><td>국토교통부 실거래가<br>(공공데이터포털)</td><td>주변 아파트 매매 시세</td><td>지역 코드·조회 월</td></tr>
+    <tr><td>행정안전부 전자관보<br>(공공데이터포털)</td><td>주택 관련 법령 공포·입법예고</td><td>검색어·기간</td></tr>
+    <tr><td>카카오 로컬 · 카카오맵</td><td>공고 주소의 좌표 변환, 지도 표시</td><td>공고의 공급 위치 주소(사용자 주소 아님)</td></tr>
+  </table>
+
+  <h2>3. 알림</h2>
+  <p>하루 한 번 조건에 맞는 새 공고를 알립니다. 알림은 <b>기기 안에서 직접</b> 만들어지며
+  푸시 서버를 거치지 않습니다. 앱 설정에서 언제든 끌 수 있습니다.</p>
+
+  <h2>4. 보관과 삭제</h2>
+  <ul>
+    <li>데이터는 기기의 앱 전용 저장 공간에만 있으며 다른 앱이 접근할 수 없습니다.</li>
+    <li><b>MY &rarr; 데이터 초기화</b>로 입력한 조건을 즉시 삭제할 수 있습니다.</li>
+    <li>앱을 삭제하면 캐시를 포함한 모든 데이터가 함께 삭제됩니다.</li>
+    <li>기기 간 동기화나 백업은 제공하지 않습니다.</li>
+  </ul>
+
+  <h2>5. 아동의 개인정보</h2>
+  <p>이 앱은 청약 자격이 있는 성인을 대상으로 하며, 만 14세 미만 아동의 정보를 의도적으로
+  수집하지 않습니다(수집 자체를 하지 않습니다).</p>
+
+  <h2>6. 판정 결과의 성격</h2>
+  <p>앱이 보여 주는 신청 가능 여부는 입력한 조건과 공개된 규칙으로 계산한 <b>참고용</b>
+  정보입니다. 최종 자격은 청약홈의 모집공고문이 기준입니다.</p>
+
+  <h2>7. 변경과 문의</h2>
+  <p>이 방침이 바뀌면 이 페이지에 시행일과 함께 갱신합니다.
+  문의는 <a href="https://github.com/Soyoungnadk">github.com/Soyoungnadk</a> 로 주세요.</p>
+</main>
+</body>
+</html>
